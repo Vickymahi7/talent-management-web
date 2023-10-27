@@ -1,0 +1,37 @@
+:root {
+  --color-text: #000;
+  --color-text-light: #666;
+  --color-heading: #54b848;
+  --color-link: #000;
+  --color-link-hover: #666;
+  --color-background: #eef8ed;
+  --color-background-light: #f8fcf7;
+  --color-form-el-border-focus: #000;
+  --color-card: #fff;
+
+  --card-radius: 5px;
+  --form-el-border-radius: 5px;
+  --form-el-border: 1px solid #cccccc;
+  --card-border: 1px solid #cccccc;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
+    sans-serif;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  background: var(--color-background);
+  margin: 1rem 1.5rem;
+  height: calc(100vh - 2rem);
+  line-height: 1.5;
+  transition: color 0.5s, background-color 0.5s;
+}
+
+a {
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+a:hover {
+  color: var(--color-link-hover);
+}
