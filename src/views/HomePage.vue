@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import axios from '@/plugins/axios.js'
 export default {
   data() {
@@ -13,19 +13,20 @@ export default {
     }
   },
   methods: {
-    loginUser() {
-      axios.post('/login', this.loginData)
-        .then((response) => {
-          localStorage.setItem("accessToken", response.data.accessToken)
-          this.$router.push('/hrprofilemanagement');
-        })
-        .catch(error => {
-          this.error = true;
-          setTimeout(() => {
-            this.error = false;
-          }, 5000)
-          this.errorMessage = error.response.data.mesaage;
-        })
+    async loginUser() {
+      try {
+        const response = await axios.post('/login', this.loginData)
+        // .then((response) => {
+        localStorage.setItem("accessToken", response.data.accessToken)
+        this.$router.push('/hrprofilemanagement');
+      } catch (error) {
+        console.log(error)
+        this.error = true;
+        setTimeout(() => {
+          this.error = false;
+        }, 5000)
+        this.errorMessage = error.response.data.mesaage;
+      }
     },
   }
 }
@@ -65,7 +66,7 @@ export default {
           </div>
         </div>
         <div class="text-center">
-          <button class="btn btn-dark" type="submit" @click.prevent="loginUser()">
+          <button class="btn primary-btn" type="submit" @click.prevent="loginUser()">
             Login
           </button>
         </div>

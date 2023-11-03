@@ -2,26 +2,26 @@
   <div class="left-menu content-card">
     <ul>
       <li>
-        <a href="">Manage</a>
+        <a href="#">Manage</a>
         <ul class="sub-menu">
           <li>
-            <a href="" @click.prevent="$router.push('/hrprofilemanagement')" class="active">— Manage HR Profile</a>
+            <a href="#" @click="$router.push('/hrprofilemanagement')" class="active">- Manage HR Profile</a>
           </li>
         </ul>
       </li>
       <li>
-        <a href="">User</a>
+        <a href="#">User</a>
         <ul class="sub-menu">
           <li>
-            <a href="" @click.prevent="$router.push('/usermanagement')">— User Management</a>
+            <a href="#" @click="$router.push('/usermanagement')">- User Management</a>
           </li>
         </ul>
       </li>
       <li>
-        <a href="">User Activity</a>
+        <a href="#">User Activity</a>
         <ul class="sub-menu">
           <li>
-            <a href="" @click.prevent="">— Talent Pool</a>
+            <a href="#" @click.prevent="">- Talent Pool</a>
           </li>
         </ul>
       </li>

@@ -1,11 +1,11 @@
-<script setup>
-import LeftMenu from '@/components/layoutComponents/LeftMenu.vue';
+<script setup lang="ts">
+import LeftMenu from '../components/layoutComponents/LeftMenu.vue';
 </script>
 
 <template>
 	<nav class="navbar navbar-expand-lg p-0">
 		<a class="navbar-brand p-0" href="#">
-			<img src="@/assets/images/logo.png" height="60" class="d-inline-block align-middle" alt="">
+			<img src="@/assets/img/logo.png" height="60" class="d-inline-block align-middle" alt="">
 		</a>
 		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
 			aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,7 +31,7 @@ import LeftMenu from '@/components/layoutComponents/LeftMenu.vue';
 					<a class="nav-link dropdown-toggle  d-flex align-items-center" href="#" id="navbarDropdown" role="button"
 						data-bs-toggle="dropdown" aria-expanded="false">
 						<span class="d-flex flex-column">
-							<span class="font-weight-bold">Vignesh</span>
+							<span class="fw-bold">Vignesh</span>
 							<span class="small text-muted">Administrator</span>
 						</span>
 					</a>
