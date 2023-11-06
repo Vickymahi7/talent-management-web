@@ -3,9 +3,9 @@ import LeftMenu from '../components/layoutComponents/LeftMenu.vue';
 </script>
 
 <template>
-	<nav class="navbar navbar-expand-lg p-0">
-		<a class="navbar-brand p-0" href="#">
-			<img src="@/assets/img/logo.png" height="60" class="d-inline-block align-middle" alt="">
+	<nav class="navbar navbar-expand-lg">
+		<a class="navbar-brand app-logo" href="#">
+			<img src="@/assets/img/logo.png" class="d-inline-block align-middle" alt="">
 		</a>
 		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
 			aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">

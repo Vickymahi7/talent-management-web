@@ -1,7 +1,9 @@
 <script lang="ts">
 import { useVuelidate } from '@vuelidate/core'
 import { required, email } from '@vuelidate/validators'
+import { Modal } from 'bootstrap'
 import axios from '@/plugins/axios'
+
 export default {
   setup() {
     return { v$: useVuelidate() }
@@ -11,8 +13,11 @@ export default {
     return {
       elements: {
         primaryInfoEdit: false,
-        contactInfoEdit: false,
+        personalInfoEdit: false,
         aboutInfoEdit: false,
+        skillEdit: false,
+        summaryEdit: false,
+        tabItemEdit: false,
       },
 
       hrProfile: {
@@ -32,6 +37,7 @@ export default {
         location: '',
         ctc: '',
         objective: '',
+        summary: '',
         note: '',
         gender: '',
         date_of_birth: '',
@@ -59,6 +65,37 @@ export default {
         work_experience: [],
         project: [],
         education: [],
+        docs: [],
+      },
+
+      workExperienceData: {
+        company: '',
+        position: '',
+        location: '',
+        start_date: '',
+        end_date: '',
+        description: '',
+      },
+      educationData: {
+        degree: '',
+        major: '',
+        university: '',
+        location: '',
+        start_date: '',
+        end_date: '',
+      },
+      projectData: {
+        title: '',
+        start_date: '',
+        end_date: '',
+        client: '',
+        technology: '',
+        description: '',
+        location: '',
+      },
+      docsData: {
+        title: '',
+        path: '',
       },
     }
   },
@@ -97,27 +134,22 @@ export default {
           if (response.status == 200) {
             this.getHrProfile();
             this.elements.primaryInfoEdit = false;
-            this.elements.contactInfoEdit = false;
+            this.elements.personalInfoEdit = false;
             this.elements.aboutInfoEdit = false;
+            this.elements.skillEdit = false;
+            this.elements.summaryEdit = false;
+            this.elements.tabItemEdit = false;
           }
         }
       } catch (error) {
         console.log(error)
       }
     },
-    primaryInfoUpdate() {
+    updatePrimaryInfo() {
       const data = {
         email_id: this.hrProfile.email_id,
-
         location: this.hrProfile.location,
         ctc: this.hrProfile.ctc,
-      }
-
-      this.updateHrProfile(data);
-    },
-    contactInfoUpdate() {
-      const data = {
-        email_id: this.hrProfile.email_id,
         status: this.hrProfile.status,
         mobile: this.hrProfile.mobile,
         linkedin_id: this.hrProfile.linkedin_id,
@@ -125,14 +157,95 @@ export default {
 
       this.updateHrProfile(data);
     },
-    aboutInfoUpdate() {
+    updatePersonalInfo() {
+      const data = {
+        email_id: this.hrProfile.email_id,
+
+        gender: this.hrProfile.gender,
+        date_of_birth: this.hrProfile.date_of_birth,
+        location: this.hrProfile.location,
+        buiding_number: this.hrProfile.buiding_number,
+        street_name: this.hrProfile.street_name,
+        city: this.hrProfile.city,
+        state: this.hrProfile.state,
+        country: this.hrProfile.country,
+        postal_code: this.hrProfile.postal_code,
+      }
+
+      this.updateHrProfile(data);
+    },
+    updateAboutInfo() {
       const data = {
         email_id: this.hrProfile.email_id,
         objective: this.hrProfile.objective,
       }
 
       this.updateHrProfile(data);
-    }
+    },
+    updateSkill() {
+      const data = {
+        email_id: this.hrProfile.email_id,
+        skills: this.hrProfile.skills,
+      }
+
+      this.updateHrProfile(data);
+    },
+    updateSummary() {
+      const data = {
+        email_id: this.hrProfile.email_id,
+        summary: this.hrProfile.summary,
+      }
+
+      this.updateHrProfile(data);
+    },
+    updateProfileChildItems(itemData, itemKey) {
+      let itemVal = null;
+      if (this.elements.tabItemEdit) {
+        itemVal = this.hrProfile[itemKey];
+      }
+      else {
+        itemVal = this.hrProfile[itemKey] ? this.hrProfile[itemKey].concat([itemData]) : [itemData];
+      }
+
+      const data = {
+        email_id: this.hrProfile.email_id,
+      }
+      data[itemKey] = itemVal;
+
+      this.updateHrProfile(data);
+    },
+    addSkills(event) {
+      const skill = event.target.value;
+      if (!this.hrProfile.skills.includes(skill)) {
+        this.hrProfile.skills.push(skill);
+        event.target.value = '';
+      }
+    },
+    removeSkill(skill) {
+      this.hrProfile.skills = this.hrProfile.skills.filter(item => item != skill);
+    },
+    showProfileChildItemEdit(itemKey, itemData, modalId) {
+      this.elements.tabItemEdit = true;
+      if (itemKey === 'work_experience') {
+        this.workExperienceData = itemData;
+      }
+      else if (itemKey === 'education') {
+        this.educationData = itemData;
+      }
+      else if (itemKey === 'project') {
+        this.projectData = itemData;
+      }
+      const modal = new Modal(document.getElementById(modalId), {
+        keyboard: false
+      })
+      modal.show();
+    },
+    removeProfileChildItem(key, item) {
+      // remove the object with its reference
+      this.hrProfile[key] = this.hrProfile[key].filter(data => data !== item);
+
+      this.updateHrProfile(this.hrProfile);
+    },
   }
 }
 </script>
@@ -156,128 +269,125 @@ export default {
         </div>
       </div>
       <div class="profile-prime-info content-card">
-        <div class="profile-container">
-          <div class="profile-edit-icon">
-            <span v-if="elements.primaryInfoEdit" class="icon-btn" @click="primaryInfoUpdate">
-              <font-awesome-icon :icon="['fas', 'check']" />
+        <div class="d-flex flex-column">
+          <h6 class="label-text mb-2 w-100">Primary Info
+            <span v-if="elements.primaryInfoEdit">
+              <span class="icon-btn float-end" @click="elements.primaryInfoEdit = false">
+                <font-awesome-icon :icon="['fas', 'xmark']" />
+              </span>
+              <span class="icon-btn float-end me-1" @click="updatePrimaryInfo">
+                <font-awesome-icon :icon="['fas', 'check']" />
+              </span>
             </span>
-            <span v-else class="icon-btn" @click="elements.primaryInfoEdit = true" title="Update">
+            <span v-else class="icon-btn float-end" @click="elements.primaryInfoEdit = true">
               <font-awesome-icon :icon="['fas', 'pencil-alt']" />
             </span>
-          </div>
-          <div class="container">
-            <div class="row align-items-center">
-              <div class="col-lg-6">
-                <p class="label-text">Years of Experience</p>
+          </h6>
+          <div class="primary-info">
+            <div class="profile-container">
+              <div class="row align-items-center mb-1">
+                <div class="col-lg-4">
+                  <p class="label-text">Years of Experience</p>
+                </div>
+                <div class="col-lg-8">
+                  <p>--experience--</p>
+                </div>
               </div>
-              <div class="col-lg-6">
-                <p>--experience--</p>
+              <div class="row align-items-center mb-1">
+                <div class="col-lg-4">
+                  <p class="label-text">CTC</p>
+                </div>
+                <div class="col-lg-8">
+                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.ctc">
+                  <p v-else>{{ hrProfile.ctc }}</p>
+                </div>
+              </div>
+              <div class="row align-items-center mb-1">
+                <div class="col-lg-4">
+                  <p class="label-text">Location</p>
+                </div>
+                <div class="col-lg-8">
+                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.location">
+                  <p v-else>{{ hrProfile.location }}</p>
+                </div>
+              </div>
+              <div class="separator my-3"></div>
+              <div class="row align-items-center mb-1">
+                <div class="col-6">
+                  <p class="label-text">
+                    <span class="icon-btn me-1">
+                      <font-awesome-icon :icon="['fas', 'paperclip']" />
+                    </span>
+                    --resume name--
+                  </p>
+                </div>
+                <div class="col-6 text-end">
+                  <button class="btn primary-btn me-2 br-0" type="button">
+                    Upload
+                  </button>
+                  <button class="btn primary-btn br-0" type="button">
+                    Show
+                  </button>
+                </div>
               </div>
             </div>
-            <div class="row align-items-center">
-              <div class="col-lg-6">
-                <p class="label-text">CTC</p>
+            <div class="profile-container">
+              <div class="row align-items-center mb-1">
+                <div class="col-lg-4">
+                  <p class="label-text">Profile Status</p>
+                </div>
+                <div class="col-lg-8">
+                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.status">
+                  <p v-else>{{ hrProfile.status }}</p>
+                </div>
               </div>
-              <div class="col-lg-6">
-                <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                  v-model="hrProfile.ctc">
-                <p v-else>{{ hrProfile.ctc }}</p>
+              <div class="row align-items-center mb-1">
+                <div class="col-lg-4">
+                  <p class="label-text">Last Updated</p>
+                </div>
+                <div class="col-lg-8">
+                  <p>{{ hrProfile.last_updated_dt }}</p>
+                </div>
               </div>
-            </div>
-            <div class="row align-items-center">
-              <div class="col-lg-6">
-                <p class="label-text">Location</p>
-              </div>
-              <div class="col-lg-6">
-                <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                  v-model="hrProfile.location">
-                <p v-else>{{ hrProfile.location }}</p>
-              </div>
-            </div>
-            <div class="separator my-3"></div>
-            <div class="row align-items-center g-0">
-              <div class="col-6">
-                <p class="label-text">
-                  <span class="icon-btn me-1">
-                    <font-awesome-icon :icon="['fas', 'paperclip']" />
+              <div class="d-flex align-items-center mb-1 ">
+                <span>
+                  <span class="icon-btn me-2">
+                    <font-awesome-icon :icon="['fas', 'envelope']" />
                   </span>
-                  --resume name--
+                </span>
+                <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                  v-model="hrProfile.email_id" />
+                <p v-else class="label-text d-inline-block">
+                  {{ hrProfile.email_id }}
                 </p>
               </div>
-              <div class="col-6 text-end">
-                <button class="btn primary-btn me-2 br-0" type="button">
-                  Upload
-                </button>
-                <button class="btn primary-btn br-0" type="button">
-                  Show
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="profile-container">
-          <div class="profile-edit-icon">
-            <span v-if="elements.contactInfoEdit" class="icon-btn" @click="contactInfoUpdate">
-              <font-awesome-icon :icon="['fas', 'check']" />
-            </span>
-            <span v-else class="icon-btn" @click="elements.contactInfoEdit = true">
-              <font-awesome-icon :icon="['fas', 'pencil-alt']" />
-            </span>
-          </div>
-          <div class="container">
-            <div class="row align-items-center">
-              <div class="col-lg-6">
-                <p class="label-text">Profile Status</p>
-              </div>
-              <div class="col-lg-6">
-                <input v-if="elements.contactInfoEdit" type="text" class="form-control form-control-sm"
-                  v-model="hrProfile.status">
-                <p v-else>{{ hrProfile.status }}</p>
-              </div>
-            </div>
-            <div class="row align-items-center mb-2">
-              <div class="col-lg-6">
-                <p class="label-text">Last Updated</p>
-              </div>
-              <div class="col-lg-6">
-                <p>{{ hrProfile.last_updated_dt }}</p>
-              </div>
-            </div>
-            <div class="d-flex align-items-center mb-1 ">
-              <span>
-                <span class="icon-btn me-2">
-                  <font-awesome-icon :icon="['fas', 'envelope']" />
+              <div class="d-flex align-items-center mb-1">
+                <span>
+                  <span class="icon-btn me-2">
+                    <font-awesome-icon :icon="['fas', 'phone']" />
+                  </span>
                 </span>
-              </span>
-              <input v-if="elements.contactInfoEdit" type="text" class="form-control form-control-sm"
-                v-model="hrProfile.email_id" />
-              <p v-else class="label-text d-inline-block">
-                {{ hrProfile.email_id }}
-              </p>
-            </div>
-            <div class="d-flex align-items-center mb-1">
-              <span>
-                <span class="icon-btn me-2">
-                  <font-awesome-icon :icon="['fas', 'phone']" />
+                <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                  v-model="hrProfile.mobile">
+                <p v-else class="label-text d-inline-block">
+                  {{ hrProfile.mobile }}
+                </p>
+              </div>
+              <div class="d-flex align-items-center mb-1">
+                <span>
+                  <span class="icon-btn me-2">
+                    <font-awesome-icon :icon="['fab', 'linkedin']" />
+                  </span>
                 </span>
-              </span>
-              <input v-if="elements.contactInfoEdit" type="text" class="form-control form-control-sm"
-                v-model="hrProfile.mobile">
-              <p v-else class="label-text d-inline-block">
-                {{ hrProfile.mobile }}
-              </p>
-            </div>
-            <div class="d-flex align-items-center mb-1">
-              <span>
-                <span class="icon-btn me-2">
-                  <font-awesome-icon :icon="['fab', 'linkedin']" />
-                </span>
-              </span>
-              <input v-if="elements.contactInfoEdit" type="text" class="form-control form-control-sm"
-                v-model="hrProfile.linkedin_id">
-              <p v-else class="label-text d-inline-block">
-                {{ hrProfile.linkedin_id }}
-              </p>
+                <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                  v-model="hrProfile.linkedin_id">
+                <p v-else class="label-text d-inline-block">
+                  {{ hrProfile.linkedin_id }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -285,10 +395,15 @@ export default {
     </div>
     <div class="profile-body">
       <div class="profile-description">
-        <div class="content-card flex-fill">
+        <div class="content-card">
           <h6 class="label-text mb-2">About
-            <span v-if="elements.aboutInfoEdit" class="icon-btn float-end" @click="aboutInfoUpdate">
-              <font-awesome-icon :icon="['fas', 'check']" />
+            <span v-if="elements.aboutInfoEdit">
+              <span class="icon-btn float-end" @click="elements.aboutInfoEdit = false">
+                <font-awesome-icon :icon="['fas', 'xmark']" />
+              </span>
+              <span class="icon-btn float-end me-1" @click="updateAboutInfo">
+                <font-awesome-icon :icon="['fas', 'check']" />
+              </span>
             </span>
             <span v-else class="icon-btn float-end" @click="elements.aboutInfoEdit = true">
               <font-awesome-icon :icon="['fas', 'pencil-alt']" />
@@ -300,19 +415,40 @@ export default {
             {{ hrProfile.objective }}
           </p>
         </div>
-        <div class="content-card flex-fill">
+        <div class="content-card">
           <h6 class="label-text">Skills
-            <span class="icon-btn float-end">
+            <span v-if="elements.skillEdit" class="float-end">
+              <span class="icon-btn me-1" @click="updateSkill">
+                <font-awesome-icon :icon="['fas', 'check']" />
+              </span>
+              <span class="icon-btn" @click="elements.skillEdit = false">
+                <font-awesome-icon :icon="['fas', 'xmark']" />
+              </span>
+            </span>
+            <span v-else class="icon-btn" @click="elements.skillEdit = true">
               <font-awesome-icon :icon="['fas', 'pencil-alt']" />
             </span>
           </h6>
+          <input v-if="elements.skillEdit" type="text" @keyup.enter.prevent="addSkills"
+            class="form-control form-control-sm mt-2 mb-1" placeholder="Press Enter to Add Skill">
           <p class="profile-short-content">
-            <span v-for="skill, index in hrProfile.skills" :key="index"
-              class="badge bg-green fw-normal color-light me-1">{{ skill
-              }}</span>
+            <template v-if="elements.skillEdit">
+              <span v-for="skill, index in hrProfile.skills" :key="index"
+                class="badge bg-green fw-normal color-light me-1">
+                <span class="pe-1">{{ skill }}</span>
+                <a href="#" class="d-inline-block " @click="removeSkill(skill)">
+                  <font-awesome-icon :icon="['fas', 'xmark']" />
+                </a>
+              </span>
+            </template>
+            <template v-else>
+              <span v-for="skill, index in hrProfile.skills" :key="index"
+                class="badge bg-green fw-normal color-light me-1">{{ skill
+                }}</span>
+            </template>
           </p>
         </div>
-        <div class="content-card flex-fill">
+        <div class="content-card">
           <h6 class="label-text">Note
             <!-- <span class="icon-btn float-end">
               <font-awesome-icon :icon="['fas', 'pencil-alt']" />
@@ -351,26 +487,44 @@ export default {
         <div class="tab-content" id="nav-tabContent">
           <div class="tab-pane fade show active" id="nav-summary" role="tabpanel" aria-labelledby="nav-summary-tab">
             <div class="content-list">
-              <div class="list-item">
-                <p>Summary</p>
+              <div class="d-block text-end mb-2">
+                <span v-if="elements.summaryEdit">
+                  <span class="icon-btn me-1" @click="updateSummary">
+                    <font-awesome-icon :icon="['fas', 'check']" />
+                  </span>
+                  <span class="icon-btn" @click="elements.summaryEdit = false">
+                    <font-awesome-icon :icon="['fas', 'xmark']" />
+                  </span>
+                </span>
+                <span v-else class="icon-btn" @click="elements.summaryEdit = true">
+                  <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                </span>
+              </div>
+              <div class="summary-content">
+                <textarea v-if="elements.summaryEdit" v-model="hrProfile.summary" name="" id=""
+                  class="form-control h-100"></textarea>
+                <p v-else class="">
+                  {{ hrProfile.summary }}
+                </p>
               </div>
             </div>
           </div>
           <div class="tab-pane fade" id="nav-experience" role="tabpanel" aria-labelledby="nav-experience-tab">
             <div class="content-list">
-              <template v-if="hrProfile.work_experience.length > 0">
-                <div v-for="work_experience, index in hrProfile.work_experience" :key="index" class="list-item">
+              <template v-if="hrProfile.work_experience?.length > 0">
+                <div v-for="workExperience, index in hrProfile.work_experience" :key="index" class="list-item">
                   <div>
-                    <p class="label-text">{{ work_experience.company }}</p>
-                    <p>{{ work_experience.position }}</p>
-                    <p>{{ work_experience.start_date }} {{ work_experience.end_date }} | {{ work_experience.location }}.
+                    <p class="label-text">{{ workExperience.company }}</p>
+                    <p>{{ workExperience.position }}</p>
+                    <p>{{ workExperience.start_date }} {{ workExperience.end_date }} | {{ workExperience.location }}.
                     </p>
                   </div>
                   <div class="text-end">
-                    <span class="icon-btn me-2">
+                    <span class="icon-btn me-2"
+                      @click="showProfileChildItemEdit('work_experience', workExperience, 'workExperienceAddEditModal')">
                       <font-awesome-icon :icon="['fas', 'pencil-alt']" />
                     </span>
-                    <span class="icon-btn">
+                    <span class="icon-btn" @click="removeProfileChildItem('work_experience', workExperience)">
                       <font-awesome-icon :icon="['fas', 'trash']" />
                     </span>
                   </div>
@@ -380,7 +534,8 @@ export default {
                 <p>No record found</p>
               </div>
               <div class="py-3">
-                <button class="btn primary-btn br-0" type="button">
+                <button class="btn primary-btn br-0" type="button" data-bs-toggle="modal"
+                  data-bs-target="#workExperienceAddEditModal">
                   Add Work Experience
                 </button>
               </div>
@@ -388,7 +543,7 @@ export default {
           </div>
           <div class="tab-pane fade" id="nav-education" role="tabpanel" aria-labelledby="nav-education-tab">
             <div class="content-list">
-              <template v-if="hrProfile.education.length > 0">
+              <template v-if="hrProfile.education?.length > 0">
                 <div v-for="education, index in hrProfile.education" :key="index" class="list-item">
                   <div>
                     <p class="label-text">{{ education.degree }} - {{ education.major }}</p>
@@ -396,10 +551,11 @@ export default {
                     <p>{{ education.start_date }} - {{ education.end_date }} | {{ education.location }}.</p>
                   </div>
                   <div class="text-end">
-                    <span class="icon-btn me-2">
+                    <span class="icon-btn me-2"
+                      @click="showProfileChildItemEdit('education', education, 'educationAddEditModal')">
                       <font-awesome-icon :icon="['fas', 'pencil-alt']" />
                     </span>
-                    <span class="icon-btn">
+                    <span class="icon-btn" @click="removeProfileChildItem('education', education)">
                       <font-awesome-icon :icon="['fas', 'trash']" />
                     </span>
                   </div>
@@ -409,7 +565,8 @@ export default {
                 <p>No record found</p>
               </div>
               <div class="py-3">
-                <button class="btn primary-btn br-0" type="button">
+                <button class="btn primary-btn br-0" type="button" data-bs-toggle="modal"
+                  data-bs-target="#educationAddEditModal">
                   Add Education
                 </button>
               </div>
@@ -417,7 +574,7 @@ export default {
           </div>
           <div class="tab-pane fade" id="nav-project" role="tabpanel" aria-labelledby="nav-project-tab">
             <div class="content-list">
-              <template v-if="hrProfile.project.length > 0">
+              <template v-if="hrProfile.project?.length > 0">
                 <div v-for="project, index in hrProfile.project" :key="index" class="list-item">
                   <div>
                     <p class="label-text">{{ project.title }}</p>
@@ -426,10 +583,11 @@ export default {
                     <p>Technologies: {{ project.technology }}</p>
                   </div>
                   <div class="text-end">
-                    <span class="icon-btn me-2">
+                    <span class="icon-btn me-2"
+                      @click="showProfileChildItemEdit('project', project, 'projectAddEditModal')">
                       <font-awesome-icon :icon="['fas', 'pencil-alt']" />
                     </span>
-                    <span class="icon-btn">
+                    <span class="icon-btn" @click="removeProfileChildItem('project', project)">
                       <font-awesome-icon :icon="['fas', 'trash']" />
                     </span>
                   </div>
@@ -439,59 +597,350 @@ export default {
                 <p>No Projects found</p>
               </div>
               <div class="py-3">
-                <button class="btn primary-btn br-0" type="button">
+                <button class="btn primary-btn br-0" type="button" data-bs-toggle="modal"
+                  data-bs-target="#projectAddEditModal">
                   Add Project
                 </button>
               </div>
             </div>
           </div>
           <div class="tab-pane fade" id="nav-personal" role="tabpanel" aria-labelledby="nav-profile-tab">
-            <div class="content-list">
-              <div class="list-item">
-                <p>Personal Details</p>
+            <div class="d-block text-end mb-2">
+              <span v-if="elements.personalInfoEdit">
+                <span class="icon-btn me-1" @click="updatePersonalInfo">
+                  <font-awesome-icon :icon="['fas', 'check']" />
+                </span>
+                <span class="icon-btn" @click="elements.personalInfoEdit = false">
+                  <font-awesome-icon :icon="['fas', 'xmark']" />
+                </span>
+              </span>
+              <span v-else class="icon-btn" @click="elements.personalInfoEdit = true">
+                <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+              </span>
+            </div>
+            <div class="row">
+              <div class="col">
+                <h6 class="mb-2">Personal Info</h6>
+                <div class="row align-items-center mb-2">
+                  <div class="col-lg-4">
+                    <p class="label-text">Gender</p>
+                  </div>
+                  <div class="col-lg-8">
+                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                      v-model="hrProfile.gender">
+                    <p v-else>{{ hrProfile.gender }}</p>
+                  </div>
+                </div>
+                <div class="row align-items-center mb-2">
+                  <div class="col-lg-4">
+                    <p class="label-text">Date of Birth</p>
+                  </div>
+                  <div class="col-lg-8">
+                    <input v-if="elements.personalInfoEdit" type="date" class="form-control form-control-sm"
+                      v-model="hrProfile.date_of_birth">
+                    <p v-else>{{ hrProfile.date_of_birth }}</p>
+                  </div>
+                </div>
+                <div class="row align-items-center mb-2">
+                  <div class="col-lg-4">
+                    <p class="label-text">Location</p>
+                  </div>
+                  <div class="col-lg-8">
+                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                      v-model="hrProfile.location">
+                    <p v-else>{{ hrProfile.location }}</p>
+                  </div>
+                </div>
               </div>
-              <!-- <div class="list-item">
-                <div>
-                  <p class="label-text">TCS</p>
-                  <p>Graphic Designer</p>
-                  <p>Oct 2014 - July 2015 | Bangalore, India.</p>
+              <div class="col">
+                <h6 class="mb-2">Address Info</h6>
+                <div class="row align-items-center mb-2">
+                  <div class="col-lg-4">
+                    <p class="label-text">Building Number</p>
+                  </div>
+                  <div class="col-lg-8">
+                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                      v-model="hrProfile.buiding_number">
+                    <p v-else>{{ hrProfile.buiding_number }}</p>
+                  </div>
                 </div>
-                <div class="text-end">
-                  <span class="icon-btn me-2">
-                    <font-awesome-icon :icon="['fas', 'pencil-alt']" />
-                  </span>
-                  <span class="icon-btn">
-                    <font-awesome-icon :icon="['fas', 'trash']" />
-                  </span>
+                <div class="row align-items-center mb-2">
+                  <div class="col-lg-4">
+                    <p class="label-text">Street Name</p>
+                  </div>
+                  <div class="col-lg-8">
+                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                      v-model="hrProfile.street_name">
+                    <p v-else>{{ hrProfile.street_name }}</p>
+                  </div>
                 </div>
-              </div> -->
+                <div class="row align-items-center mb-2">
+                  <div class="col-lg-4">
+                    <p class="label-text">City</p>
+                  </div>
+                  <div class="col-lg-8">
+                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                      v-model="hrProfile.city">
+                    <p v-else>{{ hrProfile.city }}</p>
+                  </div>
+                </div>
+                <div class="row align-items-center mb-2">
+                  <div class="col-lg-4">
+                    <p class="label-text">State</p>
+                  </div>
+                  <div class="col-lg-8">
+                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                      v-model="hrProfile.state">
+                    <p v-else>{{ hrProfile.state }}</p>
+                  </div>
+                </div>
+                <div class="row align-items-center mb-2">
+                  <div class="col-lg-4">
+                    <p class="label-text">Country</p>
+                  </div>
+                  <div class="col-lg-8">
+                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                      v-model="hrProfile.country">
+                    <p v-else>{{ hrProfile.country }}</p>
+                  </div>
+                </div>
+                <div class="row align-items-center mb-2">
+                  <div class="col-lg-4">
+                    <p class="label-text">PIN</p>
+                  </div>
+                  <div class="col-lg-8">
+                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                      v-model="hrProfile.postal_code">
+                    <p v-else>{{ hrProfile.postal_code }}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="tab-pane fade" id="nav-doc" role="tabpanel" aria-labelledby="nav-doc-tab">
             <div class="content-list">
-              <!-- <div class="list-item">
-                <div>
+              <template v-if="hrProfile.docs?.length > 0">
+                <div v-for="document, index in hrProfile.docs" :key="index" class="list-item">
+                  <!-- <div v-if="elements.tabItemEdit" class="row">
+                    <div class="col-12">
+                      <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                        placeholder="Enter Document Title">
+                    </div>
+                    <div class="col-12">
+                      <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                    </div>
+                  </div> -->
                   <p class="label-text">Adhaar Card</p>
+                  <div v-if="elements.tabItemEdit" class="text-end">
+                    <span class="icon-btn me-1" @click="updateProfileChildItems(educationData, 'education')">
+                      <font-awesome-icon :icon="['fas', 'check']" />
+                    </span>
+                    <span class="icon-btn" @click="elements.tabItemEdit = false">
+                      <font-awesome-icon :icon="['fas', 'xmark']" />
+                    </span>
+                  </div>
+                  <div v-else class="text-end">
+                    <span class="icon-btn" @click="elements.tabItemEdit = true">
+                      <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                    </span>
+                    <span class="icon-btn">
+                      <font-awesome-icon :icon="['fas', 'trash']" />
+                    </span>
+                  </div>
                 </div>
-                <div class="text-end">
-                  <span class="icon-btn me-2">
-                    <font-awesome-icon :icon="['fas', 'pencil-alt']" />
-                  </span>
-                  <span class="icon-btn">
-                    <font-awesome-icon :icon="['fas', 'trash']" />
-                  </span>
-                </div>
-              </div> -->
-              <div class="list-item">
+              </template>
+              <div v-else class="list-item">
                 <p>No Document found</p>
               </div>
               <div class="py-3">
-                <button class="btn primary-btn br-0" type="button">
+                <div v-if="elements.tabItemEdit" class="row">
+                  <div class="col-12">
+                    <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                      placeholder="Enter Document Title">
+                  </div>
+                  <div class="col-12">
+                    <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                  </div>
+                </div>
+                <button v-if="elements.tabItemEdit" class="btn primary-btn br-0" type="button"
+                  @click="updateProfileChildItems(docsData, 'docs')">
+                  Save
+                </button>
+                <button v-else class="btn primary-btn br-0" type="button" @click="elements.tabItemEdit = true">
                   Add Document
                 </button>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="workExperienceAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalLabel">{{ elements.tabItemEdit ? 'Edit' : 'Add' }} Work Experience</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <form>
+              <div class="row mb-3">
+                <label for="company" class="col-sm-4 col-form-label">Company</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="workExperienceData.company" id="company"
+                    placeholder="Enter Company Name">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="position" class="col-sm-4 col-form-label">Position</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="workExperienceData.position" id="position"
+                    placeholder="Enter Position">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="start_date" class="col-sm-4 col-form-label">Start Date</label>
+                <div class="col-sm-8">
+                  <input type="date" class="form-control" v-model="workExperienceData.start_date" id="start_date">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="end_date" class="col-sm-4 col-form-label">End Date</label>
+                <div class="col-sm-8">
+                  <input type="date" class="form-control" v-model="workExperienceData.end_date" id="end_date">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="description" class="col-sm-4 col-form-label">Responsibilities</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="workExperienceData.description" id="description"
+                    placeholder="Enter Responsibilities">
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
+          <button type="button" @click="updateProfileChildItems(workExperienceData, 'work_experience')"
+            class="btn primary-btn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="educationAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalLabel">{{ elements.tabItemEdit ? 'Edit' : 'Add' }} Education</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <form>
+              <div class="row mb-3">
+                <label for="university" class="col-sm-4 col-form-label">School / College</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="educationData.university" id="university"
+                    placeholder="Enter School / College Name">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="degree" class="col-sm-4 col-form-label">Degree</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="educationData.degree" id="degree"
+                    placeholder="Enter Degree">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="major" class="col-sm-4 col-form-label">Field of Study</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="educationData.major" id="major"
+                    placeholder="Enter Field of Study">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="start_date" class="col-sm-4 col-form-label">Start Date</label>
+                <div class="col-sm-8">
+                  <input type="date" class="form-control" v-model="educationData.start_date" id="start_date">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="end_date" class="col-sm-4 col-form-label">End Date</label>
+                <div class="col-sm-8">
+                  <input type="date" class="form-control" v-model="educationData.end_date" id="end_date">
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
+          <button type="button" @click="updateProfileChildItems(educationData, 'education')"
+            class="btn primary-btn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="projectAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalLabel">{{ elements.tabItemEdit ? 'Edit' : 'Add' }} Project</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <form>
+              <div class="row mb-3">
+                <label for="title" class="col-sm-4 col-form-label">Project Title</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="projectData.title" id="title"
+                    placeholder="Enter Position">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="client" class="col-sm-4 col-form-label">Client</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="projectData.client" id="client"
+                    placeholder="Enter Company Name">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="start_date" class="col-sm-4 col-form-label">Start Date</label>
+                <div class="col-sm-8">
+                  <input type="date" class="form-control" v-model="projectData.start_date" id="start_date">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="end_date" class="col-sm-4 col-form-label">End Date</label>
+                <div class="col-sm-8">
+                  <input type="date" class="form-control" v-model="projectData.end_date" id="end_date">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="technology" class="col-sm-4 col-form-label">Technologies</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="projectData.technology" id="technology"
+                    placeholder="Enter Technologies used">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="description" class="col-sm-4 col-form-label">Responsibilities</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="projectData.description" id="description"
+                    placeholder="Enter Responsibilities">
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
+          <button type="button" @click="updateProfileChildItems(projectData, 'project')"
+            class="btn primary-btn">Save</button>
         </div>
       </div>
     </div>
