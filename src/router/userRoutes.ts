@@ -1,11 +1,11 @@
-import UserManagement from '@/views/HrProfile/UserManagement.vue'
+import UserManagement from "@/views/user/UserManagement.vue";
 
 const userRoutes = [
   {
-    path: '/usermanagement',
-    name: 'usermanagement',
+    path: "/usermanagement",
+    name: "usermanagement",
     component: UserManagement,
   },
 ];
 
-export default userRoutes
+export default userRoutes;

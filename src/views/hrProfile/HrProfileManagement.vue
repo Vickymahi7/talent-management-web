@@ -161,7 +161,7 @@ export default {
         </thead>
         <tbody class="custom-tbody-style">
           <tr v-for="(hrProfile, index) in hrProfileList" :key="hrProfile.id"
-            @click="$router.push(`/hrprofile/${hrProfile.id}`)">
+            @click="$router.push({ name: 'hrprofile', params: { id: hrProfile.id } })">
             <td>
               <input class="form-check-input" type="checkbox">
             </td>

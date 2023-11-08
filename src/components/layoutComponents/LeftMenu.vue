@@ -5,7 +5,10 @@
         <a href="#">Manage</a>
         <ul class="sub-menu">
           <li>
-            <a href="#" @click="$router.push('/hrprofilemanagement')" class="active">- Manage HR Profile</a>
+            <router-link :to="{ name: 'hrprofilemanagement' }" class="active">- Manage HR Profile</router-link>
+          </li>
+          <li>
+            <a href="#" @click.prevent="">- Talent Pool</a>
           </li>
         </ul>
       </li>
@@ -13,15 +16,15 @@
         <a href="#">User</a>
         <ul class="sub-menu">
           <li>
-            <a href="#" @click="$router.push('/usermanagement')">- User Management</a>
+            <router-link :to="{ name: 'usermanagement' }">- User Management</router-link>
           </li>
         </ul>
       </li>
       <li>
-        <a href="#">User Activity</a>
+        <a href="#">Tenant</a>
         <ul class="sub-menu">
           <li>
-            <a href="#" @click.prevent="">- Talent Pool</a>
+            <router-link :to="{ name: 'tenantmanagement' }">- Tenant Management</router-link>
           </li>
         </ul>
       </li>

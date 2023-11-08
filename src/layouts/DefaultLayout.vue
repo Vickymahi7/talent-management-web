@@ -36,7 +36,7 @@ import LeftMenu from '../components/layoutComponents/LeftMenu.vue';
 						</span>
 					</a>
 					<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-						<li><a class="dropdown-item" href="#" @click="$router.push('/')">Logout</a></li>
+						<li><a class="dropdown-item" href="#" @click="$router.push({ name: 'home' })">Logout</a></li>
 					</ul>
 				</li>
 			</ul>

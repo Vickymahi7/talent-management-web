@@ -7,7 +7,7 @@ body {
   color: $text-color;
   background: $bg-color;
   margin: 0 1.5rem;
-  // height: calc(100vh - 2rem);
+  height: calc(100vh - 2rem);
   line-height: 1.5;
   transition: color 0.5s, background-color 0.5s;
 }
@@ -325,7 +325,7 @@ a {
     }
   }
   tr:hover td {
-    background-color: grey;
+    background-color: $table-hover-color;
     cursor: pointer;
   }
 }
@@ -438,4 +438,8 @@ a {
   border-right: 1px solid $card-border-color;
   border-bottom: 1px solid $card-border-color;
   border-left: 1px solid $card-border-color;
+}
+.resume-template {
+  width: 1000px;
+  min-height: 1350px;
 }

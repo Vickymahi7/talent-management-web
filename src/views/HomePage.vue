@@ -18,7 +18,7 @@ export default {
         const response = await axios.post('/login', this.loginData)
         // .then((response) => {
         localStorage.setItem("accessToken", response.data.accessToken)
-        this.$router.push('/hrprofilemanagement');
+        this.$router.push({ name: 'hrprofilemanagement' });
       } catch (error) {
         console.log(error)
         this.error = true;

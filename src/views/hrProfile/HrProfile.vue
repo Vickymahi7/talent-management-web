@@ -254,7 +254,7 @@ export default {
     <div class="content-card content-header">
       <label>Manage HR Profile</label>
     </div>
-    <button class="btn primary-btn ms-2" type="button">
+    <button class="btn primary-btn ms-2" type="button" @click="$router.push({ name: 'resumepreview', params: { id } })">
       <font-awesome-icon class="me-2" :icon="['fas', 'download']" />
       Resume Preview
     </button>
@@ -425,8 +425,10 @@ export default {
                 <font-awesome-icon :icon="['fas', 'xmark']" />
               </span>
             </span>
-            <span v-else class="icon-btn" @click="elements.skillEdit = true">
-              <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+            <span v-else class="float-end">
+              <span class="icon-btn" @click="elements.skillEdit = true">
+                <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+              </span>
             </span>
           </h6>
           <input v-if="elements.skillEdit" type="text" @keyup.enter.prevent="addSkills"
@@ -815,8 +817,8 @@ export default {
               <div class="row mb-3">
                 <label for="description" class="col-sm-4 col-form-label">Responsibilities</label>
                 <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="workExperienceData.description" id="description"
-                    placeholder="Enter Responsibilities">
+                  <textarea class="form-control" v-model="workExperienceData.description" rows="5" id="description"
+                    placeholder="Enter Responsibilities"></textarea>
                 </div>
               </div>
             </form>
@@ -930,8 +932,8 @@ export default {
               <div class="row mb-3">
                 <label for="description" class="col-sm-4 col-form-label">Responsibilities</label>
                 <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="projectData.description" id="description"
-                    placeholder="Enter Responsibilities">
+                  <textarea class="form-control" v-model="projectData.description" rows="5" id="description"
+                    placeholder="Enter Responsibilities"></textarea>
                 </div>
               </div>
             </form>
