@@ -1,4 +1,5 @@
 <script lang="ts">
+import { UserType } from '@/enums/UserType';
 import axios from '@/plugins/axios.js'
 export default {
   data() {
@@ -12,13 +13,27 @@ export default {
       }
     }
   },
+  mounted() {
+    this.clearLoginDetails();
+  },
   methods: {
+    clearLoginDetails() {
+      localStorage.removeItem("accessToken")
+      localStorage.removeItem("userTypeId")
+    },
     async loginUser() {
       try {
         const response = await axios.post('/login', this.loginData)
         // .then((response) => {
         localStorage.setItem("accessToken", response.data.accessToken)
-        this.$router.push({ name: 'hrprofilemanagement' });
+        localStorage.setItem("userTypeId", response.data.userTypeId)
+
+        if (response.data.userTypeId == UserType.SAD) {
+          this.$router.push({ name: 'tenantmanagement' });
+        }
+        else {
+          this.$router.push({ name: 'hrprofilemanagement' });
+        }
       } catch (error) {
         console.log(error)
         this.error = true;

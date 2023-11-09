@@ -20,6 +20,9 @@ export default {
         tabItemEdit: false,
       },
 
+      profilePic: '',
+
+
       hrProfile: {
         id: '',
         hr_profile_id: '',
@@ -36,6 +39,8 @@ export default {
         office_phone: '',
         location: '',
         ctc: '',
+        experience_month: '',
+        experience_year: '',
         objective: '',
         summary: '',
         note: '',
@@ -145,11 +150,42 @@ export default {
         console.log(error)
       }
     },
+    async uploadProfilePhoto(event: any) {
+      const files = event.target.files
+      try {
+        // this.v$.hrProfile.$touch();
+        if (files.length > 0) {
+          let formData = new FormData();
+
+
+          formData.append('id', this.hrProfile.id);
+          formData.append('file', files[0]);
+          console.log(files);
+
+          console.log(formData.values);
+          const response = await axios.post('/hrprofile/photoupload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          let result = response.data;
+          console.log(result);
+
+          if (response.status == 200) {
+            this.getHrProfile();
+          }
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    },
     updatePrimaryInfo() {
       const data = {
         email_id: this.hrProfile.email_id,
         location: this.hrProfile.location,
         ctc: this.hrProfile.ctc,
+        experience_month: this.hrProfile.experience_month,
+        experience_year: this.hrProfile.experience_year,
         status: this.hrProfile.status,
         mobile: this.hrProfile.mobile,
         linkedin_id: this.hrProfile.linkedin_id,
@@ -262,7 +298,9 @@ export default {
   <div class="content-body profile-section">
     <div class="profile-head">
       <div class="profile-media content-card">
-        <img class="profile-picture" src="@/assets/img/user-icon.jpg" alt="Profile Picture" width="150" height="150" />
+        <img class="profile-picture" src="D:\Node Projects\talent-management\src\uploads\user-profile-icon-front-side.jpg" alt="Profile Picture" width="150" height="150" />
+        <input type="file" class="form-control" @input="uploadProfilePhoto($event)" id="resumeInput"
+          placeholder="Add Resume Attachment">
         <div class="title-block">
           <p class="title-text">{{ hrProfile.first_name }} {{ hrProfile.last_name }}</p>
           <p>--position--</p>
@@ -290,7 +328,18 @@ export default {
                   <p class="label-text">Years of Experience</p>
                 </div>
                 <div class="col-lg-8">
-                  <p>--experience--</p>
+                  <div v-if="elements.primaryInfoEdit" class="input-group input-group-sm">
+                    <input type="text" v-model="hrProfile.experience_year" class="form-control form-control-sm"
+                      placeholder="Enter Year" aria-label="experience_year">
+                    <span class="input-group-text">years</span>
+                    <input type="text" v-model="hrProfile.experience_month" class="form-control form-control-sm"
+                      placeholder="Enter Month" aria-label="experience_month">
+                    <span class="input-group-text">months</span>
+                  </div>
+                  <p v-else>
+                    <span>{{ hrProfile.experience_year }} years </span>
+                    <span>{{ hrProfile.experience_month }} months</span>
+                  </p>
                 </div>
               </div>
               <div class="row align-items-center mb-1">

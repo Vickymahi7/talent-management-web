@@ -24,6 +24,8 @@ export default {
         office_phone: '',
         location: '',
         ctc: '',
+        experience_month: '',
+        experience_year: '',
         objective: '',
         note: '',
         gender: '',
@@ -232,8 +234,14 @@ export default {
               <div class="row mb-3">
                 <label for="work_experience" class="col-sm-4 col-form-label">Experience</label>
                 <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="hrProfile.work_experience" id="work_experience"
-                    placeholder="Enter Experience">
+                  <div class="input-group">
+                    <input type="text" v-model="hrProfile.experience_year" class="form-control" placeholder="Enter Year"
+                      aria-label="experience_year">
+                    <span class="input-group-text">years</span>
+                    <input type="text" v-model="hrProfile.experience_month" class="form-control" placeholder="Enter Month"
+                      aria-label="experience_month">
+                    <span class="input-group-text">months</span>
+                  </div>
                 </div>
               </div>
               <div class="row mb-3">

@@ -156,7 +156,7 @@ export default {
 $header-bg: #1f7e6c;
 $header-text-color: #fff;
 $heading-color: #000;
-$sub-heading-color: #1f7e6c;
+$sub-heading-color: $header-bg;
 $muted-color: #777777;
 $heading-size: 18px;
 $profile-name-color: #fff;
@@ -240,6 +240,10 @@ h5 {
   margin-bottom: $std-margin-bottom;
 }
 
+p {
+  margin-bottom: $std-margin-bottom;
+}
+
 header {
   display: flex;
   justify-content: center;
@@ -300,8 +304,14 @@ header {
   background-color: $left-section-bg;
   padding: 25px 20px;
 
+  ul {
+    margin: 0;
+  }
+
   li {
-    margin-bottom: 8px;
+    // margin-bottom: 8px;
+    margin-bottom: $std-margin-bottom;
+
   }
 
   .contact-info {
@@ -316,7 +326,7 @@ header {
   }
 
   .education-info {
-    margin-bottom: 1rem;
+    // margin-bottom: $std-margin-bottom;
 
     h6 {
       font-size: 12px;
@@ -329,7 +339,7 @@ header {
     }
 
     .education-detail {
-      margin-bottom: 10px;
+      margin-bottom: $std-margin-bottom;
     }
   }
 

@@ -1,7 +1,25 @@
+<script lang="ts">
+import { UserType } from '@/enums/UserType';
+
+export default {
+  data() {
+    return {
+      UserType,
+    }
+  },
+  computed: {
+    userTypeId() {
+      const userTypeId
+        = localStorage.getItem("userTypeId");
+      return userTypeId ? parseInt(userTypeId) : null;
+    },
+  }
+}
+</script>
 <template>
   <div class="left-menu content-card">
     <ul>
-      <li>
+      <li v-if="userTypeId != UserType.SAD">
         <a href="#">Manage</a>
         <ul class="sub-menu">
           <li>
@@ -20,7 +38,7 @@
           </li>
         </ul>
       </li>
-      <li>
+      <li v-if="userTypeId == UserType.SAD">
         <a href="#">Tenant</a>
         <ul class="sub-menu">
           <li>
