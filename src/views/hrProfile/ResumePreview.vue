@@ -78,7 +78,8 @@ export default {
         <div class="picture-resume-wrapper">
           <div class="picture-resume">
             <span>
-              <img src="@/assets/img/user-icon.jpg" alt="" />
+              <img v-if="hrProfile.photo_url" :src="hrProfile.photo_url" alt="" />
+              <img v-else src="@/assets/img/user-icon.jpg" alt="" />
             </span>
           </div>
         </div>
@@ -104,7 +105,7 @@ export default {
           </ul>
           <h2><span class="heading">Education</span></h2>
           <div class="education-info">
-            <div v-for="education, index in hrProfile.education" :key="index" class="education-detail">
+            <div v-for="  education, index   in   hrProfile.education  " :key="index" class="education-detail">
               <h6>{{ education.start_date }}</h6>
               <p>{{ education.degree }} {{ education.major }}</p>
               <p>{{ education.university }}, {{ education.location }}</p>
@@ -112,13 +113,13 @@ export default {
           </div>
           <h2><span class="heading">Technical Skills</span></h2>
           <ul class="list-content">
-            <li v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}</li>
+            <li v-for="  skill, index   in   hrProfile.skills  " :key="index">{{ skill }}</li>
           </ul>
         </section>
         <section class="right-section">
           <div class="experience-wrapper">
             <h2><span class="heading">Experience</span></h2>
-            <div v-for="workExperience, index in hrProfile.work_experience" :key="index" class="experience">
+            <div v-for="  workExperience, index   in   hrProfile.work_experience  " :key="index" class="experience">
               <h3>{{ workExperience.position }}</h3>
               <div class="experience-company-wrapper">
                 <span class="experience-company me-2">{{ workExperience.company }} </span>
@@ -130,7 +131,7 @@ export default {
           </div>
           <div class="project-wrapper">
             <h2><span class="heading">Projects</span></h2>
-            <div v-for="project, index in hrProfile.project" :key="index" class="project">
+            <div v-for="  project, index   in   hrProfile.project  " :key="index" class="project">
               <div class="project-title-wrapper">
                 <span class="project-title me-2">{{ project.title }} </span>
                 <span class="muted-text">{{ project.start_date }}</span>

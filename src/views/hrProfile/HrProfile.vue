@@ -111,6 +111,13 @@ export default {
       }
     }
   },
+  computed: {
+    getImageUrlWithTimestamp() {
+      const imageUrl = this.hrProfile.photo_url;
+      const timestamp = new Date().getTime();
+      return `${imageUrl}?timestamp=${timestamp}`;
+    },
+  },
   mounted() {
     this.getHrProfile();
   },
@@ -298,7 +305,7 @@ export default {
   <div class="content-body profile-section">
     <div class="profile-head">
       <div class="profile-media content-card">
-        <img class="profile-picture" src="D:\Node Projects\talent-management\src\uploads\user-profile-icon-front-side.jpg" alt="Profile Picture" width="150" height="150" />
+        <img class="profile-picture" :src="getImageUrlWithTimestamp" alt="Profile Picture" width="150" height="150" />
         <input type="file" class="form-control" @input="uploadProfilePhoto($event)" id="resumeInput"
           placeholder="Add Resume Attachment">
         <div class="title-block">
