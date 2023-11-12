@@ -2,12 +2,13 @@
 import { useVuelidate } from '@vuelidate/core'
 import { required, email, minLength } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
+import { useToast } from 'vue-toastification'
 export default {
-  setup() {
-    return { v$: useVuelidate() }
-  },
   data() {
     return {
+      v$: useVuelidate(),
+      toast: useToast(),
+
       user: {
         user_id: null,
         user_type_id: null,
@@ -34,25 +35,26 @@ export default {
     this.getUserList();
   },
   methods: {
-    getUserList: function () {
-      axios.get('/user/list')
-        .then((response) => {
-          let result = response.data;
-          this.userList = result.userList;
-        })
+    async getUserList() {
+      try {
+        const response: any = await axios.get('/user/list')
+        this.userList = response.userList;
+      } catch (error: any) {
+        this.toast.error(error);
+      }
     },
     async addUser() {
       try {
         this.v$.user.$touch();
         if (!this.v$.user.$invalid) {
-          const response = await axios.post('/user/add', this.user);
-          // let result = response.data;
+          const response: any = await axios.post('/user/add', this.user);
           if (response.status == 201) {
+            this.toast.success(response.message);
             this.getUserList();
           }
         }
-      } catch (error) {
-        console.log(error)
+      } catch (error: any) {
+        this.toast.error(error);
       }
     },
   }

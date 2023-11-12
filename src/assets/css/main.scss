@@ -43,15 +43,19 @@ a {
 .bg-green {
   background-color: $bg-color;
 }
+
 .color-light {
   color: $text-color-light;
 }
+
 .br-0 {
   border-radius: 0;
 }
+
 .card-gap-ms {
   margin-left: $card-gap;
 }
+
 .card-gap-me {
   margin-right: $card-gap;
 }
@@ -84,9 +88,11 @@ a {
     ul {
       padding: 0;
     }
+
     li {
       list-style: none;
     }
+
     a {
       display: block;
       color: $text-color-light;
@@ -97,6 +103,7 @@ a {
         color: $text-color;
       }
     }
+
     .sub-menu {
       padding-left: 5px;
     }
@@ -138,6 +145,7 @@ a {
     color: $primary-btn-color;
     background-color: $primary-btn-bg;
   }
+
   &.tab-btn:not(.active):hover {
     color: $primary-btn-hover-color;
     background-color: $primary-btn-hover-bg;
@@ -156,25 +164,31 @@ a {
     margin: 0;
     color: $text-color-light;
   }
+
   h6 {
     font-size: $profile-heading-size;
     margin-bottom: 0.5em;
   }
+
   .label-text {
     color: $text-color;
     font-weight: $profile-font-bold;
   }
+
   .primary-info {
     display: flex;
     gap: 3em;
   }
+
   .profile-container {
     flex: 50%;
     display: block;
   }
+
   .profile-edit-icon {
     order: 2;
   }
+
   .separator {
     border-bottom: 1px solid $card-border-color;
   }
@@ -234,6 +248,7 @@ a {
       .profile-short-content {
         height: 6em;
         overflow: auto;
+
         &::-webkit-scrollbar {
           width: 12px;
         }
@@ -241,6 +256,7 @@ a {
 
       .note-input-group {
         padding: 0.5em 0;
+
         textarea {
           border: none;
           width: 100%;
@@ -254,12 +270,14 @@ a {
             outline: none;
           }
         }
+
         button {
           width: 100%;
           border-radius: 0;
         }
       }
     }
+
     .profile-details {
       flex: 80%;
 
@@ -277,8 +295,10 @@ a {
             background-color: $bg-color;
           }
         }
+
         .summary-content {
           height: 220px;
+
           textarea {
             height: 100%;
             resize: none;
@@ -292,6 +312,7 @@ a {
 
 .custom-table-style {
   tr {
+
     td,
     th {
       padding-top: 1em;
@@ -319,11 +340,13 @@ a {
       background-color: $bg-color-light;
     }
   }
+
   tr:nth-child(even) {
     td {
       background-color: $bg-color;
     }
   }
+
   tr:hover td {
     background-color: $table-hover-color;
     cursor: pointer;
@@ -430,6 +453,7 @@ a {
   padding: 10px;
   border: 1px solid #ccc;
 }
+
 .tab-content {
   padding: 1.5em;
   height: calc(100% - 60px);
@@ -439,7 +463,47 @@ a {
   border-bottom: 1px solid $card-border-color;
   border-left: 1px solid $card-border-color;
 }
+
 .resume-template {
   width: 1000px;
   min-height: 1350px;
+}
+
+.Vue-Toastification__toast {
+  &.Vue-Toastification__toast--default {
+    background-color: $toast-bg-default;
+    color: $toast-text-default;
+  }
+
+  &.Vue-Toastification__toast--info {
+    background-color: $toast-bg-info;
+    color: $toast-text-info;
+  }
+
+  &.Vue-Toastification__toast--success {
+    background-color: $toast-bg-success;
+    color: $toast-text-success;
+  }
+
+  &.Vue-Toastification__toast--warning {
+    background-color: $toast-bg-warning;
+    color: $toast-text-warning;
+  }
+
+  &.Vue-Toastification__toast--error {
+    background-color: $toast-bg-error;
+    color: $toast-text-error;
+  }
+
+  padding: 10px 15px;
+  align-items: center;
+  min-height: 55px;
+
+  .Vue-Toastification__icon {
+    margin: auto 10px auto 0px;
+  }
+
+  .Vue-Toastification__progress-bar {
+    height: 3px;
+  }
 }

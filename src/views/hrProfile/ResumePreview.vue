@@ -1,11 +1,14 @@
 <script lang="ts">
 import axios from '@/plugins/axios';
+import { useToast } from 'vue-toastification';
 
 export default {
   props: ['id'],
 
   data() {
     return {
+      toast: useToast(),
+
       hrProfile: {
         id: '',
         hr_profile_id: '',
@@ -61,11 +64,10 @@ export default {
   methods: {
     async getHrProfile() {
       try {
-        const response = await axios.get('/hrprofile/view/' + this.id);
-        let result = response.data;
-        this.hrProfile = result.hrProfile;
-      } catch (error) {
-        console.log(error);
+        const response: any = await axios.get('/hrprofile/view/' + this.id);
+        this.hrProfile = response.hrProfile;
+      } catch (error: any) {
+        this.toast.error(error);
       }
     },
   }

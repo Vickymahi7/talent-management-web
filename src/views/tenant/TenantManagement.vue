@@ -2,12 +2,13 @@
 import { useVuelidate } from '@vuelidate/core'
 import { required, email, minLength } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
+import { useToast } from 'vue-toastification'
 export default {
-  setup() {
-    return { v$: useVuelidate() }
-  },
   data() {
     return {
+      v$: useVuelidate(),
+      toast: useToast(),
+
       tenant: {
         name: '',
         user_name: '',
@@ -35,25 +36,26 @@ export default {
     this.getTenantList();
   },
   methods: {
-    getTenantList: function () {
-      axios.get('/tenant/list')
-        .then((response) => {
-          let result = response.data;
-          this.tenantList = result.tenantList;
-        })
+    async getTenantList() {
+      try {
+        const response: any = await axios.get('/tenant/list')
+        this.tenantList = response.tenantList;
+      } catch (error: any) {
+        this.toast.error(error);
+      }
     },
     async addTenant() {
       try {
         this.v$.tenant.$touch();
         if (!this.v$.tenant.$invalid) {
-          const response = await axios.post('/tenant/add', this.tenant);
-          // let result = response.data;
+          const response: any = await axios.post('/tenant/add', this.tenant);
           if (response.status == 201) {
+            this.toast.success(response.message);
             this.getTenantList();
           }
         }
-      } catch (error) {
-        console.log(error)
+      } catch (error: any) {
+        this.toast.error(error);
       }
     },
   }
@@ -80,9 +82,9 @@ export default {
               <input class="form-check-input" type="checkbox">
             </th>
             <th scope="col">ID</th>
-            <th scope="col">Tenant</th>
-            <th scope="col">Email ID</th>
-            <th scope="col">Tenant Type</th>
+          <th scope="col">Tenant</th>
+          <th scope="col">Email ID</th>
+          <th scope="col">Tenant Type</th>
             <th scope="col">User</th>
             <th scope="col">Status</th>
             <th scope="col">Last Updated</th>
@@ -143,9 +145,9 @@ export default {
                   <select class="form-select" v-model="tenant.tenant_type_id" aria-label="Tenant Type">
                     <option value="">Select</option>
                     <!-- <option value="1">Super Admin</option>
-                    <option value="1">Admin</option>
-                    <option value="2">HR Tenant</option>
-                    <option value="3">Tenant</option> -->
+                                      <option value="1">Admin</option>
+                                      <option value="2">HR Tenant</option>
+                                      <option value="3">Tenant</option> -->
                   </select>
                 </div>
               </div>

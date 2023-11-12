@@ -1,18 +1,12 @@
-import { createRouter, createWebHistory } from "vue-router";
-import HomePage from "@/views/HomePage.vue";
-import LoginLayout from "@/layouts/LoginLayout.vue";
-import HrProfile from "@/views/hrProfile/HrProfile.vue";
-import HrProfileManagement from "@/views/hrProfile/HrProfileManagement.vue";
-import ResumePreview from "@/views/hrProfile/ResumePreview.vue";
-import TenantManagement from "@/views/tenant/TenantManagement.vue";
-import UserManagement from "@/views/user/UserManagement.vue";
+import { createRouter, createWebHistory, type RouteMeta } from "vue-router";
 import { UserType } from "@/enums/UserType";
+import LoginLayout from "@/layouts/LoginLayout.vue";
 
 const routes = [
   {
     path: "/",
     name: "home",
-    component: HomePage,
+    component: (() => import("@/views/HomePage.vue")),
     meta: { layout: LoginLayout },
   },
 
@@ -20,7 +14,7 @@ const routes = [
   {
     path: "/tenantmanagement",
     name: "tenantmanagement",
-    component: TenantManagement,
+    component: (() => import("@/views/tenant/TenantManagement.vue")),
     meta: { accessedBy: [UserType.SAD] },
   },
 
@@ -28,7 +22,7 @@ const routes = [
   {
     path: "/usermanagement",
     name: "usermanagement",
-    component: UserManagement,
+    component: (() => import("@/views/user/UserManagement.vue")),
     meta: { accessedBy: [UserType.SAD, UserType.ADM] },
   },
 
@@ -36,20 +30,20 @@ const routes = [
   {
     path: "/hrprofile/:id",
     name: "hrprofile",
-    component: HrProfile,
+    component: (() => import("@/views/hrProfile/HrProfile.vue")),
     props: true,
     meta: { accessedBy: [UserType.ADM] },
   },
   {
     path: "/hrprofilemanagement",
     name: "hrprofilemanagement",
-    component: HrProfileManagement,
+    component: (() => import("@/views/hrProfile/HrProfileManagement.vue")),
     meta: { accessedBy: [UserType.ADM] },
   },
   {
     path: "/resumepreview/:id",
     name: "resumepreview",
-    component: ResumePreview,
+    component: (() => import("@/views/hrProfile/ResumePreview.vue")),
     props: true,
     meta: { accessedBy: [UserType.ADM] },
   },
@@ -62,12 +56,11 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const homePage = to.name === "home";
-  const userTypeId = parseInt(localStorage.getItem("userTypeId"));
+  const userTypeId = localStorage.getItem("userTypeId") ? parseInt(localStorage.getItem("userTypeId")!) : null;
 
-  console.log(to.path, userTypeId, to.meta.accessedBy);
-
+  const meta: any = to.meta;
   if (!homePage) {
-    if (to.meta.accessedBy.includes(userTypeId)) {
+    if (meta.accessedBy.includes(userTypeId)) {
       next();
     } else {
       next("/");

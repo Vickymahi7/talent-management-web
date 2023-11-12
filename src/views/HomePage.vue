@@ -1,9 +1,14 @@
 <script lang="ts">
 import { UserType } from '@/enums/UserType';
 import axios from '@/plugins/axios.js'
+import useVuelidate from '@vuelidate/core';
+import { useToast } from 'vue-toastification';
 export default {
   data() {
     return {
+      v$: useVuelidate(),
+      toast: useToast(),
+
       error: false,
       errorMessage: "",
 
@@ -24,23 +29,23 @@ export default {
     async loginUser() {
       try {
         const response = await axios.post('/login', this.loginData)
-        // .then((response) => {
-        localStorage.setItem("accessToken", response.data.accessToken)
-        localStorage.setItem("userTypeId", response.data.userTypeId)
 
-        if (response.data.userTypeId == UserType.SAD) {
+        localStorage.setItem("accessToken", response.accessToken)
+        localStorage.setItem("userTypeId", response.userTypeId)
+
+        if (response.userTypeId == UserType.SAD) {
           this.$router.push({ name: 'tenantmanagement' });
         }
         else {
           this.$router.push({ name: 'hrprofilemanagement' });
         }
-      } catch (error) {
-        console.log(error)
+      } catch (error: any) {
+        this.toast.error(error);
         this.error = true;
         setTimeout(() => {
           this.error = false;
         }, 5000)
-        this.errorMessage = error.response.data.mesaage;
+        this.errorMessage = error;
       }
     },
   }

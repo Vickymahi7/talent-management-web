@@ -9,13 +9,34 @@ const axiosInstance = axios.create({
   },
 });
 
-axiosInstance.interceptors.request.use((config) => {
-  const accessToken = localStorage.getItem('accessToken');
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
+    }
+    return config;
+  },
+  error => {
+    console.log(error)
+    return Promise.reject('Something went wrong')
+  });
+
+// response interceptor
+axiosInstance.interceptors.response.use(
+  response => {
+    const res = response.data
+    return res;
+  },
+  error => {
+    console.log(error)
+    if (error.response.data && error.response.data.status) {
+      return Promise.reject(error.response.data.message)
+    } else {
+      return Promise.reject('Something went wrong')
+    }
   }
-  return config;
-});
+)
 
 
 export default axiosInstance;

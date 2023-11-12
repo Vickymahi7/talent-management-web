@@ -1,10 +1,12 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap";
+import "vue-toastification/dist/index.css";
 import "./assets/css/main.scss";
 
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
+import Toast from "vue-toastification";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import {
@@ -44,5 +46,6 @@ const app = createApp(App);
 
 app.component("font-awesome-icon", FontAwesomeIcon);
 app.use(router);
+app.use(Toast);
 
 app.mount("#app");

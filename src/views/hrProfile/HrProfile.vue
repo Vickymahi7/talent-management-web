@@ -3,14 +3,15 @@ import { useVuelidate } from '@vuelidate/core'
 import { required, email } from '@vuelidate/validators'
 import { Modal } from 'bootstrap'
 import axios from '@/plugins/axios'
+import { useToast } from 'vue-toastification'
 
 export default {
-  setup() {
-    return { v$: useVuelidate() }
-  },
   props: ['id'],
   data() {
     return {
+      v$: useVuelidate(),
+      toast: useToast(),
+
       elements: {
         primaryInfoEdit: false,
         personalInfoEdit: false,
@@ -124,11 +125,10 @@ export default {
   methods: {
     async getHrProfile() {
       try {
-        const response = await axios.get('/hrprofile/view/' + this.id);
-        let result = response.data;
-        this.hrProfile = result.hrProfile;
-      } catch (error) {
-        console.log(error);
+        const response: any = await axios.get('/hrprofile/view/' + this.id);
+        this.hrProfile = response.hrProfile;
+      } catch (error: any) {
+        this.toast.error(error);
       }
     },
     async updateHrProfile(data) {
@@ -140,10 +140,10 @@ export default {
         this.v$.hrProfile.$touch();
         if (!this.v$.hrProfile.$invalid) {
           const response = await axios.put('/hrprofile/update', data);
-          let result = response.data;
-          console.log(result);
+          console.log(response);
 
           if (response.status == 200) {
+            this.toast.success(response.message);
             this.getHrProfile();
             this.elements.primaryInfoEdit = false;
             this.elements.personalInfoEdit = false;
@@ -153,8 +153,8 @@ export default {
             this.elements.tabItemEdit = false;
           }
         }
-      } catch (error) {
-        console.log(error)
+      } catch (error: any) {
+        this.toast.error(error);
       }
     },
     async uploadProfilePhoto(event: any) {
@@ -175,15 +175,15 @@ export default {
               'Content-Type': 'multipart/form-data',
             },
           });
-          let result = response.data;
-          console.log(result);
+          console.log(response);
 
           if (response.status == 200) {
+            this.toast.success(response.message);
             this.getHrProfile();
           }
         }
-      } catch (error) {
-        console.log(error)
+      } catch (error: any) {
+        this.toast.error(error);
       }
     },
     updatePrimaryInfo() {
@@ -486,14 +486,14 @@ export default {
                 <font-awesome-icon :icon="['fas', 'pencil-alt']" />
               </span>
             </span>
-          </h6>
-          <input v-if="elements.skillEdit" type="text" @keyup.enter.prevent="addSkills"
-            class="form-control form-control-sm mt-2 mb-1" placeholder="Press Enter to Add Skill">
-          <p class="profile-short-content">
-            <template v-if="elements.skillEdit">
-              <span v-for="skill, index in hrProfile.skills" :key="index"
-                class="badge bg-green fw-normal color-light me-1">
-                <span class="pe-1">{{ skill }}</span>
+        </h6>
+        <input v-if="elements.skillEdit" type="text" @keyup.enter.prevent="addSkills"
+          class="form-control form-control-sm mt-2 mb-1" placeholder="Press Enter to Add Skill">
+        <p class="profile-short-content">
+          <template v-if="elements.skillEdit">
+            <span v-for="skill, index in hrProfile.skills" :key="index"
+              class="badge bg-green fw-normal color-light me-1">
+              <span class="pe-1">{{ skill }}</span>
                 <a href="#" class="d-inline-block " @click="removeSkill(skill)">
                   <font-awesome-icon :icon="['fas', 'xmark']" />
                 </a>
@@ -509,8 +509,8 @@ export default {
         <div class="content-card">
           <h6 class="label-text">Note
             <!-- <span class="icon-btn float-end">
-              <font-awesome-icon :icon="['fas', 'pencil-alt']" />
-            </span> -->
+                                          <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                                        </span> -->
           </h6>
           <div class="note-input-group">
             <textarea name="" id="" class="form-control" rows="2"></textarea>
@@ -780,14 +780,14 @@ export default {
               <template v-if="hrProfile.docs?.length > 0">
                 <div v-for="document, index in hrProfile.docs" :key="index" class="list-item">
                   <!-- <div v-if="elements.tabItemEdit" class="row">
-                    <div class="col-12">
-                      <input type="text" v-model="docsData.title" class="form-control form-control-sm"
-                        placeholder="Enter Document Title">
-                    </div>
-                    <div class="col-12">
-                      <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
-                    </div>
-                  </div> -->
+                                                <div class="col-12">
+                                                  <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                                                    placeholder="Enter Document Title">
+                                                </div>
+                                                <div class="col-12">
+                                                  <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                                                </div>
+                                              </div> -->
                   <p class="label-text">Adhaar Card</p>
                   <div v-if="elements.tabItemEdit" class="text-end">
                     <span class="icon-btn me-1" @click="updateProfileChildItems(educationData, 'education')">

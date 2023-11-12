@@ -2,12 +2,14 @@
 import { useVuelidate } from '@vuelidate/core'
 import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
+import { useToast } from 'vue-toastification'
+
 export default {
-  setup() {
-    return { v$: useVuelidate() }
-  },
   data() {
     return {
+      v$: useVuelidate(),
+      toast: useToast(),
+
       hrProfile: {
         id: '',
         hr_profile_id: '',
@@ -72,27 +74,26 @@ export default {
   methods: {
     async getHrProfileList() {
       try {
-        const response = await axios.get('/hrprofile/list');
-        let result = response.data;
-        this.hrProfileList = result.hrProfileList;
-      } catch (error) {
-        console.log(error);
+        const response: any = await axios.get('/hrprofile/list');
+        this.hrProfileList = response.hrProfileList;
+      } catch (error: any) {
+        this.toast.error(error);
       }
     },
     async addHrProfile() {
       try {
         this.v$.hrProfile.$touch();
         if (!this.v$.hrProfile.$invalid) {
-          const response = await axios.post('/hrprofile/add', this.hrProfile);
-          let result = response.data;
-          console.log(result);
+          const response: any = await axios.post('/hrprofile/add', this.hrProfile);
 
+          console.log(response)
           if (response.status == 201) {
+            this.toast.success(response.message);
             this.getHrProfileList();
           }
         }
-      } catch (error) {
-        console.log(error)
+      } catch (error: any) {
+        this.toast.error(error);
       }
     },
     addSkills(event) {
