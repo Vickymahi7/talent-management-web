@@ -4,6 +4,8 @@ $form-text-color: #666;
 $heading-color: #54b848;
 $link-color: #000;
 $link-color-hover: #666;
+$spl-link-color: #54b848;
+$spl-link-hover: #666;
 $bg-color: #eef8ed;
 $bg-color-light: #f8fcf7;
 $form-focus-border-color: #000;
@@ -11,7 +13,7 @@ $card-color: #fff;
 $table-hover-color: #cccccc;
 
 $primary-btn-color: #fff;
-$primary-btn-bg: #212529;
+$primary-btn-bg: #000;
 $primary-btn-hover-color: #fff;
 $primary-btn-hover-bg: #424649;
 $primary-btn-hover-border: #424649;
@@ -37,7 +39,6 @@ $profile-left-card-width: 20%;
 $profile-heading-size: 1em;
 
 $card-gap: 0.3rem;
-
 
 // Toast Valiables
 $toast-bg-default: #1976d2;

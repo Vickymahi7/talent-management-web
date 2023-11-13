@@ -1,6 +1,6 @@
 <script lang="ts">
 import { useVuelidate } from '@vuelidate/core'
-import { required, email, minLength } from '@vuelidate/validators'
+import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 export default {
@@ -13,10 +13,8 @@ export default {
         user_id: null,
         user_type_id: null,
         user_name: null,
-        password: null,
         email_id: null,
         user_status_id: null,
-        active: true,
       },
 
       userList: [],
@@ -27,7 +25,6 @@ export default {
       user: {
         user_name: { required },
         email_id: { required, email },
-        password: { required, minLength: minLength(6), },
       }
     }
   },
@@ -40,7 +37,7 @@ export default {
         const response: any = await axios.get('/user/list')
         this.userList = response.userList;
       } catch (error: any) {
-        this.toast.error(error);
+        this.toast.error(error.message);
       }
     },
     async addUser() {
@@ -54,7 +51,7 @@ export default {
           }
         }
       } catch (error: any) {
-        this.toast.error(error);
+        this.toast.error(error.message);
       }
     },
   }
@@ -158,16 +155,6 @@ export default {
                     <option value="2">HR User</option>
                     <option value="3">User</option>
                   </select>
-                </div>
-              </div>
-              <div class="row mb-3">
-                <label for="password" class="col-sm-4 col-form-label">Default Password</label>
-                <div class="col-sm-8">
-                  <input type="password" class="form-control" v-model="user.password"
-                    :class="{ 'is-invalid': v$.user.password.$error }" id="password" placeholder="Enter Password">
-                  <div class="invalid-feedback" v-for="error of v$.user.password.$errors" :key="error.$uid">
-                    {{ error.$message }}
-                  </div>
                 </div>
               </div>
             </form>

@@ -21,8 +21,7 @@ export default {
         tabItemEdit: false,
       },
 
-      profilePic: '',
-
+      resumeFiles: '',
 
       hrProfile: {
         id: '',
@@ -128,7 +127,7 @@ export default {
         const response: any = await axios.get('/hrprofile/view/' + this.id);
         this.hrProfile = response.hrProfile;
       } catch (error: any) {
-        this.toast.error(error);
+        this.toast.error(error.message);
       }
     },
     async updateHrProfile(data) {
@@ -139,7 +138,7 @@ export default {
       try {
         this.v$.hrProfile.$touch();
         if (!this.v$.hrProfile.$invalid) {
-          const response = await axios.put('/hrprofile/update', data);
+          const response: any = await axios.put('/hrprofile/update', data);
           console.log(response);
 
           if (response.status == 200) {
@@ -154,13 +153,12 @@ export default {
           }
         }
       } catch (error: any) {
-        this.toast.error(error);
+        this.toast.error(error.message);
       }
     },
     async uploadProfilePhoto(event: any) {
       const files = event.target.files
       try {
-        // this.v$.hrProfile.$touch();
         if (files.length > 0) {
           let formData = new FormData();
 
@@ -170,7 +168,7 @@ export default {
           console.log(files);
 
           console.log(formData.values);
-          const response = await axios.post('/hrprofile/photoupload', formData, {
+          const response: any = await axios.post('/hrprofile/photoupload', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
@@ -183,7 +181,31 @@ export default {
           }
         }
       } catch (error: any) {
-        this.toast.error(error);
+        this.toast.error(error.message);
+      }
+    },
+    async addResume(event: any) {
+      this.resumeFiles = event.target.files;
+    },
+    async uploadResume() {
+      try {
+        if (this.resumeFiles.length > 0) {
+          let formData = new FormData();
+          formData.append('id', this.hrProfile.id);
+          formData.append('file', this.resumeFiles[0]);
+
+          const response: any = await axios.post('/hrprofile/resumeupload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          if (response.status == 200) {
+            this.toast.success(response.message);
+            this.getHrProfile();
+          }
+        }
+      } catch (error: any) {
+        this.toast.error(error.message);
       }
     },
     updatePrimaryInfo() {
@@ -306,8 +328,8 @@ export default {
     <div class="profile-head">
       <div class="profile-media content-card">
         <img class="profile-picture" :src="getImageUrlWithTimestamp" alt="Profile Picture" width="150" height="150" />
-        <input type="file" class="form-control" @input="uploadProfilePhoto($event)" id="resumeInput"
-          placeholder="Add Resume Attachment">
+        <input type="file" class="form-control form-control-sm" @input="uploadProfilePhoto($event)" id="resumeInput"
+          placeholder="Choose Photo">
         <div class="title-block">
           <p class="title-text">{{ hrProfile.first_name }} {{ hrProfile.last_name }}</p>
           <p>--position--</p>
@@ -371,21 +393,27 @@ export default {
               </div>
               <div class="separator my-3"></div>
               <div class="row align-items-center mb-1">
-                <div class="col-6">
-                  <p class="label-text">
+                <div class="col-8">
+                  <input v-if="elements.primaryInfoEdit" type="file" @input="addResume($event)"
+                    class="form-control form-control-sm" id="
+                                          resumeInput" placeholder="Choose a Resume">
+                  <p v-else class="label-text">
                     <span class="icon-btn me-1">
                       <font-awesome-icon :icon="['fas', 'paperclip']" />
                     </span>
-                    --resume name--
+                    <span v-if="hrProfile.resume_url">{{ hrProfile.first_name }} - Resume</span>
+                    <span v-else class="text-muted">-- no resume --</span>
                   </p>
                 </div>
-                <div class="col-6 text-end">
-                  <button class="btn primary-btn me-2 br-0" type="button">
+                <div class="col-4 text-end">
+                  <button v-if="elements.primaryInfoEdit" @click="uploadResume" class="btn primary-btn me-2 br-0"
+                    type="button">
                     Upload
                   </button>
-                  <button class="btn primary-btn br-0" type="button">
+                  <a v-if="!elements.primaryInfoEdit && hrProfile.resume_url" :href="hrProfile.resume_url" target="_blank"
+                    class="btn primary-btn br-0" type="button">
                     Show
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
@@ -464,14 +492,14 @@ export default {
             <span v-else class="icon-btn float-end" @click="elements.aboutInfoEdit = true">
               <font-awesome-icon :icon="['fas', 'pencil-alt']" />
             </span>
-          </h6>
-          <textarea v-if="elements.aboutInfoEdit" v-model="hrProfile.objective" name="" id="" class="form-control"
-            rows="2"></textarea>
-          <p v-else class="profile-short-content">
-            {{ hrProfile.objective }}
-          </p>
-        </div>
-        <div class="content-card">
+        </h6>
+        <textarea v-if="elements.aboutInfoEdit" v-model="hrProfile.objective" name="" id="" class="form-control"
+          rows="2"></textarea>
+        <p v-else class="profile-short-content">
+          {{ hrProfile.objective }}
+        </p>
+      </div>
+      <div class="content-card">
           <h6 class="label-text">Skills
             <span v-if="elements.skillEdit" class="float-end">
               <span class="icon-btn me-1" @click="updateSkill">
@@ -486,14 +514,14 @@ export default {
                 <font-awesome-icon :icon="['fas', 'pencil-alt']" />
               </span>
             </span>
-        </h6>
-        <input v-if="elements.skillEdit" type="text" @keyup.enter.prevent="addSkills"
-          class="form-control form-control-sm mt-2 mb-1" placeholder="Press Enter to Add Skill">
-        <p class="profile-short-content">
-          <template v-if="elements.skillEdit">
-            <span v-for="skill, index in hrProfile.skills" :key="index"
-              class="badge bg-green fw-normal color-light me-1">
-              <span class="pe-1">{{ skill }}</span>
+          </h6>
+          <input v-if="elements.skillEdit" type="text" @keyup.enter.prevent="addSkills"
+            class="form-control form-control-sm mt-2 mb-1" placeholder="Press Enter to Add Skill">
+          <p class="profile-short-content">
+            <template v-if="elements.skillEdit">
+              <span v-for="skill, index in hrProfile.skills" :key="index"
+                class="badge bg-green fw-normal color-light me-1">
+                <span class="pe-1">{{ skill }}</span>
                 <a href="#" class="d-inline-block " @click="removeSkill(skill)">
                   <font-awesome-icon :icon="['fas', 'xmark']" />
                 </a>
@@ -509,8 +537,8 @@ export default {
         <div class="content-card">
           <h6 class="label-text">Note
             <!-- <span class="icon-btn float-end">
-                                          <font-awesome-icon :icon="['fas', 'pencil-alt']" />
-                                        </span> -->
+                                                                                                            <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                                                                                                          </span> -->
           </h6>
           <div class="note-input-group">
             <textarea name="" id="" class="form-control" rows="2"></textarea>
@@ -780,14 +808,14 @@ export default {
               <template v-if="hrProfile.docs?.length > 0">
                 <div v-for="document, index in hrProfile.docs" :key="index" class="list-item">
                   <!-- <div v-if="elements.tabItemEdit" class="row">
-                                                <div class="col-12">
-                                                  <input type="text" v-model="docsData.title" class="form-control form-control-sm"
-                                                    placeholder="Enter Document Title">
-                                                </div>
-                                                <div class="col-12">
-                                                  <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
-                                                </div>
-                                              </div> -->
+                                                                                                                  <div class="col-12">
+                                                                                                                    <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                                                                                                                      placeholder="Enter Document Title">
+                                                                                                                  </div>
+                                                                                                                  <div class="col-12">
+                                                                                                                    <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                                                                                                                  </div>
+                                                                                                                </div> -->
                   <p class="label-text">Adhaar Card</p>
                   <div v-if="elements.tabItemEdit" class="text-end">
                     <span class="icon-btn me-1" @click="updateProfileChildItems(educationData, 'education')">

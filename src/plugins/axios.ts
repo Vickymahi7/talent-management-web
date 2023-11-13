@@ -1,42 +1,45 @@
 // axios.js
-import axios from 'axios';
+import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:3000/api/v1',
+  baseURL: "http://localhost:3000/api/v1",
   timeout: 50000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const accessToken = localStorage.getItem('accessToken');
+    const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
-  error => {
-    console.log(error)
-    return Promise.reject('Something went wrong')
-  });
+  (error) => {
+    console.log(error);
+    return Promise.reject("Something went wrong");
+  }
+);
 
 // response interceptor
 axiosInstance.interceptors.response.use(
-  response => {
-    const res = response.data
+  (response) => {
+    console.log(response);
+    const res = response.data;
     return res;
   },
-  error => {
-    console.log(error)
-    if (error.response.data && error.response.data.status) {
-      return Promise.reject(error.response.data.message)
+  (error) => {
+    console.log(error);
+    if (error.response.status == 403) {
+      // Promise.reject();
+    } else if (error.response.data && error.response.data) {
+      return Promise.reject(error.response.data);
     } else {
-      return Promise.reject('Something went wrong')
+      return Promise.reject("Something went wrong");
     }
   }
-)
-
+);
 
 export default axiosInstance;

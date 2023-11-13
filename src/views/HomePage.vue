@@ -1,5 +1,5 @@
 <script lang="ts">
-import { UserType } from '@/enums/UserType';
+import { UserType } from '@/enums/userType.js';
 import axios from '@/plugins/axios.js'
 import useVuelidate from '@vuelidate/core';
 import { useToast } from 'vue-toastification';
@@ -8,9 +8,6 @@ export default {
     return {
       v$: useVuelidate(),
       toast: useToast(),
-
-      error: false,
-      errorMessage: "",
 
       loginData: {
         email_id: "",
@@ -28,7 +25,7 @@ export default {
     },
     async loginUser() {
       try {
-        const response = await axios.post('/login', this.loginData)
+        const response: any = await axios.post('/login', this.loginData)
 
         localStorage.setItem("accessToken", response.accessToken)
         localStorage.setItem("userTypeId", response.userTypeId)
@@ -40,12 +37,7 @@ export default {
           this.$router.push({ name: 'hrprofilemanagement' });
         }
       } catch (error: any) {
-        this.toast.error(error);
-        this.error = true;
-        setTimeout(() => {
-          this.error = false;
-        }, 5000)
-        this.errorMessage = error;
+        this.toast.error(error.message);
       }
     },
   }
@@ -56,12 +48,6 @@ export default {
   <main class="login-container">
     <div class="login-section">
       <h4 class="text-center">Login</h4>
-      <div v-if="error" class="alert alert-danger d-flex align-items-center" role="alert">
-        <font-awesome-icon class="mx-2" :icon="['far', 'circle-xmark']" />
-        <div>
-          {{ errorMessage ? errorMessage : "An error occured" }}
-        </div>
-      </div>
       <form class="p-3">
         <div class="row gy-2">
           <div class="col-12">

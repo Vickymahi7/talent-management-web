@@ -1,6 +1,6 @@
 <script lang="ts">
 import { useVuelidate } from '@vuelidate/core'
-import { required, email, minLength } from '@vuelidate/validators'
+import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 export default {
@@ -13,7 +13,6 @@ export default {
         name: '',
         user_name: '',
         email_id: '',
-        password: '',
         tenant_type_id: '',
         description: '',
         location: '',
@@ -28,7 +27,6 @@ export default {
         name: { required },
         user_name: { required },
         email_id: { required, email },
-        password: { required, minLength: minLength(6), },
       }
     }
   },
@@ -41,7 +39,7 @@ export default {
         const response: any = await axios.get('/tenant/list')
         this.tenantList = response.tenantList;
       } catch (error: any) {
-        this.toast.error(error);
+        this.toast.error(error.message);
       }
     },
     async addTenant() {
@@ -55,7 +53,7 @@ export default {
           }
         }
       } catch (error: any) {
-        this.toast.error(error);
+        this.toast.error(error.message);
       }
     },
   }
@@ -82,11 +80,11 @@ export default {
               <input class="form-check-input" type="checkbox">
             </th>
             <th scope="col">ID</th>
-          <th scope="col">Tenant</th>
-          <th scope="col">Email ID</th>
+            <th scope="col">Tenant</th>
+            <th scope="col">Email ID</th>
           <th scope="col">Tenant Type</th>
-            <th scope="col">User</th>
-            <th scope="col">Status</th>
+          <th scope="col">User</th>
+          <th scope="col">Status</th>
             <th scope="col">Last Updated</th>
             <th scope="col">Action</th>
           </tr>
@@ -145,9 +143,9 @@ export default {
                   <select class="form-select" v-model="tenant.tenant_type_id" aria-label="Tenant Type">
                     <option value="">Select</option>
                     <!-- <option value="1">Super Admin</option>
-                                      <option value="1">Admin</option>
-                                      <option value="2">HR Tenant</option>
-                                      <option value="3">Tenant</option> -->
+                                                <option value="1">Admin</option>
+                                                <option value="2">HR Tenant</option>
+                                                <option value="3">Tenant</option> -->
                   </select>
                 </div>
               </div>
@@ -180,16 +178,6 @@ export default {
                   <input type="email" class="form-control" v-model="tenant.email_id" id="email_id"
                     :class="{ 'is-invalid': v$.tenant.email_id.$error }" placeholder="Enter Email ID">
                   <div class="invalid-feedback" v-for="error of v$.tenant.email_id.$errors" :key="error.$uid">
-                    {{ error.$message }}
-                  </div>
-                </div>
-              </div>
-              <div class="row mb-3">
-                <label for="password" class="col-sm-4 col-form-label">Default Password</label>
-                <div class="col-sm-8">
-                  <input type="password" class="form-control" v-model="tenant.password" id="password"
-                    :class="{ 'is-invalid': v$.tenant.password.$error }" placeholder="Enter Password">
-                  <div class="invalid-feedback" v-for="error of v$.tenant.password.$errors" :key="error.$uid">
                     {{ error.$message }}
                   </div>
                 </div>

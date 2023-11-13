@@ -21,6 +21,16 @@ a {
   }
 }
 
+a {
+  &.spl-link {
+    color: $spl-link-color;
+
+    &:hover {
+      color: $spl-link-hover;
+    }
+  }
+}
+
 #app {
   display: flex;
   flex-direction: column;
@@ -312,7 +322,6 @@ a {
 
 .custom-table-style {
   tr {
-
     td,
     th {
       padding-top: 1em;
@@ -398,6 +407,17 @@ a {
   }
 }
 
+.badge {
+  a {
+    color: $text-color-light;
+
+    &.active,
+    &:hover {
+      color: $text-color;
+    }
+  }
+}
+
 .btn {
   font-size: 0.8rem;
   padding: 0.4em 1.2em;
@@ -425,6 +445,11 @@ a {
       border-color: $secondary-btn-hover-border;
     }
   }
+}
+
+.dropdown-item:active {
+  color: $primary-btn-color;
+  background-color: $primary-btn-bg;
 }
 
 .icon-btn {

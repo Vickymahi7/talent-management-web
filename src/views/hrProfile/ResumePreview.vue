@@ -67,7 +67,7 @@ export default {
         const response: any = await axios.get('/hrprofile/view/' + this.id);
         this.hrProfile = response.hrProfile;
       } catch (error: any) {
-        this.toast.error(error);
+        this.toast.error(error.message);
       }
     },
   }

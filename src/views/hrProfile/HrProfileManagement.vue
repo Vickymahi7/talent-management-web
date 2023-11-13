@@ -77,7 +77,7 @@ export default {
         const response: any = await axios.get('/hrprofile/list');
         this.hrProfileList = response.hrProfileList;
       } catch (error: any) {
-        this.toast.error(error);
+        this.toast.error(error.message);
       }
     },
     async addHrProfile() {
@@ -93,7 +93,7 @@ export default {
           }
         }
       } catch (error: any) {
-        this.toast.error(error);
+        this.toast.error(error.message);
       }
     },
     addSkills(event) {
@@ -251,9 +251,13 @@ export default {
                   <input type="text" class="form-control" @keyup.enter.prevent="addSkills" id="skills"
                     placeholder="Enter Skills">
                   <div class="mt-2">
-                    <span v-for="skill, index in hrProfile.skills" :key="index" class="badge bg-primary me-1 py-2">
-                      <span class="pr-2">{{ skill }}</span>
-                      <a href="#" class="p-2" @click="removeSkill(skill)">x</a></span>
+                    <span v-for="skill, index in hrProfile.skills" :key="index"
+                      class="badge bg-green fw-normal color-light me-1">
+                      <span class="pe-1">{{ skill }}</span>
+                      <a href="#" class="d-inline-block " @click="removeSkill(skill)">
+                        <font-awesome-icon :icon="['fas', 'xmark']" />
+                      </a>
+                    </span>
                   </div>
                 </div>
               </div>
