@@ -1,5 +1,5 @@
 <script lang="ts">
-import { UserType } from '@/enums/userType.js';
+import { UserTypeId } from '@/enums/index.js';
 import axios from '@/plugins/axios.js'
 import useVuelidate from '@vuelidate/core';
 import { useToast } from 'vue-toastification';
@@ -22,6 +22,7 @@ export default {
     clearLoginDetails() {
       localStorage.removeItem("accessToken")
       localStorage.removeItem("userTypeId")
+      localStorage.removeItem("userName")
     },
     async loginUser() {
       try {
@@ -29,8 +30,9 @@ export default {
 
         localStorage.setItem("accessToken", response.accessToken)
         localStorage.setItem("userTypeId", response.userTypeId)
+        localStorage.setItem("userName", response.userName)
 
-        if (response.userTypeId == UserType.SAD) {
+        if (response.userTypeId == UserTypeId.SAD) {
           this.$router.push({ name: 'tenantmanagement' });
         }
         else {

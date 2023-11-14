@@ -32,9 +32,7 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     console.log(error);
-    if (error.response.status == 403) {
-      // Promise.reject();
-    } else if (error.response.data && error.response.data) {
+    if (error.response.data) {
       return Promise.reject(error.response.data);
     } else {
       return Promise.reject("Something went wrong");

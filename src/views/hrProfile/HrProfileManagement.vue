@@ -3,6 +3,7 @@ import { useVuelidate } from '@vuelidate/core'
 import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
+import { HttpStatusCode } from 'axios'
 
 export default {
   data() {
@@ -87,7 +88,7 @@ export default {
           const response: any = await axios.post('/hrprofile/add', this.hrProfile);
 
           console.log(response)
-          if (response.status == 201) {
+          if (response.status == HttpStatusCode.Created) {
             this.toast.success(response.message);
             this.getHrProfileList();
           }
@@ -136,11 +137,11 @@ export default {
       </div>
       <div class="col text-end">
         <button class="btn primary-btn mx-2" type="button" data-bs-toggle="modal" data-bs-target="#hrProfileAddEditModal">
-          <font-awesome-icon class="me-2" :icon="['fas', 'plus-circle']" />
+          <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New Resource
         </button>
         <button class="btn primary-btn" type="button">
-          <font-awesome-icon class="me-2" :icon="['fas', 'upload']" />
+          <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
           Resource Excel Import
         </button>
       </div>
@@ -177,13 +178,13 @@ export default {
             <td>{{ hrProfile.last_updated_dt }}</td>
             <td>
               <div class="icon-btn me-3">
-                <font-awesome-icon :icon="['fas', 'paperclip']" />
+                <font-awesome-icon icon="fa-solid fa-paperclip" />
               </div>
               <div class="icon-btn me-3">
-                <font-awesome-icon :icon="['fas', 'download']" />
+                <font-awesome-icon icon="fa-solid fa-download" />
               </div>
               <div class="icon-btn me-3">
-                <font-awesome-icon :icon="['fas', 'trash']" />
+                <font-awesome-icon icon="fa-solid fa-trash" />
               </div>
             </td>
           </tr>
@@ -255,7 +256,7 @@ export default {
                       class="badge bg-green fw-normal color-light me-1">
                       <span class="pe-1">{{ skill }}</span>
                       <a href="#" class="d-inline-block " @click="removeSkill(skill)">
-                        <font-awesome-icon :icon="['fas', 'xmark']" />
+                        <font-awesome-icon icon="fa-solid fa-xmark" />
                       </a>
                     </span>
                   </div>

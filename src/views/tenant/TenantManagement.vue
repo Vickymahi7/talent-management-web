@@ -3,6 +3,8 @@ import { useVuelidate } from '@vuelidate/core'
 import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
+import { Modal } from 'bootstrap'
+import { HttpStatusCode } from 'axios'
 export default {
   data() {
     return {
@@ -10,15 +12,22 @@ export default {
       toast: useToast(),
 
       tenant: {
+        tenant_id: '1',
         name: '',
+        user_id: '',
         user_name: '',
         email_id: '',
+        phone: '',
         tenant_type_id: '',
         description: '',
         location: '',
       },
 
       tenantList: [],
+
+      dialogParam: {
+        id: 0,
+      },
     }
   },
   validations() {
@@ -47,15 +56,51 @@ export default {
         this.v$.tenant.$touch();
         if (!this.v$.tenant.$invalid) {
           const response: any = await axios.post('/tenant/add', this.tenant);
-          if (response.status == 201) {
+          if (response.status == HttpStatusCode.Created) {
             this.toast.success(response.message);
             this.getTenantList();
+            this.toggelTenantAddEditPopup();
           }
         }
       } catch (error: any) {
         this.toast.error(error.message);
       }
     },
+    toggelTenantAddEditPopup() {
+      const myModalEl = document.getElementById('tenantAddEditModal')!;
+      const modal = Modal.getOrCreateInstance(myModalEl);
+      modal?.toggle();
+    },
+    deleteTenant: function (id: number) {
+      this.dialogParam.id = id;
+    },
+    async onYesTenant() {
+      try {
+        const response: any = await axios.delete('/tenant/delete/' + this.dialogParam.id)
+        if (response.status == HttpStatusCode.Ok) {
+          this.toast.success(response.message);
+          this.getTenantList();
+        }
+
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+    },
+    resendActivationMail: function (id: number) {
+      this.dialogParam.id = id;
+    },
+    async onYesConfirmation() {
+      try {
+        const response: any = await axios.post('/user/resendactivation/' + this.dialogParam.id)
+        if (response.status == HttpStatusCode.Ok) {
+          this.toast.success(response.message);
+          this.getTenantList();
+        }
+
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+    }
   }
 }
 </script>
@@ -66,8 +111,8 @@ export default {
   <div class="content-card h-100">
     <div class="row py-2">
       <div class="col text-end">
-        <button class="btn primary-btn mx-2" type="button" data-bs-toggle="modal" data-bs-target="#tenantAddEditModal">
-          <font-awesome-icon class="me-2" :icon="['fas', 'plus-circle']" />
+        <button class="btn primary-btn mx-2" type="button" @click="toggelTenantAddEditPopup">
+          <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New Tenant
         </button>
       </div>
@@ -81,10 +126,9 @@ export default {
             </th>
             <th scope="col">ID</th>
             <th scope="col">Tenant</th>
-            <th scope="col">Email ID</th>
-          <th scope="col">Tenant Type</th>
-          <th scope="col">User</th>
-          <th scope="col">Status</th>
+            <th scope="col">Primary User Name</th>
+            <th scope="col">Primary User Email</th>
+            <th scope="col">Status</th>
             <th scope="col">Last Updated</th>
             <th scope="col">Action</th>
           </tr>
@@ -96,20 +140,18 @@ export default {
             </td>
             <td>{{ tenant.tenant_id }}</td>
             <td>{{ tenant.name }}</td>
-            <td>{{ tenant.email_id }}</td>
-            <td>{{ tenant.tenant_type }}</td>
-            <td>{{ tenant.user_name }}</td>
+            <td>{{ tenant.user.user_name }}</td>
+            <td>{{ tenant.user.email_id }}</td>
             <td>{{ tenant.active ? 'Active' : 'Inactive' }}</td>
             <td>{{ tenant.last_updated_dt }}</td>
             <td>
-              <div class="icon-btn me-3">
-                <font-awesome-icon :icon="['fas', 'paperclip']" />
+              <div v-if="!tenant.user.active" class="icon-btn me-3" @click="resendActivationMail(tenant.user_id)"
+                data-bs-toggle="modal" data-bs-target="#resendConfirmation">
+                <font-awesome-icon icon="fa-solid fa-repeat" />
               </div>
-              <div class="icon-btn me-3">
-                <font-awesome-icon :icon="['fas', 'download']" />
-              </div>
-              <div class="icon-btn me-3">
-                <font-awesome-icon :icon="['fas', 'trash']" />
+              <div class="icon-btn me-3" @click="deleteTenant(tenant.tenant_id)" data-bs-toggle="modal"
+                data-bs-target="#deleteTenant">
+                <font-awesome-icon icon="fa-solid fa-trash" />
               </div>
             </td>
           </tr>
@@ -138,32 +180,7 @@ export default {
                 </div>
               </div>
               <div class="row mb-3">
-                <label for="tenant_type_id" class="col-sm-4 col-form-label">Tenant Type</label>
-                <div class="col-sm-8">
-                  <select class="form-select" v-model="tenant.tenant_type_id" aria-label="Tenant Type">
-                    <option value="">Select</option>
-                    <!-- <option value="1">Super Admin</option>
-                                                <option value="1">Admin</option>
-                                                <option value="2">HR Tenant</option>
-                                                <option value="3">Tenant</option> -->
-                  </select>
-                </div>
-              </div>
-              <div class="row mb-3">
-                <label for="location" class="col-sm-4 col-form-label">Location</label>
-                <div class="col-sm-8">
-                  <input type="text" v-model="tenant.location" class="form-control" id="location">
-                </div>
-              </div>
-              <div class="row mb-3">
-                <label for="description" class="col-sm-4 col-form-label">Description</label>
-                <div class="col-sm-8">
-                  <textarea v-model="tenant.description" name="description" class="form-control" id="description"
-                    rows="5"></textarea>
-                </div>
-              </div>
-              <div class="row mb-3">
-                <label for="user_name" class="col-sm-4 col-form-label">Admin User Name</label>
+                <label for="user_name" class="col-sm-4 col-form-label">Primary User Name</label>
                 <div class="col-sm-8">
                   <input type="text" class="form-control" v-model="tenant.user_name" id="user_name"
                     :class="{ 'is-invalid': v$.tenant.user_name.$error }" placeholder="Enter User Name">
@@ -173,13 +190,27 @@ export default {
                 </div>
               </div>
               <div class="row mb-3">
-                <label for="email_id" class="col-sm-4 col-form-label">Email ID</label>
+                <label for="email_id" class="col-sm-4 col-form-label">Primary User Email</label>
                 <div class="col-sm-8">
                   <input type="email" class="form-control" v-model="tenant.email_id" id="email_id"
                     :class="{ 'is-invalid': v$.tenant.email_id.$error }" placeholder="Enter Email ID">
                   <div class="invalid-feedback" v-for="error of v$.tenant.email_id.$errors" :key="error.$uid">
                     {{ error.$message }}
                   </div>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="phone" class="col-sm-4 col-form-label">Phone</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="tenant.phone" id="phone"
+                    placeholder="Enter Phone Number">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="location" class="col-sm-4 col-form-label">Location</label>
+                <div class="col-sm-8">
+                  <input type="text" v-model="tenant.location" class="form-control" id="location"
+                    placeholder="Enter Location">
                 </div>
               </div>
             </form>
@@ -192,4 +223,8 @@ export default {
       </div>
     </div>
   </div>
+  <dialog-component id="deleteTenant" :onYes="onYesTenant" :returnParams="dialogParam" title="Delete Confirmation"
+    message="Are you sure to delete tenant?" />
+  <dialog-component id="resendConfirmation" :onYes="onYesConfirmation" :returnParams="dialogParam"
+    title="Delete Confirmation" message="Are you sure to resend activation mail?" />
 </template>

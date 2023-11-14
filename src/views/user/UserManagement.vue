@@ -3,6 +3,7 @@ import { useVuelidate } from '@vuelidate/core'
 import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
+import { HttpStatusCode } from 'axios'
 export default {
   data() {
     return {
@@ -14,6 +15,7 @@ export default {
         user_type_id: null,
         user_name: null,
         email_id: null,
+        phone: null,
         user_status_id: null,
       },
 
@@ -45,7 +47,7 @@ export default {
         this.v$.user.$touch();
         if (!this.v$.user.$invalid) {
           const response: any = await axios.post('/user/add', this.user);
-          if (response.status == 201) {
+          if (response.status == HttpStatusCode.Created) {
             this.toast.success(response.message);
             this.getUserList();
           }
@@ -65,7 +67,7 @@ export default {
     <div class="row py-2">
       <div class="col text-end">
         <button class="btn primary-btn mx-2" type="button" data-bs-toggle="modal" data-bs-target="#userAddEditModal">
-          <font-awesome-icon class="me-2" :icon="['fas', 'plus-circle']" />
+          <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New User
         </button>
       </div>
@@ -101,13 +103,13 @@ export default {
             <td>{{ user.last_updated_dt }}</td>
             <td>
               <div class="icon-btn me-3">
-                <font-awesome-icon :icon="['fas', 'paperclip']" />
+                <font-awesome-icon icon="fa-solid fa-paperclip" />
               </div>
               <div class="icon-btn me-3">
-                <font-awesome-icon :icon="['fas', 'download']" />
+                <font-awesome-icon icon="fa-solid fa-download" />
               </div>
               <div class="icon-btn me-3">
-                <font-awesome-icon :icon="['fas', 'trash']" />
+                <font-awesome-icon icon="fa-solid fa-trash" />
               </div>
             </td>
           </tr>
@@ -130,7 +132,7 @@ export default {
                 <div class="col-sm-8">
                   <input type="text" class="form-control" v-model="user.user_name" id="user_name"
                     :class="{ 'is-invalid': v$.user.user_name.$error }" placeholder="Enter Name">
-                  <div class="invalid-feedback" v-for="error of v$.user.email_id.$errors" :key="error.$uid">
+                  <div class="invalid-feedback" v-for="error of v$.user.user_name.$errors" :key="error.$uid">
                     {{ error.$message }}
                   </div>
                 </div>
@@ -143,6 +145,12 @@ export default {
                   <div class="invalid-feedback" v-for="error of v$.user.email_id.$errors" :key="error.$uid">
                     {{ error.$message }}
                   </div>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="phone" class="col-sm-4 col-form-label">Phone</label>
+                <div class="col-sm-8">
+                  <input type="tet" class="form-control" v-model="user.phone" id="phone" placeholder="Enter Phone Number">
                 </div>
               </div>
               <div class="row mb-3">

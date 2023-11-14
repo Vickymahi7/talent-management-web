@@ -4,6 +4,7 @@ import { required, email } from '@vuelidate/validators'
 import { Modal } from 'bootstrap'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
+import { HttpStatusCode } from 'axios'
 
 export default {
   props: ['id'],
@@ -141,7 +142,7 @@ export default {
           const response: any = await axios.put('/hrprofile/update', data);
           console.log(response);
 
-          if (response.status == 200) {
+          if (response.status == HttpStatusCode.Ok) {
             this.toast.success(response.message);
             this.getHrProfile();
             this.elements.primaryInfoEdit = false;
@@ -175,7 +176,7 @@ export default {
           });
           console.log(response);
 
-          if (response.status == 200) {
+          if (response.status == HttpStatusCode.Ok) {
             this.toast.success(response.message);
             this.getHrProfile();
           }
@@ -199,7 +200,7 @@ export default {
               'Content-Type': 'multipart/form-data',
             },
           });
-          if (response.status == 200) {
+          if (response.status == HttpStatusCode.Ok) {
             this.toast.success(response.message);
             this.getHrProfile();
           }
@@ -320,7 +321,7 @@ export default {
       <label>Manage HR Profile</label>
     </div>
     <button class="btn primary-btn ms-2" type="button" @click="$router.push({ name: 'resumepreview', params: { id } })">
-      <font-awesome-icon class="me-2" :icon="['fas', 'download']" />
+      <font-awesome-icon class="me-2" icon="fa-solid fa-download" />
       Resume Preview
     </button>
   </div>
@@ -340,14 +341,14 @@ export default {
           <h6 class="label-text mb-2 w-100">Primary Info
             <span v-if="elements.primaryInfoEdit">
               <span class="icon-btn float-end" @click="elements.primaryInfoEdit = false">
-                <font-awesome-icon :icon="['fas', 'xmark']" />
+                <font-awesome-icon icon="fa-solid fa-xmark" />
               </span>
               <span class="icon-btn float-end me-1" @click="updatePrimaryInfo">
-                <font-awesome-icon :icon="['fas', 'check']" />
+                <font-awesome-icon icon="fa-solid fa-check" />
               </span>
             </span>
             <span v-else class="icon-btn float-end" @click="elements.primaryInfoEdit = true">
-              <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+              <font-awesome-icon icon="fa-solid fa-pencil-alt" />
             </span>
           </h6>
           <div class="primary-info">
@@ -396,10 +397,10 @@ export default {
                 <div class="col-8">
                   <input v-if="elements.primaryInfoEdit" type="file" @input="addResume($event)"
                     class="form-control form-control-sm" id="
-                                          resumeInput" placeholder="Choose a Resume">
+                                                resumeInput" placeholder="Choose a Resume">
                   <p v-else class="label-text">
                     <span class="icon-btn me-1">
-                      <font-awesome-icon :icon="['fas', 'paperclip']" />
+                      <font-awesome-icon icon="fa-solid fa-paperclip" />
                     </span>
                     <span v-if="hrProfile.resume_url">{{ hrProfile.first_name }} - Resume</span>
                     <span v-else class="text-muted">-- no resume --</span>
@@ -439,7 +440,7 @@ export default {
               <div class="d-flex align-items-center mb-1 ">
                 <span>
                   <span class="icon-btn me-2">
-                    <font-awesome-icon :icon="['fas', 'envelope']" />
+                    <font-awesome-icon icon="fa-solid fa-envelope" />
                   </span>
                 </span>
                 <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
@@ -451,7 +452,7 @@ export default {
               <div class="d-flex align-items-center mb-1">
                 <span>
                   <span class="icon-btn me-2">
-                    <font-awesome-icon :icon="['fas', 'phone']" />
+                    <font-awesome-icon icon="fa-solid fa-phone" />
                   </span>
                 </span>
                 <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
@@ -463,7 +464,7 @@ export default {
               <div class="d-flex align-items-center mb-1">
                 <span>
                   <span class="icon-btn me-2">
-                    <font-awesome-icon :icon="['fab', 'linkedin']" />
+                    <font-awesome-icon icon="fa-brands fa-linkedin" />
                   </span>
                 </span>
                 <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
@@ -483,15 +484,15 @@ export default {
           <h6 class="label-text mb-2">About
             <span v-if="elements.aboutInfoEdit">
               <span class="icon-btn float-end" @click="elements.aboutInfoEdit = false">
-                <font-awesome-icon :icon="['fas', 'xmark']" />
+                <font-awesome-icon icon="fa-solid fa-xmark" />
               </span>
               <span class="icon-btn float-end me-1" @click="updateAboutInfo">
-                <font-awesome-icon :icon="['fas', 'check']" />
+                <font-awesome-icon icon="fa-solid fa-check" />
               </span>
             </span>
             <span v-else class="icon-btn float-end" @click="elements.aboutInfoEdit = true">
-              <font-awesome-icon :icon="['fas', 'pencil-alt']" />
-            </span>
+              <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+          </span>
         </h6>
         <textarea v-if="elements.aboutInfoEdit" v-model="hrProfile.objective" name="" id="" class="form-control"
           rows="2"></textarea>
@@ -499,19 +500,19 @@ export default {
           {{ hrProfile.objective }}
         </p>
       </div>
-      <div class="content-card">
+        <div class="content-card">
           <h6 class="label-text">Skills
             <span v-if="elements.skillEdit" class="float-end">
               <span class="icon-btn me-1" @click="updateSkill">
-                <font-awesome-icon :icon="['fas', 'check']" />
+                <font-awesome-icon icon="fa-solid fa-check" />
               </span>
               <span class="icon-btn" @click="elements.skillEdit = false">
-                <font-awesome-icon :icon="['fas', 'xmark']" />
+                <font-awesome-icon icon="fa-solid fa-xmark" />
               </span>
             </span>
             <span v-else class="float-end">
               <span class="icon-btn" @click="elements.skillEdit = true">
-                <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                <font-awesome-icon icon="fa-solid fa-pencil-alt" />
               </span>
             </span>
           </h6>
@@ -519,16 +520,16 @@ export default {
             class="form-control form-control-sm mt-2 mb-1" placeholder="Press Enter to Add Skill">
           <p class="profile-short-content">
             <template v-if="elements.skillEdit">
-              <span v-for="skill, index in hrProfile.skills" :key="index"
+              <span v-for="skill, index in   hrProfile.skills" :key="index"
                 class="badge bg-green fw-normal color-light me-1">
                 <span class="pe-1">{{ skill }}</span>
                 <a href="#" class="d-inline-block " @click="removeSkill(skill)">
-                  <font-awesome-icon :icon="['fas', 'xmark']" />
+                  <font-awesome-icon icon="fa-solid fa-xmark" />
                 </a>
               </span>
             </template>
             <template v-else>
-              <span v-for="skill, index in hrProfile.skills" :key="index"
+              <span v-for="skill, index in   hrProfile.skills" :key="index"
                 class="badge bg-green fw-normal color-light me-1">{{ skill
                 }}</span>
             </template>
@@ -537,8 +538,8 @@ export default {
         <div class="content-card">
           <h6 class="label-text">Note
             <!-- <span class="icon-btn float-end">
-                                                                                                            <font-awesome-icon :icon="['fas', 'pencil-alt']" />
-                                                                                                          </span> -->
+                                                                                                                  <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                                                                                                                </span> -->
           </h6>
           <div class="note-input-group">
             <textarea name="" id="" class="form-control" rows="2"></textarea>
@@ -576,14 +577,14 @@ export default {
               <div class="d-block text-end mb-2">
                 <span v-if="elements.summaryEdit">
                   <span class="icon-btn me-1" @click="updateSummary">
-                    <font-awesome-icon :icon="['fas', 'check']" />
+                    <font-awesome-icon icon="fa-solid fa-check" />
                   </span>
                   <span class="icon-btn" @click="elements.summaryEdit = false">
-                    <font-awesome-icon :icon="['fas', 'xmark']" />
+                    <font-awesome-icon icon="fa-solid fa-xmark" />
                   </span>
                 </span>
                 <span v-else class="icon-btn" @click="elements.summaryEdit = true">
-                  <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                  <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                 </span>
               </div>
               <div class="summary-content">
@@ -598,7 +599,7 @@ export default {
           <div class="tab-pane fade" id="nav-experience" role="tabpanel" aria-labelledby="nav-experience-tab">
             <div class="content-list">
               <template v-if="hrProfile.work_experience?.length > 0">
-                <div v-for="workExperience, index in hrProfile.work_experience" :key="index" class="list-item">
+                <div v-for="workExperience, index in   hrProfile.work_experience" :key="index" class="list-item">
                   <div>
                     <p class="label-text">{{ workExperience.company }}</p>
                     <p>{{ workExperience.position }}</p>
@@ -608,10 +609,10 @@ export default {
                   <div class="text-end">
                     <span class="icon-btn me-2"
                       @click="showProfileChildItemEdit('work_experience', workExperience, 'workExperienceAddEditModal')">
-                      <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                      <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                     </span>
                     <span class="icon-btn" @click="removeProfileChildItem('work_experience', workExperience)">
-                      <font-awesome-icon :icon="['fas', 'trash']" />
+                      <font-awesome-icon icon="fa-solid fa-trash" />
                     </span>
                   </div>
                 </div>
@@ -630,7 +631,7 @@ export default {
           <div class="tab-pane fade" id="nav-education" role="tabpanel" aria-labelledby="nav-education-tab">
             <div class="content-list">
               <template v-if="hrProfile.education?.length > 0">
-                <div v-for="education, index in hrProfile.education" :key="index" class="list-item">
+                <div v-for="education, index in   hrProfile.education" :key="index" class="list-item">
                   <div>
                     <p class="label-text">{{ education.degree }} - {{ education.major }}</p>
                     <p>{{ education.university }}</p>
@@ -639,10 +640,10 @@ export default {
                   <div class="text-end">
                     <span class="icon-btn me-2"
                       @click="showProfileChildItemEdit('education', education, 'educationAddEditModal')">
-                      <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                      <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                     </span>
                     <span class="icon-btn" @click="removeProfileChildItem('education', education)">
-                      <font-awesome-icon :icon="['fas', 'trash']" />
+                      <font-awesome-icon icon="fa-solid fa-trash" />
                     </span>
                   </div>
                 </div>
@@ -661,7 +662,7 @@ export default {
           <div class="tab-pane fade" id="nav-project" role="tabpanel" aria-labelledby="nav-project-tab">
             <div class="content-list">
               <template v-if="hrProfile.project?.length > 0">
-                <div v-for="project, index in hrProfile.project" :key="index" class="list-item">
+                <div v-for="project, index in   hrProfile.project" :key="index" class="list-item">
                   <div>
                     <p class="label-text">{{ project.title }}</p>
                     <p>Client: {{ project.client }}</p>
@@ -671,10 +672,10 @@ export default {
                   <div class="text-end">
                     <span class="icon-btn me-2"
                       @click="showProfileChildItemEdit('project', project, 'projectAddEditModal')">
-                      <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                      <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                     </span>
                     <span class="icon-btn" @click="removeProfileChildItem('project', project)">
-                      <font-awesome-icon :icon="['fas', 'trash']" />
+                      <font-awesome-icon icon="fa-solid fa-trash" />
                     </span>
                   </div>
                 </div>
@@ -694,14 +695,14 @@ export default {
             <div class="d-block text-end mb-2">
               <span v-if="elements.personalInfoEdit">
                 <span class="icon-btn me-1" @click="updatePersonalInfo">
-                  <font-awesome-icon :icon="['fas', 'check']" />
+                  <font-awesome-icon icon="fa-solid fa-check" />
                 </span>
                 <span class="icon-btn" @click="elements.personalInfoEdit = false">
-                  <font-awesome-icon :icon="['fas', 'xmark']" />
+                  <font-awesome-icon icon="fa-solid fa-xmark" />
                 </span>
               </span>
               <span v-else class="icon-btn" @click="elements.personalInfoEdit = true">
-                <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                <font-awesome-icon icon="fa-solid fa-pencil-alt" />
               </span>
             </div>
             <div class="row">
@@ -806,31 +807,31 @@ export default {
           <div class="tab-pane fade" id="nav-doc" role="tabpanel" aria-labelledby="nav-doc-tab">
             <div class="content-list">
               <template v-if="hrProfile.docs?.length > 0">
-                <div v-for="document, index in hrProfile.docs" :key="index" class="list-item">
+                <div v-for="document, index in   hrProfile.docs" :key="index" class="list-item">
                   <!-- <div v-if="elements.tabItemEdit" class="row">
-                                                                                                                  <div class="col-12">
-                                                                                                                    <input type="text" v-model="docsData.title" class="form-control form-control-sm"
-                                                                                                                      placeholder="Enter Document Title">
-                                                                                                                  </div>
-                                                                                                                  <div class="col-12">
-                                                                                                                    <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
-                                                                                                                  </div>
-                                                                                                                </div> -->
+                                                                                                                        <div class="col-12">
+                                                                                                                          <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                                                                                                                            placeholder="Enter Document Title">
+                                                                                                                        </div>
+                                                                                                                        <div class="col-12">
+                                                                                                                          <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                                                                                                                        </div>
+                                                                                                                      </div> -->
                   <p class="label-text">Adhaar Card</p>
                   <div v-if="elements.tabItemEdit" class="text-end">
                     <span class="icon-btn me-1" @click="updateProfileChildItems(educationData, 'education')">
-                      <font-awesome-icon :icon="['fas', 'check']" />
+                      <font-awesome-icon icon="fa-solid fa-check" />
                     </span>
                     <span class="icon-btn" @click="elements.tabItemEdit = false">
-                      <font-awesome-icon :icon="['fas', 'xmark']" />
+                      <font-awesome-icon icon="fa-solid fa-xmark" />
                     </span>
                   </div>
                   <div v-else class="text-end">
                     <span class="icon-btn" @click="elements.tabItemEdit = true">
-                      <font-awesome-icon :icon="['fas', 'pencil-alt']" />
+                      <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                     </span>
                     <span class="icon-btn">
-                      <font-awesome-icon :icon="['fas', 'trash']" />
+                      <font-awesome-icon icon="fa-solid fa-trash" />
                     </span>
                   </div>
                 </div>

@@ -1,10 +1,10 @@
 <script lang="ts">
-import { UserType } from '@/enums/userType.js';
+import { UserTypeId } from '@/enums/index.js';
 
 export default {
   data() {
     return {
-      UserType,
+      UserTypeId,
     }
   },
   computed: {
@@ -19,7 +19,7 @@ export default {
 <template>
   <div class="left-menu content-card">
     <ul>
-      <li v-if="userTypeId != UserType.SAD">
+      <li v-if="userTypeId != UserTypeId.SAD">
         <a href="#">Manage</a>
         <ul class="sub-menu">
           <li>
@@ -38,7 +38,7 @@ export default {
           </li>
         </ul>
       </li>
-      <li v-if="userTypeId == UserType.SAD">
+      <li v-if="userTypeId == UserTypeId.SAD">
         <a href="#">Tenant</a>
         <ul class="sub-menu">
           <li>

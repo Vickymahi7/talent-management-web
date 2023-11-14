@@ -22,9 +22,11 @@ import {
   faPhone,
   faCheck,
   faXmark,
+  faRepeat,
 } from "@fortawesome/free-solid-svg-icons";
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
+import DialogComponent from "./components/modals/DialogComponent.vue";
 
 library.add(
   faXmarkCircle,
@@ -40,11 +42,13 @@ library.add(
   faEnvelope,
   faPhone,
   faLinkedin,
-  faCheck
+  faCheck,
+  faRepeat
 );
 const app = createApp(App);
 
 app.component("font-awesome-icon", FontAwesomeIcon);
+app.component("dialog-component", DialogComponent);
 app.use(router);
 app.use(Toast);
 

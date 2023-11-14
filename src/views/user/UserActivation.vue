@@ -2,6 +2,7 @@
 import axios from '@/plugins/axios.js'
 import useVuelidate from '@vuelidate/core';
 import { required, minLength, sameAs } from '@vuelidate/validators'
+import { HttpStatusCode } from 'axios';
 import { useToast } from 'vue-toastification';
 export default {
   props: {
@@ -51,7 +52,7 @@ export default {
           this.isActiveUser = this.user.active ?? false;
         }
       } catch (error: any) {
-        if (error.status == 404) {
+        if (error.status == HttpStatusCode.NotFound) {
           this.$router.push('/');
         }
         this.toast.error(error.message);
@@ -62,7 +63,7 @@ export default {
         this.v$.user.$touch();
         if (!this.v$.user.$invalid) {
           const response: any = await axios.post('/user/activate', this.user);
-          if (response.status == 200) {
+          if (response.status == HttpStatusCode.Ok) {
             this.showActivationForm = false;
             this.toast.success(response.message);
             setTimeout(() => {

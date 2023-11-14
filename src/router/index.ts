@@ -1,13 +1,12 @@
-import { createRouter, createWebHistory, type RouteMeta } from "vue-router";
-import { UserType } from "@/enums/userType";
-import LoginLayout from "@/layouts/LoginLayout.vue";
+import { createRouter, createWebHistory } from "vue-router";
+import { UserTypeId } from "@/enums";
+import StandardLayout from "@/layouts/StandardLayout.vue";
 
 const routes = [
   {
     path: "/",
     name: "home",
     component: () => import("@/views/HomePage.vue"),
-    meta: { layout: LoginLayout },
   },
 
   // Tenant Routes
@@ -15,7 +14,7 @@ const routes = [
     path: "/tenantmanagement",
     name: "tenantmanagement",
     component: () => import("@/views/tenant/TenantManagement.vue"),
-    meta: { accessedBy: [UserType.SAD] },
+    meta: { layout: StandardLayout, accessedBy: [UserTypeId.SAD] },
   },
 
   // User Routes
@@ -23,14 +22,16 @@ const routes = [
     path: "/usermanagement",
     name: "usermanagement",
     component: () => import("@/views/user/UserManagement.vue"),
-    meta: { accessedBy: [UserType.SAD, UserType.ADM] },
+    meta: {
+      layout: StandardLayout,
+      accessedBy: [UserTypeId.SAD, UserTypeId.ADM],
+    },
   },
   {
     path: "/useractivation/:token",
     name: "useractivation",
     component: () => import("@/views/user/UserActivation.vue"),
     props: true,
-    meta: { layout: LoginLayout },
   },
 
   // Hr Profile Routes
@@ -39,20 +40,20 @@ const routes = [
     name: "hrprofile",
     component: () => import("@/views/hrProfile/HrProfile.vue"),
     props: true,
-    meta: { accessedBy: [UserType.ADM] },
+    meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
   },
   {
     path: "/hrprofilemanagement",
     name: "hrprofilemanagement",
     component: () => import("@/views/hrProfile/HrProfileManagement.vue"),
-    meta: { accessedBy: [UserType.ADM] },
+    meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
   },
   {
     path: "/resumepreview/:id",
     name: "resumepreview",
     component: () => import("@/views/hrProfile/ResumePreview.vue"),
     props: true,
-    meta: { accessedBy: [UserType.ADM] },
+    meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
   },
 ];
 
