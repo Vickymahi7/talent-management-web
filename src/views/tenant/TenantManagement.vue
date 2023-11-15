@@ -195,11 +195,11 @@ export default {
             <td>{{ tenant.last_updated_dt }}</td>
             <td>
               <div v-if="!tenant.user.active" class="icon-btn me-3" @click="resendActivationMail(tenant.user_id)"
-                data-bs-toggle="modal" data-bs-target="#resendConfirmation">
-                <font-awesome-icon icon="fa-solid fa-repeat" />
+                title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
+                <font-awesome-icon icon="fa-solid fa-share-from-square" />
               </div>
-              <div class="icon-btn me-3" @click="deleteTenant(tenant.tenant_id)" data-bs-toggle="modal"
-                data-bs-target="#deleteTenant">
+              <div class="icon-btn me-3" @click="deleteTenant(tenant.tenant_id)" title="Delete Tenant"
+                data-bs-toggle="modal" data-bs-target="#deleteTenant">
                 <font-awesome-icon icon="fa-solid fa-trash" />
               </div>
             </td>

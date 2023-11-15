@@ -207,10 +207,10 @@ export default {
             <td>{{ user.last_updated_dt }}</td>
             <td>
               <div v-if="!user.active" class="icon-btn me-3" @click="resendActivationMail(user.user_id)"
-                data-bs-toggle="modal" data-bs-target="#resendConfirmation">
-                <font-awesome-icon icon="fa-solid fa-repeat" />
+                title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
+                <font-awesome-icon icon="fa-solid fa-share-from-square" />
               </div>
-              <div class="icon-btn me-3" @click="deleteUser(user.user_id)" data-bs-toggle="modal"
+              <div class="icon-btn me-3" @click="deleteUser(user.user_id)" title="Delete User" data-bs-toggle="modal"
                 data-bs-target="#deleteUser">
                 <font-awesome-icon icon="fa-solid fa-trash" />
               </div>
