@@ -1,6 +1,6 @@
 <script lang="ts">
 import { UserTypeId } from '@/enums';
-import axios from '@/plugins/axios.js'
+import axios from '@/plugins/axios'
 import useVuelidate from '@vuelidate/core';
 import { useToast } from 'vue-toastification';
 export default {

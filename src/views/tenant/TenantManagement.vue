@@ -5,25 +5,28 @@ import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { Modal } from 'bootstrap'
 import { HttpStatusCode } from 'axios'
+import { ACCOUNT_STATUS } from '@/enums'
 export default {
   data() {
     return {
       v$: useVuelidate(),
       toast: useToast(),
 
+      tenantEdit: false,
       tenant: {
-        tenant_id: '1',
         name: '',
         user_id: '',
         user_name: '',
         email_id: '',
         phone: '',
         tenant_type_id: '',
+        tenant_status_id: '',
         description: '',
         location: '',
       },
 
       tenantList: [],
+      accountStatus: ACCOUNT_STATUS,
 
       dialogParam: {
         id: 0,
@@ -66,6 +69,27 @@ export default {
         this.toast.error(error.message);
       }
     },
+    async updateTenant(tenantData: any, updateKey: string, updateVal: string) {
+      try {
+        // this.v$.tenant.$touch();
+        // if (!this.v$.tenant.$invalid) {
+        const data: any = {}
+        data.tenant_id = tenantData.tenant_id;
+        data.name = tenantData.name;
+        data.user_id = tenantData.user_id.toString();
+        data[updateKey] = updateVal;
+
+        const response: any = await axios.patch('/tenant/update', data);
+        if (response.status == HttpStatusCode.Ok) {
+          this.toast.success(response.message);
+          this.getTenantList();
+          this.tenantEdit = false;
+        }
+        // }
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+    },
     toggelTenantAddEditPopup() {
       const myModalEl = document.getElementById('tenantAddEditModal')!;
       const modal = Modal.getOrCreateInstance(myModalEl);
@@ -100,6 +124,14 @@ export default {
       } catch (error: any) {
         this.toast.error(error.message);
       }
+    },
+    getTenantStatus(statusId: number | null) {
+      if (statusId) {
+        return this.accountStatus.find(data => data.id == statusId)?.status;
+      }
+      else {
+        return "";
+      }
     }
   }
 }
@@ -128,6 +160,7 @@ export default {
             <th scope="col">Tenant</th>
             <th scope="col">Primary User Name</th>
             <th scope="col">Primary User Email</th>
+            <th scope="col">Active</th>
             <th scope="col">Status</th>
             <th scope="col">Last Updated</th>
             <th scope="col">Action</th>
@@ -142,7 +175,23 @@ export default {
             <td>{{ tenant.name }}</td>
             <td>{{ tenant.user.user_name }}</td>
             <td>{{ tenant.user.email_id }}</td>
-            <td>{{ tenant.active ? 'Active' : 'Inactive' }}</td>
+            <td>
+              <div v-if="tenant.user.active" class="text-success">
+                <font-awesome-icon icon="fa-solid fa-user-check" />
+              </div>
+              <div v-else class="text-danger">
+                <font-awesome-icon icon="fa-solid fa-user-xmark" />
+              </div>
+            </td>
+            <!-- <td @click="tenantEdit=true">{{ tenant.tenant_status_id }}</td> -->
+            <td @click="tenantEdit = true">
+              <select v-if="tenantEdit" class="form-select" v-model="tenant.tenant_status_id"
+                @change="updateTenant(tenant, 'tenant_status_id', tenant.tenant_status_id)" aria-label="Tenant Status">
+                <option value="null">Select</option>
+                <option v-for="item in accountStatus" :key="item.id" :value="item.id">{{ item.status }}</option>
+              </select>
+              <span v-else>{{ getTenantStatus(tenant.tenant_status_id) }}</span>
+            </td>
             <td>{{ tenant.last_updated_dt }}</td>
             <td>
               <div v-if="!tenant.user.active" class="icon-btn me-3" @click="resendActivationMail(tenant.user_id)"

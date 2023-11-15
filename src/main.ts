@@ -23,6 +23,8 @@ import {
   faCheck,
   faXmark,
   faRepeat,
+  faUserCheck,
+  faUserXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
@@ -43,7 +45,9 @@ library.add(
   faPhone,
   faLinkedin,
   faCheck,
-  faRepeat
+  faUserCheck,
+  faRepeat,
+  faUserXmark
 );
 const app = createApp(App);
 

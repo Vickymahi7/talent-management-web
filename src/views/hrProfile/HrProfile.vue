@@ -139,7 +139,7 @@ export default {
       try {
         this.v$.hrProfile.$touch();
         if (!this.v$.hrProfile.$invalid) {
-          const response: any = await axios.put('/hrprofile/update', data);
+          const response: any = await axios.patch('/hrprofile/update', data);
           console.log(response);
 
           if (response.status == HttpStatusCode.Ok) {
@@ -318,7 +318,13 @@ export default {
 <template>
   <div class="d-flex">
     <div class="content-card content-header">
-      <label>Manage HR Profile</label>
+      <label>HR Profile</label>
+      <!-- <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Manage HR Profile</a></li>
+          <li class="breadcrumb-item active" aria-current="page">HR Profile</li>
+        </ol>
+      </nav> -->
     </div>
     <button class="btn primary-btn ms-2" type="button" @click="$router.push({ name: 'resumepreview', params: { id } })">
       <font-awesome-icon class="me-2" icon="fa-solid fa-download" />
@@ -397,7 +403,7 @@ export default {
                 <div class="col-8">
                   <input v-if="elements.primaryInfoEdit" type="file" @input="addResume($event)"
                     class="form-control form-control-sm" id="
-                                                resumeInput" placeholder="Choose a Resume">
+                                                  resumeInput" placeholder="Choose a Resume">
                   <p v-else class="label-text">
                     <span class="icon-btn me-1">
                       <font-awesome-icon icon="fa-solid fa-paperclip" />
@@ -538,8 +544,8 @@ export default {
         <div class="content-card">
           <h6 class="label-text">Note
             <!-- <span class="icon-btn float-end">
-                                                                                                                  <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                                                                                                                </span> -->
+                                                                                                                    <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                                                                                                                  </span> -->
           </h6>
           <div class="note-input-group">
             <textarea name="" id="" class="form-control" rows="2"></textarea>
@@ -809,14 +815,14 @@ export default {
               <template v-if="hrProfile.docs?.length > 0">
                 <div v-for="document, index in   hrProfile.docs" :key="index" class="list-item">
                   <!-- <div v-if="elements.tabItemEdit" class="row">
-                                                                                                                        <div class="col-12">
-                                                                                                                          <input type="text" v-model="docsData.title" class="form-control form-control-sm"
-                                                                                                                            placeholder="Enter Document Title">
-                                                                                                                        </div>
-                                                                                                                        <div class="col-12">
-                                                                                                                          <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
-                                                                                                                        </div>
-                                                                                                                      </div> -->
+                                                                                                                          <div class="col-12">
+                                                                                                                            <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                                                                                                                              placeholder="Enter Document Title">
+                                                                                                                          </div>
+                                                                                                                          <div class="col-12">
+                                                                                                                            <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                                                                                                                          </div>
+                                                                                                                        </div> -->
                   <p class="label-text">Adhaar Card</p>
                   <div v-if="elements.tabItemEdit" class="text-end">
                     <span class="icon-btn me-1" @click="updateProfileChildItems(educationData, 'education')">

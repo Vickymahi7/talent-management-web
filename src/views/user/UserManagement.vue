@@ -4,8 +4,7 @@ import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { HttpStatusCode } from 'axios'
-import { USER_TYPES } from '@/constants'
-import { UserType, UserTypeId } from '@/enums'
+import { UserTypeId, USER_TYPES, ACCOUNT_STATUS } from '@/enums'
 import { Modal } from 'bootstrap'
 export default {
   data() {
@@ -13,6 +12,7 @@ export default {
       v$: useVuelidate(),
       toast: useToast(),
 
+      userEdit: false,
       user: {
         user_id: null,
         user_type_id: null,
@@ -23,6 +23,7 @@ export default {
       },
 
       userList: [],
+      accountStatus: ACCOUNT_STATUS,
 
       dialogParam: {
         id: 0,
@@ -80,6 +81,28 @@ export default {
         this.toast.error(error.message);
       }
     },
+    async updateUser(userData: any, updateKey: string, updateVal: string) {
+      try {
+        // this.v$.user.$touch();
+        // if (!this.v$.user.$invalid) {
+        const data: any = {}
+        data.user_id = userData.user_id;
+        data.user_name = userData.user_name;
+        data.email_id = userData.email_id;
+        data[updateKey] = updateVal;
+
+        const response: any = await axios.patch('/user/update', data);
+        if (response.status == HttpStatusCode.Ok) {
+          this.toast.success(response.message);
+          this.getUserList();
+          this.userEdit = false;
+          // this.toggelUserAddEditPopup();
+        }
+        // }
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+    },
     toggelUserAddEditPopup() {
       const myModalEl = document.getElementById('userAddEditModal')!;
       const modal = Modal.getOrCreateInstance(myModalEl);
@@ -114,6 +137,14 @@ export default {
       } catch (error: any) {
         this.toast.error(error.message);
       }
+    },
+    getUserStatus(statusId: number | null) {
+      if (statusId) {
+        return this.accountStatus.find(data => data.id == statusId)?.status;
+      }
+      else {
+        return "";
+      }
     }
   }
 }
@@ -142,7 +173,7 @@ export default {
             <th scope="col">User Name</th>
             <th scope="col">Email ID</th>
             <th scope="col">User Type</th>
-            <th scope="col">Tenant</th>
+            <th scope="col">Active</th>
             <th scope="col">Status</th>
             <th scope="col">Last Updated</th>
             <th scope="col">Action</th>
@@ -157,8 +188,22 @@ export default {
             <td>{{ user.user_name }}</td>
             <td>{{ user.email_id }}</td>
             <td>{{ user.user_type }}</td>
-            <td>{{ user.tenant }}</td>
-            <td>{{ user.active ? 'Active' : 'Inactive' }}</td>
+            <td>
+              <div v-if="user.active" class="text-success">
+                <font-awesome-icon icon="fa-solid fa-user-check" />
+              </div>
+              <div v-else class="text-danger">
+                <font-awesome-icon icon="fa-solid fa-user-xmark" />
+              </div>
+            </td>
+            <td @click="userEdit = true">
+              <select v-if="userEdit" class="form-select" v-model="user.user_status_id"
+                @change="updateUser(user, 'user_status_id', user.user_status_id)" aria-label="User Status">
+                <option value="null">Select</option>
+                <option v-for="item in accountStatus" :key="item.id" :value="item.id">{{ item.status }}</option>
+              </select>
+              <span v-else>{{ getUserStatus(user.user_status_id) }}</span>
+            </td>
             <td>{{ user.last_updated_dt }}</td>
             <td>
               <div v-if="!user.active" class="icon-btn me-3" @click="resendActivationMail(user.user_id)"

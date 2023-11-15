@@ -1,5 +1,5 @@
 <script lang="ts">
-import axios from '@/plugins/axios.js'
+import axios from '@/plugins/axios'
 import useVuelidate from '@vuelidate/core';
 import { required, minLength, sameAs } from '@vuelidate/validators'
 import { HttpStatusCode } from 'axios';

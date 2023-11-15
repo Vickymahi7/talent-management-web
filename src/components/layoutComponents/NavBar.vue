@@ -1,5 +1,5 @@
 <script lang="ts">
-import { USER_TYPES } from '@/constants';
+import { USER_TYPES } from '@/enums';
 export default {
   computed: {
     userName() {
