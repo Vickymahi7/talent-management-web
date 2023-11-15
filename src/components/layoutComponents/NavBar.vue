@@ -1,5 +1,5 @@
 <script lang="ts">
-import { userTypes } from '@/constants';
+import { USER_TYPES } from '@/constants';
 export default {
   computed: {
     userName() {
@@ -9,7 +9,7 @@ export default {
       const userTypeId = parseInt(localStorage.getItem("userTypeId") ?? '');
       let userType = '';
       if (userTypeId) {
-        userType = userTypes.find(data => data.id === userTypeId)?.userType ?? '';
+        userType = USER_TYPES.find(data => data.id === userTypeId)?.userType ?? '';
       }
       return userType;
     },

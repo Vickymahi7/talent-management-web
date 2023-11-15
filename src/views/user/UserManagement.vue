@@ -4,6 +4,9 @@ import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { HttpStatusCode } from 'axios'
+import { USER_TYPES } from '@/constants'
+import { UserType, UserTypeId } from '@/enums'
+import { Modal } from 'bootstrap'
 export default {
   data() {
     return {
@@ -20,6 +23,25 @@ export default {
       },
 
       userList: [],
+
+      dialogParam: {
+        id: 0,
+      },
+    }
+  },
+  computed: {
+    userTypeId() {
+      const userTypeId
+        = localStorage.getItem("userTypeId");
+      return userTypeId ? parseInt(userTypeId) : null;
+    },
+    userTypeList() {
+      if (this.userTypeId == UserTypeId.SAD) {
+        return USER_TYPES.filter(data => data.id == UserTypeId.SAD);
+      }
+      else {
+        return USER_TYPES.filter(data => data.id != UserTypeId.SAD);
+      }
     }
   },
   validations() {
@@ -27,6 +49,7 @@ export default {
       user: {
         user_name: { required },
         email_id: { required, email },
+        user_type_id: { required },
       }
     }
   },
@@ -50,12 +73,48 @@ export default {
           if (response.status == HttpStatusCode.Created) {
             this.toast.success(response.message);
             this.getUserList();
+            this.toggelUserAddEditPopup();
           }
         }
       } catch (error: any) {
         this.toast.error(error.message);
       }
     },
+    toggelUserAddEditPopup() {
+      const myModalEl = document.getElementById('userAddEditModal')!;
+      const modal = Modal.getOrCreateInstance(myModalEl);
+      modal?.toggle();
+    },
+    deleteUser: function (id: number) {
+      this.dialogParam.id = id;
+    },
+    async onYesUser() {
+      try {
+        const response: any = await axios.delete('/user/delete/' + this.dialogParam.id)
+        if (response.status == HttpStatusCode.Ok) {
+          this.toast.success(response.message);
+          this.getUserList();
+        }
+
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+    },
+    resendActivationMail: function (id: number) {
+      this.dialogParam.id = id;
+    },
+    async onYesConfirmation() {
+      try {
+        const response: any = await axios.post('/user/resendactivation/' + this.dialogParam.id)
+        if (response.status == HttpStatusCode.Ok) {
+          this.toast.success(response.message);
+          this.getUserList();
+        }
+
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+    }
   }
 }
 </script>
@@ -66,7 +125,7 @@ export default {
   <div class="content-card h-100">
     <div class="row py-2">
       <div class="col text-end">
-        <button class="btn primary-btn mx-2" type="button" data-bs-toggle="modal" data-bs-target="#userAddEditModal">
+        <button class="btn primary-btn mx-2" type="button" @click="toggelUserAddEditPopup">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New User
         </button>
@@ -102,13 +161,12 @@ export default {
             <td>{{ user.active ? 'Active' : 'Inactive' }}</td>
             <td>{{ user.last_updated_dt }}</td>
             <td>
-              <div class="icon-btn me-3">
-                <font-awesome-icon icon="fa-solid fa-paperclip" />
+              <div v-if="!user.active" class="icon-btn me-3" @click="resendActivationMail(user.user_id)"
+                data-bs-toggle="modal" data-bs-target="#resendConfirmation">
+                <font-awesome-icon icon="fa-solid fa-repeat" />
               </div>
-              <div class="icon-btn me-3">
-                <font-awesome-icon icon="fa-solid fa-download" />
-              </div>
-              <div class="icon-btn me-3">
+              <div class="icon-btn me-3" @click="deleteUser(user.user_id)" data-bs-toggle="modal"
+                data-bs-target="#deleteUser">
                 <font-awesome-icon icon="fa-solid fa-trash" />
               </div>
             </td>
@@ -138,6 +196,19 @@ export default {
                 </div>
               </div>
               <div class="row mb-3">
+                <label for="user_type_id" class="col-sm-4 col-form-label">User Type</label>
+                <div class="col-sm-8">
+                  <select class="form-select" v-model="user.user_type_id"
+                    :class="{ 'is-invalid': v$.user.user_type_id.$error }" aria-label="User Type">
+                    <option value="null">Select</option>
+                    <option v-for="item in userTypeList" :key="item.id" :value="item.id">{{ item.userType }}</option>
+                  </select>
+                  <div class="invalid-feedback" v-for="error of v$.user.user_type_id.$errors" :key="error.$uid">
+                    {{ error.$message }}
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-3">
                 <label for="email_id" class="col-sm-4 col-form-label">Email ID</label>
                 <div class="col-sm-8">
                   <input type="email" class="form-control" v-model="user.email_id" id="email_id"
@@ -153,18 +224,6 @@ export default {
                   <input type="tet" class="form-control" v-model="user.phone" id="phone" placeholder="Enter Phone Number">
                 </div>
               </div>
-              <div class="row mb-3">
-                <label for="user_type_id" class="col-sm-4 col-form-label">User Type</label>
-                <div class="col-sm-8">
-                  <select class="form-select" v-model="user.user_type_id" aria-label="User Type">
-                    <option value="">Select</option>
-                    <option value="1">Super Admin</option>
-                    <option value="1">Admin</option>
-                    <option value="2">HR User</option>
-                    <option value="3">User</option>
-                  </select>
-                </div>
-              </div>
             </form>
           </div>
         </div>
@@ -175,4 +234,8 @@ export default {
       </div>
     </div>
   </div>
+  <dialog-component id="deleteUser" :onYes="onYesUser" :returnParams="dialogParam" title="Delete Confirmation"
+    message="Are you sure to delete user?" />
+  <dialog-component id="resendConfirmation" :onYes="onYesConfirmation" :returnParams="dialogParam"
+    title="Mail Resend Confirmation" message="Are you sure to resend activation mail?" />
 </template>

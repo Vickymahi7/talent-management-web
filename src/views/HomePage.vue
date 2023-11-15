@@ -1,5 +1,5 @@
 <script lang="ts">
-import { UserTypeId } from '@/enums/index.js';
+import { UserTypeId } from '@/enums';
 import axios from '@/plugins/axios.js'
 import useVuelidate from '@vuelidate/core';
 import { useToast } from 'vue-toastification';

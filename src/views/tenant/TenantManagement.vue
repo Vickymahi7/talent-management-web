@@ -226,5 +226,5 @@ export default {
   <dialog-component id="deleteTenant" :onYes="onYesTenant" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete tenant?" />
   <dialog-component id="resendConfirmation" :onYes="onYesConfirmation" :returnParams="dialogParam"
-    title="Delete Confirmation" message="Are you sure to resend activation mail?" />
+    title="Mail Resend Confirmation" message="Are you sure to resend activation mail?" />
 </template>
