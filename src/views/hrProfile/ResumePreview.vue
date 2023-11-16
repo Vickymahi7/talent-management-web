@@ -87,39 +87,56 @@ export default {
         </div>
         <div class="name-wrapper">
           <h1>{{ hrProfile.first_name }} {{ hrProfile.last_name }}</h1>
-          <p class="about">
+          <p v-if="hrProfile.profile_title" class="profile-title">{{ hrProfile.profile_title }}</p>
+          <p v-if="hrProfile.objective" class="about">
             {{ hrProfile.objective }}
           </p>
         </div>
       </header>
       <main class="resume-body">
         <section class="left-section">
-          <h2><span class="heading">Summary</span></h2>
-          <p class="">
-            {{ hrProfile.summary }}
-          </p>
+          <template v-if="hrProfile.summary">
+            <h2><span class="heading">Summary</span></h2>
+            <p class="">
+              {{ hrProfile.summary }}
+            </p>
+          </template>
           <h2><span class="heading">Contact</span></h2>
           <ul class="list-content contact-info">
-            <li>{{ hrProfile.email_id }}</li>
-            <li>{{ hrProfile.mobile }}</li>
-            <li>{{ hrProfile.website }}</li>
-            <li>{{ hrProfile.city }}, {{ hrProfile.country }}</li>
+            <li v-if="hrProfile.email_id">{{ hrProfile.email_id }}</li>
+            <li v-if="hrProfile.mobile">{{ hrProfile.mobile }}</li>
+            <li v-if="hrProfile.website">{{ hrProfile.website }}</li>
+            <li v-if="hrProfile.city">
+              {{ hrProfile.city }}
+              <span v-if="hrProfile.city && hrProfile.country">, </span>
+              <span v-if="hrProfile.country">{{ hrProfile.country }}</span>
+            </li>
           </ul>
-          <h2><span class="heading">Education</span></h2>
-          <div class="education-info">
-            <div v-for="  education, index   in   hrProfile.education  " :key="index" class="education-detail">
-              <h6>{{ education.start_date }}</h6>
-              <p>{{ education.degree }} {{ education.major }}</p>
-              <p>{{ education.university }}, {{ education.location }}</p>
+          <template v-if="hrProfile.education">
+            <h2><span class="heading">Education</span></h2>
+            <div class="education-info">
+              <div v-for="  education, index in hrProfile.education" :key="index" class="education-detail">
+                <h6 v-if="education.start_date">{{ education.start_date }}</h6>
+                <p v-if="education.degree || education.major">
+                  <span v-if="education.degree">{{ education.degree }}</span>
+                  <span v-if="education.major">{{ education.major }}</span>
+                </p>
+                <p v-if="education.university || education.location">
+                  <span v-if="education.university">{{ education.university }}</span>
+                  <span v-if="education.location">{{ education.location }}</span>
+                </p>
+              </div>
             </div>
-          </div>
-          <h2><span class="heading">Technical Skills</span></h2>
-          <ul class="list-content">
-            <li v-for="  skill, index   in   hrProfile.skills  " :key="index">{{ skill }}</li>
-          </ul>
+          </template>
+          <template v-if="hrProfile.skills">
+            <h2><span class="heading">Technical Skills</span></h2>
+            <ul class="list-content">
+              <li v-for="  skill, index   in   hrProfile.skills  " :key="index">{{ skill }}</li>
+            </ul>
+          </template>
         </section>
         <section class="right-section">
-          <div class="experience-wrapper">
+          <div v-if="hrProfile.work_experience" class="experience-wrapper">
             <h2><span class="heading">Experience</span></h2>
             <div v-for="  workExperience, index   in   hrProfile.work_experience  " :key="index" class="experience">
               <h3>{{ workExperience.position }}</h3>
@@ -131,7 +148,7 @@ export default {
               <p>{{ workExperience.description }}</p>
             </div>
           </div>
-          <div class="project-wrapper">
+          <div v-if="hrProfile.work_experience" class="project-wrapper">
             <h2><span class="heading">Projects</span></h2>
             <div v-for="  project, index   in   hrProfile.project  " :key="index" class="project">
               <div class="project-title-wrapper">
@@ -161,13 +178,15 @@ $header-text-color: #fff;
 $heading-color: #000;
 $sub-heading-color: $header-bg;
 $muted-color: #777777;
+$profile-title-color: header-text-color;
+$profile-title-size: 14px;
 $heading-size: 18px;
 $profile-name-color: #fff;
 $left-section-color: #7a7a7a;
 $right-section-color: #000;
 $left-section-bg: #e9e9e9;
 $right-section-bg: #fff;
-$std-margin-bottom: 5px;
+$std-margin-bottom: 8px;
 $heading-margin-bottom: 12px;
 
 $boldColor: #4a4e51;
@@ -281,12 +300,18 @@ header {
       img {
         border-radius: 50%;
         width: 150px;
+        height: 150px;
       }
     }
   }
 
   .name-wrapper {
     text-align: left;
+
+    .profile-title {
+      font-size: $profile-title-size;
+      color: $profile-title-color;
+    }
   }
 
   .about {

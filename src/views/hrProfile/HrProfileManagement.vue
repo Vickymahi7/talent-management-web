@@ -7,6 +7,7 @@ import { HttpStatusCode } from 'axios'
 import { formatDate } from '@/utils/dateFormats'
 import { PROFILE_STATUS } from '@/utils/constants'
 import { getProfileStatusById } from '@/utils/commonFunctions'
+import { Modal } from 'bootstrap'
 
 export default {
   data() {
@@ -108,6 +109,7 @@ export default {
           if (response.status == HttpStatusCode.Created) {
             this.toast.success(response.message);
             this.getHrProfileList();
+            this.toggelUserAddEditPopup();
           }
         }
       } catch (error: any) {
@@ -158,21 +160,26 @@ export default {
         this.toast.error(error.message);
       }
     },
+    toggelUserAddEditPopup() {
+      const myModalEl = document.getElementById('hrProfileAddEditModal')!;
+      const modal = Modal.getOrCreateInstance(myModalEl);
+      modal?.toggle();
+    },
   }
 }
 </script>
 <template>
   <div class="content-card content-header">
-    <label>HR Profile Management</label>
-  </div>
+  <label>HR Profile Management</label>
+</div>
 <div class="content-body content-card">
-  <div class="row filter-group py-2">
-    <div class="col-3">
-      <input type="text" v-model="searchText" class="form-control" @keyup.enter="getHrProfileList"
-        placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
-    </div>
-    <div class="col-2">
-      <select class="form-select" aria-label="Default select example">
+    <div class="row filter-group py-2">
+      <div class="col-3">
+        <input type="text" v-model="searchText" class="form-control" @keyup.enter="getHrProfileList"
+          placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
+      </div>
+      <div class="col-2">
+        <select class="form-select" aria-label="Default select example">
           <option value="">Profile Status</option>
           <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
         </select>
@@ -250,7 +257,7 @@ export default {
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="modalLabel">New Resource</h5>
+          <h5 class="modal-title" id="modalLabel">New Profile</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -328,14 +335,14 @@ export default {
                 </div>
               </div>
               <!-- <div class="row mb-3">
-                                                                                    <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
-                                                                                    <div class="col-sm-6">
-                                                                                      <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
-                                                                                    </div>
-                                                                                    <div class="col-sm-2">
-                                                                                      <button type="button" class="btn btn-primary">Upload</button>
-                                                                                    </div>
-                                                                                  </div> -->
+                                                                                        <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
+                                                                                        <div class="col-sm-6">
+                                                                                          <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
+                                                                                        </div>
+                                                                                        <div class="col-sm-2">
+                                                                                          <button type="button" class="btn btn-primary">Upload</button>
+                                                                                        </div>
+                                                                                      </div> -->
             </form>
           </div>
         </div>
