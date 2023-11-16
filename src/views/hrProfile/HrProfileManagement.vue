@@ -4,7 +4,9 @@ import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { HttpStatusCode } from 'axios'
-import { formatDate } from '@/utils'
+import { formatDate } from '@/utils/dateFormats'
+import { PROFILE_STATUS } from '@/utils/constants'
+import { getProfileStatusById } from '@/utils/commonFunctions'
 
 export default {
   data() {
@@ -12,7 +14,11 @@ export default {
       v$: useVuelidate(),
       toast: useToast(),
       formatDate: formatDate,
+      profileStatus: PROFILE_STATUS,
+      getProfileStatusById: getProfileStatusById,
 
+      hrProfileEdit: false,
+      searchText: '',
       hrProfile: {
         id: '',
         hr_profile_id: '',
@@ -83,7 +89,10 @@ export default {
   methods: {
     async getHrProfileList() {
       try {
-        const response: any = await axios.get('/hrprofile/list');
+        const queryParams = {
+          searchText: this.searchText,
+        };
+        const response: any = await axios.get('/hrprofile/list', { params: queryParams });
         this.hrProfileList = response.hrProfileList;
       } catch (error: any) {
         this.toast.error(error.message);
@@ -100,6 +109,25 @@ export default {
             this.toast.success(response.message);
             this.getHrProfileList();
           }
+        }
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+    },
+    async updateHrProfile(hrProfileData: any, updateKey: string, updateVal: string) {
+      const data: any = {};
+      data.id = hrProfileData.id;
+      data.hr_profile_id = hrProfileData.hr_profile_id;
+      data.user_id = hrProfileData.user_id;
+      data.email_id = hrProfileData.email_id;
+      data[updateKey] = updateVal;
+
+      try {
+        const response: any = await axios.patch('/hrprofile/update', data);
+        if (response.status == HttpStatusCode.Ok) {
+          this.toast.success(response.message);
+          this.getHrProfileList();
+          this.hrProfileEdit = false;
         }
       } catch (error: any) {
         this.toast.error(error.message);
@@ -137,38 +165,29 @@ export default {
   <div class="content-card content-header">
     <label>HR Profile Management</label>
   </div>
-  <div class="content-body content-card">
-    <div class="row filter-group py-2">
-      <div class="col-3">
-        <input type="text" class="form-control" placeholder="Type Something" aria-label="Search">
-      </div>
-      <div class="col-2">
-        <select class="form-select" aria-label="Default select example">
-          <option value="">Resource Type</option>
-          <!-- <option value="1">One</option>
-                                              <option value="2">Two</option>
-                                              <option value="3">Three</option> -->
-        </select>
-      </div>
-      <div class="col-2">
-        <select class="form-select" aria-label="Default select example">
-          <option value="">Resource Type</option>
-          <!-- <option value="1">One</option>
-                                            <option value="2">Two</option>
-                                          <option value="3">Three</option> -->
+<div class="content-body content-card">
+  <div class="row filter-group py-2">
+    <div class="col-3">
+      <input type="text" v-model="searchText" class="form-control" @keyup.enter="getHrProfileList"
+        placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
+    </div>
+    <div class="col-2">
+      <select class="form-select" aria-label="Default select example">
+          <option value="">Profile Status</option>
+          <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
         </select>
       </div>
       <div class="col text-end">
         <button class="btn primary-btn mx-2" type="button" data-bs-toggle="modal" data-bs-target="#hrProfileAddEditModal">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
-        New Resource
-      </button>
-      <button class="btn primary-btn" type="button">
-        <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
-        Resource Excel Import
-      </button>
+          New Resource
+        </button>
+        <button class="btn primary-btn" type="button">
+          <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
+          Resource Excel Import
+        </button>
+      </div>
     </div>
-  </div>
     <div class="table-responsive">
       <table class="table table-borderless custom-table-style">
         <thead class="table-dark">
@@ -180,6 +199,7 @@ export default {
             <th scope="col">Profile Title</th>
             <th scope="col">Resource Name</th>
             <th scope="col">Email ID</th>
+            <th scope="col">Skills</th>
             <th scope="col">Profile Status</th>
             <th scope="col">Last Updated</th>
             <th scope="col">Action</th>
@@ -195,7 +215,19 @@ export default {
             <td>{{ hrProfile.profile_title }}</td>
             <td>{{ hrProfile.first_name }} {{ hrProfile.last_name }}</td>
             <td>{{ hrProfile.email_id }}</td>
-            <td>{{ hrProfile.active ? 'Active' : 'Inactive' }}</td>
+            <td>
+              <span v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}<span
+                  v-if="index < hrProfile.skills.length - 1">,
+                </span></span>
+            </td>
+            <td @click.stop="hrProfileEdit = true">
+              <select v-if="hrProfileEdit" class="form-select form-control-sm" v-model="hrProfile.status_id"
+                @change="updateHrProfile(hrProfile, 'status_id', hrProfile.status_id)" aria-label="User Status">
+                <option value="null">Select</option>
+                <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
+              </select>
+              <span v-else>{{ getProfileStatusById(hrProfile.status_id) }}</span>
+            </td>
             <td>{{ formatDate(hrProfile.last_updated_dt) }}</td>
             <td>
               <div class="icon-btn me-3">
@@ -296,14 +328,14 @@ export default {
                 </div>
               </div>
               <!-- <div class="row mb-3">
-                                  <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
-                                  <div class="col-sm-6">
-                                    <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
-                                  </div>
-                                  <div class="col-sm-2">
-                                    <button type="button" class="btn btn-primary">Upload</button>
-                                  </div>
-                                </div> -->
+                                                                                    <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
+                                                                                    <div class="col-sm-6">
+                                                                                      <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
+                                                                                    </div>
+                                                                                    <div class="col-sm-2">
+                                                                                      <button type="button" class="btn btn-primary">Upload</button>
+                                                                                    </div>
+                                                                                  </div> -->
             </form>
           </div>
         </div>

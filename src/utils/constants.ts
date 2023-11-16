@@ -1,31 +1,5 @@
-// Enums
-export enum UserType {
-  SAD = "Super Admin",
-  ADM = "Admin",
-  HRU = "Hr User",
-  USR = "User",
-}
+import { AccountStatus, AccountStatusId, UserType, UserTypeId } from "./enums";
 
-export enum UserTypeId {
-  SAD = 1,
-  ADM = 2,
-  HRU = 3,
-  USR = 4,
-}
-
-export enum AccountStatus {
-  ACT = "Active",
-  BLO = "Blocked",
-  SUS = "Suspended",
-}
-
-export enum AccountStatusId {
-  ACT = 1,
-  BLO = 2,
-  SUS = 3,
-}
-
-// Constants
 export const USER_TYPES = [
   { id: UserTypeId.SAD, userType: UserType.SAD },
   { id: UserTypeId.ADM, userType: UserType.ADM },
@@ -37,4 +11,10 @@ export const ACCOUNT_STATUS = [
   { id: AccountStatusId.ACT, status: AccountStatus.ACT },
   { id: AccountStatusId.BLO, status: AccountStatus.BLO },
   { id: AccountStatusId.SUS, status: AccountStatus.SUS },
+];
+
+export const PROFILE_STATUS = [
+  { id: 1, status: "Draft" },
+  { id: 2, status: "Prepared" },
+  { id: 3, status: "Verified" },
 ];

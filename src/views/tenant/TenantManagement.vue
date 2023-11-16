@@ -5,8 +5,8 @@ import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { Modal } from 'bootstrap'
 import { HttpStatusCode } from 'axios'
-import { ACCOUNT_STATUS } from '@/enums'
-import { formatDate } from '@/utils'
+import { ACCOUNT_STATUS } from '@/utils/constants'
+import { formatDate } from '@/utils/dateFormats'
 export default {
   data() {
     return {

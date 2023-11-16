@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { UserTypeId } from "@/enums";
+import { UserTypeId } from "@/utils/enums";
 import StandardLayout from "@/layouts/StandardLayout.vue";
 
 const routes = [

@@ -5,7 +5,9 @@ import { Modal } from 'bootstrap'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { HttpStatusCode } from 'axios'
-import { formatDate } from '@/utils'
+import { formatDate } from '@/utils/dateFormats'
+import { fileUploadBtnClick, getProfileStatusById } from '@/utils/commonFunctions'
+import { PROFILE_STATUS } from '@/utils/constants'
 export default {
   props: ['id'],
   data() {
@@ -13,6 +15,9 @@ export default {
       v$: useVuelidate(),
       toast: useToast(),
       formatDate: formatDate,
+      fileUploadBtnClick: fileUploadBtnClick,
+      getProfileStatusById: getProfileStatusById,
+      profileStatus: PROFILE_STATUS,
 
       elements: {
         titleEdit: false,
@@ -64,7 +69,7 @@ export default {
         linkedin_id: '',
         skype_id: '',
         status: '',
-        status_id: '',
+        status_id: null as number,
         user_id: '',
         active: true,
         created_by_id: '',
@@ -143,7 +148,6 @@ export default {
         this.v$.hrProfile.$touch();
         if (!this.v$.hrProfile.$invalid) {
           const response: any = await axios.patch('/hrprofile/update', data);
-          console.log(response);
 
           if (response.status == HttpStatusCode.Ok) {
             this.toast.success(response.message);
@@ -228,7 +232,8 @@ export default {
         ctc: this.hrProfile.ctc,
         experience_month: this.hrProfile.experience_month,
         experience_year: this.hrProfile.experience_year,
-        status: this.hrProfile.status,
+        status_id: this.hrProfile.status_id,
+        status: this.getProfileStatusById(this.hrProfile.status_id),
         mobile: this.hrProfile.mobile,
         linkedin_id: this.hrProfile.linkedin_id,
       }
@@ -325,14 +330,6 @@ export default {
 
       this.updateHrProfile(this.hrProfile);
     },
-    handlePhotoInputClick() {
-      const inputEl = document.getElementById("upload-input");
-      inputEl?.click();
-    },
-    handleResumeInputClick() {
-      const inputEl = document.getElementById("resume-input");
-      inputEl?.click();
-    }
   }
 }
 </script>
@@ -343,7 +340,7 @@ export default {
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="#">Manage HR Profile</a></li>
-          <li class="breadcrumb-item active" aria-current="page">Profile</li>
+          <li class="breadcrumb-item active" aria-current="page">Profile - {{ hrProfile.first_name }}</li>
         </ol>
       </nav>
     </div>
@@ -370,7 +367,7 @@ export default {
         </div>
         <div class="profile-picture-wrapper">
           <img class="profile-picture" :src="getImageUrlWithTimestamp" alt="Profile Picture" width="150" height="150" />
-          <span class="icon-btn upload-icon" @click="handlePhotoInputClick">
+          <span class="icon-btn upload-icon" @click="fileUploadBtnClick('upload-input')">
             <font-awesome-icon icon="fa-solid fa-camera" />
             <input type="file" id="upload-input" class="icon-upload-input" @input="uploadProfilePhoto($event)"
               placeholder="Choose Photo">
@@ -443,7 +440,7 @@ export default {
                   <span v-else class="text-muted">-- no resume --</span>
                 </p>
                 <div class="text-end">
-                  <button @click="handleResumeInputClick" class="btn primary-btn br-0" type="button">
+                  <button @click="fileUploadBtnClick('resume-input')" class="btn primary-btn br-0" type="button">
                     Upload
                     <input type="file" id="resume-input" class="icon-upload-input" @input="uploadResume"
                       placeholder="Choose File">
@@ -458,26 +455,25 @@ export default {
             <div class="profile-container">
               <div class="profile-item-container">
                 <p class="label-text">Profile Status</p>
-                <select v-if="elements.primaryInfoEdit" class="form-select  form-control-sm" v-model="hrProfile.status_id"
+                <select v-if="elements.primaryInfoEdit" class="form-select form-control-sm" v-model="hrProfile.status_id"
                   aria-label="Profile Status">
                   <option value="">Select</option>
-                  <option value="1">Updated</option>
-                  <option value="2">Verified</option>
+                  <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
                 </select>
-                <p v-else>{{ hrProfile.status }}</p>
+                <p v-else>{{ getProfileStatusById(hrProfile.status_id) }}</p>
               </div>
               <div class="profile-item-container">
-              <p class="label-text">Last Updated</p>
-              <p>{{ formatDate(hrProfile.last_updated_dt) }}</p>
-            </div>
+                <p class="label-text">Last Updated</p>
+                <p>{{ formatDate(hrProfile.last_updated_dt) }}</p>
+              </div>
             <div class="profile-item-container">
               <span>
                 <span class="icon-btn me-2">
                   <font-awesome-icon icon="fa-solid fa-envelope" />
                 </span>
-                </span>
-                <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                  v-model="hrProfile.email_id" />
+              </span>
+              <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                v-model="hrProfile.email_id" />
                 <p v-else>
                   {{ hrProfile.email_id }}
                 </p>
@@ -571,8 +567,8 @@ export default {
         <div class="content-card">
           <h6 class="label-text">Note
             <!-- <span class="icon-btn float-end">
-                                                                                                                                                                                                                                  <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                                                                                                                                                                                                                                </span> -->
+                                                                                                                                                                                                                                                                                <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                                                                                                                                                                                                                                                                              </span> -->
           </h6>
           <div class="note-input-group">
             <textarea name="" id="" class="form-control" rows="2"></textarea>
@@ -805,14 +801,14 @@ export default {
               <template v-if="hrProfile.docs?.length > 0">
                 <div v-for="document, index in   hrProfile.docs" :key="index" class="list-item">
                   <!-- <div v-if="elements.tabItemEdit" class="row">
-                                                                                                                                                                                                                                        <div class="col-12">
-                                                                                                                                                                                                                                          <input type="text" v-model="docsData.title" class="form-control form-control-sm"
-                                                                                                                                                                                                                                            placeholder="Enter Document Title">
-                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                        <div class="col-12">
-                                                                                                                                                                                                                                          <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
-                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                      </div> -->
+                                                                                                                                                                                                                                                                                      <div class="col-12">
+                                                                                                                                                                                                                                                                                        <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                                                                                                                                                                                                                                                                                          placeholder="Enter Document Title">
+                                                                                                                                                                                                                                                                                      </div>
+                                                                                                                                                                                                                                                                                      <div class="col-12">
+                                                                                                                                                                                                                                                                                        <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                                                                                                                                                                                                                                                                                      </div>
+                                                                                                                                                                                                                                                                                    </div> -->
                   <p class="label-text">Adhaar Card</p>
                   <div v-if="elements.tabItemEdit" class="text-end">
                     <span class="icon-btn me-1" @click="updateProfileChildItems(educationData, 'education')">

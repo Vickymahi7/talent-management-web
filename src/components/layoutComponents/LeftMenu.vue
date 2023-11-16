@@ -1,5 +1,5 @@
 <script lang="ts">
-import { UserTypeId } from '@/enums';
+import { UserTypeId } from '@/utils/enums';
 
 export default {
   data() {
