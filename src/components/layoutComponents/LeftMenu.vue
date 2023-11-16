@@ -26,15 +26,15 @@ export default {
             <router-link :to="{ name: 'hrprofilemanagement' }" class="active">- Manage HR Profile</router-link>
           </li>
           <li>
-            <a href="#" @click.prevent="">- Talent Pool</a>
+            <router-link :to="{ name: 'usermanagement' }">- User Management</router-link>
           </li>
         </ul>
       </li>
       <li>
-        <a href="#">User</a>
+        <a href="#">User Activity</a>
         <ul class="sub-menu">
           <li>
-            <router-link :to="{ name: 'usermanagement' }">- User Management</router-link>
+            <a href="#" @click.prevent="">- Talent Pool</a>
           </li>
         </ul>
       </li>

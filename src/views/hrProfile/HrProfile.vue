@@ -5,15 +5,17 @@ import { Modal } from 'bootstrap'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { HttpStatusCode } from 'axios'
-
+import { formatDate } from '@/utils'
 export default {
   props: ['id'],
   data() {
     return {
       v$: useVuelidate(),
       toast: useToast(),
+      formatDate: formatDate,
 
       elements: {
+        titleEdit: false,
         primaryInfoEdit: false,
         personalInfoEdit: false,
         aboutInfoEdit: false,
@@ -29,6 +31,7 @@ export default {
         hr_profile_id: '',
         tenant_id: '',
         hr_profile_type_id: '',
+        profile_title: '',
         first_name: '',
         last_name: '',
         middle_name: '',
@@ -145,6 +148,7 @@ export default {
           if (response.status == HttpStatusCode.Ok) {
             this.toast.success(response.message);
             this.getHrProfile();
+            this.elements.titleEdit = false;
             this.elements.primaryInfoEdit = false;
             this.elements.personalInfoEdit = false;
             this.elements.aboutInfoEdit = false;
@@ -185,10 +189,8 @@ export default {
         this.toast.error(error.message);
       }
     },
-    async addResume(event: any) {
+    async uploadResume(event: any) {
       this.resumeFiles = event.target.files;
-    },
-    async uploadResume() {
       try {
         if (this.resumeFiles.length > 0) {
           let formData = new FormData();
@@ -208,6 +210,16 @@ export default {
       } catch (error: any) {
         this.toast.error(error.message);
       }
+    },
+    updateTitleInfo() {
+      const data = {
+        email_id: this.hrProfile.email_id,
+        profile_title: this.hrProfile.profile_title,
+        first_name: this.hrProfile.first_name,
+        last_name: this.hrProfile.last_name,
+      }
+
+      this.updateHrProfile(data);
     },
     updatePrimaryInfo() {
       const data = {
@@ -280,8 +292,9 @@ export default {
 
       this.updateHrProfile(data);
     },
-    addSkills(event) {
+    addSkills(event: any) {
       const skill = event.target.value;
+      this.hrProfile.skills = this.hrProfile.skills ?? [];
       if (!this.hrProfile.skills.includes(skill)) {
         this.hrProfile.skills.push(skill);
         event.target.value = '';
@@ -312,8 +325,12 @@ export default {
 
       this.updateHrProfile(this.hrProfile);
     },
-    handleIconClick() {
+    handlePhotoInputClick() {
       const inputEl = document.getElementById("upload-input");
+      inputEl?.click();
+    },
+    handleResumeInputClick() {
+      const inputEl = document.getElementById("resume-input");
       inputEl?.click();
     }
   }
@@ -322,13 +339,13 @@ export default {
 <template>
   <div class="d-flex">
     <div class="content-card content-header">
-      <label>HR Profile</label>
-      <!-- <nav aria-label="breadcrumb">
-                          <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="#">Manage HR Profile</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">HR Profile</li>
-                          </ol>
-                        </nav> -->
+      <!-- <label>HR Profile</label> -->
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Manage HR Profile</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Profile</li>
+        </ol>
+      </nav>
     </div>
     <button class="btn primary-btn ms-2" type="button" @click="$router.push({ name: 'resumepreview', params: { id } })">
       <font-awesome-icon class="me-2" icon="fa-solid fa-download" />
@@ -338,22 +355,38 @@ export default {
   <div class="content-body profile-section">
     <div class="profile-head">
       <div class="profile-media content-card">
+        <div class="align-self-end">
+          <span v-if="elements.titleEdit">
+            <span class="icon-btn float-end" @click="elements.titleEdit = false">
+              <font-awesome-icon icon="fa-solid fa-xmark" />
+            </span>
+            <span class="icon-btn float-end me-1" @click="updateTitleInfo">
+              <font-awesome-icon icon="fa-solid fa-check" />
+            </span>
+          </span>
+          <span v-else class="icon-btn float-end" @click="elements.titleEdit = true">
+            <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+          </span>
+        </div>
         <div class="profile-picture-wrapper">
           <img class="profile-picture" :src="getImageUrlWithTimestamp" alt="Profile Picture" width="150" height="150" />
-          <!-- <div class="upload-icon" @click="handleIconClick"> -->
-          <!-- <font-awesome-icon icon="fa-solid fa-camera" />
-              <input type="file" id="upload-input" class="profile-picture-input" @input="uploadProfilePhoto($event)"
-                placeholder="Choose Photo">
-              </div> -->
-          <span class="icon-btn upload-icon" @click="handleIconClick">
+          <span class="icon-btn upload-icon" @click="handlePhotoInputClick">
             <font-awesome-icon icon="fa-solid fa-camera" />
-            <input type="file" id="upload-input" class="profile-picture-input" @input="uploadProfilePhoto($event)"
+            <input type="file" id="upload-input" class="icon-upload-input" @input="uploadProfilePhoto($event)"
               placeholder="Choose Photo">
           </span>
         </div>
         <div class="title-block">
-          <p class="title-text">{{ hrProfile.first_name }} {{ hrProfile.last_name }}</p>
-          <p>--position--</p>
+          <div v-if="elements.titleEdit">
+            <input type="text" class="form-control form-control-sm d-inline-block w-50" v-model="hrProfile.first_name"
+              placeholder="First Name">
+            <input type="text" class="form-control form-control-sm d-inline-block w-50" v-model="hrProfile.last_name"
+              placeholder="Last Name">
+          </div>
+          <p v-else class="title-text">{{ hrProfile.first_name }} {{ hrProfile.last_name }}</p>
+          <input v-if="elements.titleEdit" type="text" class="form-control form-control-sm"
+            v-model="hrProfile.profile_title" placeholder="Profile Title">
+          <p v-else>{{ hrProfile.profile_title }}</p>
         </div>
       </div>
       <div class="profile-prime-info content-card">
@@ -373,103 +406,83 @@ export default {
           </h6>
           <div class="primary-info">
             <div class="profile-container">
-              <div class="row align-items-center mb-1">
-                <div class="col-lg-4">
-                  <p class="label-text">Years of Experience</p>
+              <div class="profile-item-container">
+                <p class="label-text">Years of Experience</p>
+                <div v-if="elements.primaryInfoEdit" class="input-group input-group-sm">
+                  <input type="text" v-model="hrProfile.experience_year" class="form-control form-control-sm"
+                    placeholder="Enter Year" aria-label="experience_year">
+                  <span class="input-group-text">years</span>
+                  <input type="text" v-model="hrProfile.experience_month" class="form-control form-control-sm"
+                    placeholder="Enter Month" aria-label="experience_month">
+                  <span class="input-group-text">months</span>
                 </div>
-                <div class="col-lg-8">
-                  <div v-if="elements.primaryInfoEdit" class="input-group input-group-sm">
-                    <input type="text" v-model="hrProfile.experience_year" class="form-control form-control-sm"
-                      placeholder="Enter Year" aria-label="experience_year">
-                    <span class="input-group-text">years</span>
-                    <input type="text" v-model="hrProfile.experience_month" class="form-control form-control-sm"
-                      placeholder="Enter Month" aria-label="experience_month">
-                    <span class="input-group-text">months</span>
-                  </div>
-                  <p v-else>
-                    <span>{{ hrProfile.experience_year }} years </span>
-                    <span>{{ hrProfile.experience_month }} months</span>
-                  </p>
-                </div>
+                <p v-else>
+                  <span v-if="hrProfile.experience_year">{{ hrProfile.experience_year }} years </span>
+                  <span v-if="hrProfile.experience_month">{{ hrProfile.experience_month }} months</span>
+                </p>
               </div>
-              <div class="row align-items-center mb-1">
-                <div class="col-lg-4">
-                  <p class="label-text">CTC</p>
-                </div>
-                <div class="col-lg-8">
-                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.ctc">
-                  <p v-else>{{ hrProfile.ctc }}</p>
-                </div>
+              <div class="profile-item-container">
+                <p class="label-text">CTC</p>
+                <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                  v-model="hrProfile.ctc">
+                <p v-else>{{ hrProfile.ctc }}</p>
               </div>
-              <div class="row align-items-center mb-1">
-                <div class="col-lg-4">
-                  <p class="label-text">Location</p>
-                </div>
-                <div class="col-lg-8">
-                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.location">
-                  <p v-else>{{ hrProfile.location }}</p>
-                </div>
+              <div class="profile-item-container">
+                <p class="label-text">Location</p>
+                <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                  v-model="hrProfile.location">
+                <p v-else>{{ hrProfile.location }}</p>
               </div>
               <div class="separator my-3"></div>
-              <div class="row align-items-center mb-1">
-                <div class="col-8">
-                  <input v-if="elements.primaryInfoEdit" type="file" @input="addResume($event)"
-                    class="form-control form-control-sm" id="
-                                                                    resumeInput" placeholder="Choose a Resume">
-                  <p v-else class="label-text">
-                    <span class="icon-btn me-1">
-                      <font-awesome-icon icon="fa-solid fa-paperclip" />
-                    </span>
-                    <span v-if="hrProfile.resume_url">{{ hrProfile.first_name }} - Resume</span>
-                    <span v-else class="text-muted">-- no resume --</span>
-                  </p>
-                </div>
-                <div class="col-4 text-end">
-                  <button v-if="elements.primaryInfoEdit" @click="uploadResume" class="btn primary-btn me-2 br-0"
-                    type="button">
+              <div class="d-flex justify-content-between align-items-center">
+                <p class="label-text">
+                  <span class="icon-btn me-1">
+                    <font-awesome-icon icon="fa-solid fa-paperclip" />
+                  </span>
+                  <span v-if="hrProfile.resume_url">{{ hrProfile.first_name }} - Resume</span>
+                  <span v-else class="text-muted">-- no resume --</span>
+                </p>
+                <div class="text-end">
+                  <button @click="handleResumeInputClick" class="btn primary-btn br-0" type="button">
                     Upload
+                    <input type="file" id="resume-input" class="icon-upload-input" @input="uploadResume"
+                      placeholder="Choose File">
                   </button>
-                  <a v-if="!elements.primaryInfoEdit && hrProfile.resume_url" :href="hrProfile.resume_url" target="_blank"
-                    class="btn primary-btn br-0" type="button">
+                  <a v-if="hrProfile.resume_url" :href="hrProfile.resume_url" target="_blank"
+                    class="btn primary-btn ms-2 br-0" type="button">
                     Show
                   </a>
                 </div>
               </div>
             </div>
             <div class="profile-container">
-              <div class="row align-items-center mb-1">
-                <div class="col-lg-4">
-                  <p class="label-text">Profile Status</p>
-                </div>
-                <div class="col-lg-8">
-                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.status">
-                  <p v-else>{{ hrProfile.status }}</p>
-                </div>
+              <div class="profile-item-container">
+                <p class="label-text">Profile Status</p>
+                <select v-if="elements.primaryInfoEdit" class="form-select  form-control-sm" v-model="hrProfile.status_id"
+                  aria-label="Profile Status">
+                  <option value="">Select</option>
+                  <option value="1">Updated</option>
+                  <option value="2">Verified</option>
+                </select>
+                <p v-else>{{ hrProfile.status }}</p>
               </div>
-              <div class="row align-items-center mb-1">
-                <div class="col-lg-4">
-                  <p class="label-text">Last Updated</p>
-                </div>
-                <div class="col-lg-8">
-                  <p>{{ hrProfile.last_updated_dt }}</p>
-                </div>
-              </div>
-              <div class="d-flex align-items-center mb-1 ">
-                <span>
-                  <span class="icon-btn me-2">
-                    <font-awesome-icon icon="fa-solid fa-envelope" />
-                  </span>
+              <div class="profile-item-container">
+              <p class="label-text">Last Updated</p>
+              <p>{{ formatDate(hrProfile.last_updated_dt) }}</p>
+            </div>
+            <div class="profile-item-container">
+              <span>
+                <span class="icon-btn me-2">
+                  <font-awesome-icon icon="fa-solid fa-envelope" />
+                </span>
                 </span>
                 <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
                   v-model="hrProfile.email_id" />
-                <p v-else class="label-text d-inline-block">
+                <p v-else>
                   {{ hrProfile.email_id }}
                 </p>
               </div>
-              <div class="d-flex align-items-center mb-1">
+              <div class="profile-item-container">
                 <span>
                   <span class="icon-btn me-2">
                     <font-awesome-icon icon="fa-solid fa-phone" />
@@ -477,11 +490,11 @@ export default {
                 </span>
                 <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
                   v-model="hrProfile.mobile">
-                <p v-else class="label-text d-inline-block">
+                <p v-else>
                   {{ hrProfile.mobile }}
                 </p>
               </div>
-              <div class="d-flex align-items-center mb-1">
+              <div class="profile-item-container">
                 <span>
                   <span class="icon-btn me-2">
                     <font-awesome-icon icon="fa-brands fa-linkedin" />
@@ -489,7 +502,7 @@ export default {
                 </span>
                 <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
                   v-model="hrProfile.linkedin_id">
-                <p v-else class="label-text d-inline-block">
+                <p v-else>
                   {{ hrProfile.linkedin_id }}
                 </p>
               </div>
@@ -508,14 +521,14 @@ export default {
               </span>
               <span class="icon-btn float-end me-1" @click="updateAboutInfo">
                 <font-awesome-icon icon="fa-solid fa-check" />
+              </span>
             </span>
-          </span>
-          <span v-else class="icon-btn float-end" @click="elements.aboutInfoEdit = true">
-            <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-          </span>
-        </h6>
-        <textarea v-if="elements.aboutInfoEdit" v-model="hrProfile.objective" name="" id="" class="form-control"
-          rows="2"></textarea>
+            <span v-else class="icon-btn float-end" @click="elements.aboutInfoEdit = true">
+              <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+            </span>
+          </h6>
+          <textarea v-if="elements.aboutInfoEdit" v-model="hrProfile.objective" name="" id="" class="form-control"
+            rows="2"></textarea>
           <p v-else class="profile-short-content">
             {{ hrProfile.objective }}
           </p>
@@ -558,8 +571,8 @@ export default {
         <div class="content-card">
           <h6 class="label-text">Note
             <!-- <span class="icon-btn float-end">
-                                                                                                                                      <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                                                                                                                                    </span> -->
+                                                                                                                                                                                                                                  <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                                                                                                                                                                                                                                </span> -->
           </h6>
           <div class="note-input-group">
             <textarea name="" id="" class="form-control" rows="2"></textarea>
@@ -728,98 +741,61 @@ export default {
             <div class="row">
               <div class="col">
                 <h6 class="mb-2">Personal Info</h6>
-                <div class="row align-items-center mb-2">
-                  <div class="col-lg-4">
-                    <p class="label-text">Gender</p>
-                  </div>
-                  <div class="col-lg-8">
-                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
-                      v-model="hrProfile.gender">
-                    <p v-else>{{ hrProfile.gender }}</p>
-                  </div>
+                <div class="profile-item-container">
+                  <p class="label-text">Gender</p>
+                  <select v-if="elements.personalInfoEdit" class="form-select form-control-sm" v-model="hrProfile.gender"
+                    aria-label="Profile Status">
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Others">Others</option>
+                  </select>
+                  <p v-else>{{ hrProfile.gender }}</p>
                 </div>
-                <div class="row align-items-center mb-2">
-                  <div class="col-lg-4">
-                    <p class="label-text">Date of Birth</p>
-                  </div>
-                  <div class="col-lg-8">
-                    <input v-if="elements.personalInfoEdit" type="date" class="form-control form-control-sm"
-                      v-model="hrProfile.date_of_birth">
-                    <p v-else>{{ hrProfile.date_of_birth }}</p>
-                  </div>
-                </div>
-                <div class="row align-items-center mb-2">
-                  <div class="col-lg-4">
-                    <p class="label-text">Location</p>
-                  </div>
-                  <div class="col-lg-8">
-                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
-                      v-model="hrProfile.location">
-                    <p v-else>{{ hrProfile.location }}</p>
-                  </div>
+                <div class="profile-item-container">
+                  <p class="label-text">Date of Birth</p>
+                  <input v-if="elements.personalInfoEdit" type="date" class="form-control form-control-sm"
+                    v-model="hrProfile.date_of_birth">
+                  <p v-else>{{ hrProfile.date_of_birth }}</p>
                 </div>
               </div>
               <div class="col">
                 <h6 class="mb-2">Address Info</h6>
-                <div class="row align-items-center mb-2">
-                  <div class="col-lg-4">
-                    <p class="label-text">Building Number</p>
-                  </div>
-                  <div class="col-lg-8">
-                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
-                      v-model="hrProfile.buiding_number">
-                    <p v-else>{{ hrProfile.buiding_number }}</p>
-                  </div>
+                <div class="profile-item-container">
+                  <p class="label-text">Building Number</p>
+                  <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.buiding_number">
+                  <p v-else>{{ hrProfile.buiding_number }}</p>
                 </div>
-                <div class="row align-items-center mb-2">
-                  <div class="col-lg-4">
-                    <p class="label-text">Street Name</p>
-                  </div>
-                  <div class="col-lg-8">
-                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
-                      v-model="hrProfile.street_name">
-                    <p v-else>{{ hrProfile.street_name }}</p>
-                  </div>
+                <div class="profile-item-container">
+                  <p class="label-text">Street Name</p>
+                  <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.street_name">
+                  <p v-else>{{ hrProfile.street_name }}</p>
                 </div>
-                <div class="row align-items-center mb-2">
-                  <div class="col-lg-4">
-                    <p class="label-text">City</p>
-                  </div>
-                  <div class="col-lg-8">
-                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
-                      v-model="hrProfile.city">
-                    <p v-else>{{ hrProfile.city }}</p>
-                  </div>
+                <div class="profile-item-container">
+                  <p class="label-text">City</p>
+                  <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.city">
+                  <p v-else>{{ hrProfile.city }}</p>
                 </div>
-                <div class="row align-items-center mb-2">
-                  <div class="col-lg-4">
-                    <p class="label-text">State</p>
-                  </div>
-                  <div class="col-lg-8">
-                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
-                      v-model="hrProfile.state">
-                    <p v-else>{{ hrProfile.state }}</p>
-                  </div>
+                <div class="profile-item-container">
+                  <p class="label-text">State</p>
+                  <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.state">
+                  <p v-else>{{ hrProfile.state }}</p>
                 </div>
-                <div class="row align-items-center mb-2">
-                  <div class="col-lg-4">
-                    <p class="label-text">Country</p>
-                  </div>
-                  <div class="col-lg-8">
-                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
-                      v-model="hrProfile.country">
-                    <p v-else>{{ hrProfile.country }}</p>
-                  </div>
+                <div class="profile-item-container">
+                  <p class="label-text">Country</p>
+                  <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.country">
+                  <p v-else>{{ hrProfile.country }}</p>
                 </div>
-                <div class="row align-items-center mb-2">
-                  <div class="col-lg-4">
-                    <p class="label-text">PIN</p>
-                  </div>
-                  <div class="col-lg-8">
-                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
-                      v-model="hrProfile.postal_code">
-                    <p v-else>{{ hrProfile.postal_code }}</p>
-                  </div>
+                <div class="profile-item-container">
+                  <p class="label-text">PIN</p>
+                  <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.postal_code">
+                  <p v-else>{{ hrProfile.postal_code }}</p>
                 </div>
               </div>
             </div>
@@ -829,14 +805,14 @@ export default {
               <template v-if="hrProfile.docs?.length > 0">
                 <div v-for="document, index in   hrProfile.docs" :key="index" class="list-item">
                   <!-- <div v-if="elements.tabItemEdit" class="row">
-                                                                                                                                            <div class="col-12">
-                                                                                                                                              <input type="text" v-model="docsData.title" class="form-control form-control-sm"
-                                                                                                                                                placeholder="Enter Document Title">
-                                                                                                                                            </div>
-                                                                                                                                            <div class="col-12">
-                                                                                                                                              <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
-                                                                                                                                            </div>
-                                                                                                                                          </div> -->
+                                                                                                                                                                                                                                        <div class="col-12">
+                                                                                                                                                                                                                                          <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                                                                                                                                                                                                                                            placeholder="Enter Document Title">
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                        <div class="col-12">
+                                                                                                                                                                                                                                          <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                      </div> -->
                   <p class="label-text">Adhaar Card</p>
                   <div v-if="elements.tabItemEdit" class="text-end">
                     <span class="icon-btn me-1" @click="updateProfileChildItems(educationData, 'education')">

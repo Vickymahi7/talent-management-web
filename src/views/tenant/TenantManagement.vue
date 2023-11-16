@@ -6,11 +6,13 @@ import { useToast } from 'vue-toastification'
 import { Modal } from 'bootstrap'
 import { HttpStatusCode } from 'axios'
 import { ACCOUNT_STATUS } from '@/enums'
+import { formatDate } from '@/utils'
 export default {
   data() {
     return {
       v$: useVuelidate(),
       toast: useToast(),
+      formatDate: formatDate,
 
       tenantEdit: false,
       tenant: {
@@ -192,7 +194,7 @@ export default {
               </select>
               <span v-else>{{ getTenantStatus(tenant.tenant_status_id) }}</span>
             </td>
-            <td>{{ tenant.last_updated_dt }}</td>
+            <td>{{ formatDate(tenant.last_updated_dt) }}</td>
             <td>
               <div v-if="!tenant.user.active" class="icon-btn me-3" @click="resendActivationMail(tenant.user_id)"
                 title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">

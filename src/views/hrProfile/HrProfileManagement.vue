@@ -4,18 +4,21 @@ import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { HttpStatusCode } from 'axios'
+import { formatDate } from '@/utils'
 
 export default {
   data() {
     return {
       v$: useVuelidate(),
       toast: useToast(),
+      formatDate: formatDate,
 
       hrProfile: {
         id: '',
         hr_profile_id: '',
         tenant_id: '',
         hr_profile_type_id: '',
+        profile_title: '',
         first_name: '',
         last_name: '',
         middle_name: '',
@@ -60,12 +63,17 @@ export default {
       },
 
       hrProfileList: [],
+
+      dialogParam: {
+        id: 0,
+      },
     }
   },
   validations() {
     return {
       hrProfile: {
-        email_id: { required, email }
+        profile_title: { required },
+        email_id: { required, email },
       }
     }
   },
@@ -107,6 +115,21 @@ export default {
     removeSkill(skill) {
       this.hrProfile.skills = this.hrProfile.skills.filter(item => item != skill);
     },
+    deleteHrProfile: function (id: number) {
+      this.dialogParam.id = id;
+    },
+    async onYesProfile() {
+      try {
+        const response: any = await axios.delete('/hrprofile/delete/' + this.dialogParam.id)
+        if (response.status == HttpStatusCode.Ok) {
+          this.toast.success(response.message);
+          this.getHrProfileList();
+        }
+
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+    },
   }
 }
 </script>
@@ -115,37 +138,37 @@ export default {
     <label>HR Profile Management</label>
   </div>
   <div class="content-body content-card">
-    <div class="row py-2">
+    <div class="row filter-group py-2">
       <div class="col-3">
         <input type="text" class="form-control" placeholder="Type Something" aria-label="Search">
       </div>
       <div class="col-2">
         <select class="form-select" aria-label="Default select example">
           <option value="">Resource Type</option>
-          <option value="1">One</option>
-          <option value="2">Two</option>
-          <option value="3">Three</option>
+          <!-- <option value="1">One</option>
+                                              <option value="2">Two</option>
+                                              <option value="3">Three</option> -->
         </select>
       </div>
       <div class="col-2">
         <select class="form-select" aria-label="Default select example">
           <option value="">Resource Type</option>
-          <option value="1">One</option>
-          <option value="2">Two</option>
-          <option value="3">Three</option>
+          <!-- <option value="1">One</option>
+                                            <option value="2">Two</option>
+                                          <option value="3">Three</option> -->
         </select>
       </div>
       <div class="col text-end">
         <button class="btn primary-btn mx-2" type="button" data-bs-toggle="modal" data-bs-target="#hrProfileAddEditModal">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
-          New Resource
-        </button>
-        <button class="btn primary-btn" type="button">
-          <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
-          Resource Excel Import
-        </button>
-      </div>
+        New Resource
+      </button>
+      <button class="btn primary-btn" type="button">
+        <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
+        Resource Excel Import
+      </button>
     </div>
+  </div>
     <div class="table-responsive">
       <table class="table table-borderless custom-table-style">
         <thead class="table-dark">
@@ -154,9 +177,8 @@ export default {
               <input class="form-check-input" type="checkbox">
             </th>
             <th scope="col">ID</th>
+            <th scope="col">Profile Title</th>
             <th scope="col">Resource Name</th>
-            <th scope="col">Position</th>
-            <th scope="col">Resource Type</th>
             <th scope="col">Email ID</th>
             <th scope="col">Profile Status</th>
             <th scope="col">Last Updated</th>
@@ -170,12 +192,11 @@ export default {
               <input class="form-check-input" type="checkbox">
             </td>
             <td>{{ index + 1 }}</td>
+            <td>{{ hrProfile.profile_title }}</td>
             <td>{{ hrProfile.first_name }} {{ hrProfile.last_name }}</td>
-            <td>{{ hrProfile.position }}</td>
-            <td>{{ hrProfile.resource_type }}</td>
             <td>{{ hrProfile.email_id }}</td>
             <td>{{ hrProfile.active ? 'Active' : 'Inactive' }}</td>
-            <td>{{ hrProfile.last_updated_dt }}</td>
+            <td>{{ formatDate(hrProfile.last_updated_dt) }}</td>
             <td>
               <div class="icon-btn me-3">
                 <font-awesome-icon icon="fa-solid fa-paperclip" />
@@ -183,7 +204,8 @@ export default {
               <div class="icon-btn me-3">
                 <font-awesome-icon icon="fa-solid fa-download" />
               </div>
-              <div class="icon-btn me-3">
+              <div class="icon-btn me-3" @click.stop="deleteHrProfile(hrProfile.id)" title="Delete Profile"
+                data-bs-toggle="modal" data-bs-target="#deleteHrProfile">
                 <font-awesome-icon icon="fa-solid fa-trash" />
               </div>
             </td>
@@ -202,6 +224,17 @@ export default {
         <div class="modal-body">
           <div class="container">
             <form>
+              <div class="row mb-3">
+                <label for="profile_title" class="col-sm-4 col-form-label">Profile Title</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="hrProfile.profile_title"
+                    :class="{ 'is-invalid': v$.hrProfile.profile_title.$error }" id="profile_title"
+                    placeholder="Enter Profile Title">
+                  <div class="invalid-feedback" v-for="error of v$.hrProfile.profile_title.$errors" :key="error.$uid">
+                    {{ error.$message }}
+                  </div>
+                </div>
+              </div>
               <div class="row mb-3">
                 <label for="first_name" class="col-sm-4 col-form-label">First Name</label>
                 <div class="col-sm-8">
@@ -262,15 +295,15 @@ export default {
                   </div>
                 </div>
               </div>
-              <div class="row mb-3">
-                <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
-                <div class="col-sm-6">
-                  <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
-                </div>
-                <div class="col-sm-2">
-                  <button type="button" class="btn btn-primary">Upload</button>
-                </div>
-              </div>
+              <!-- <div class="row mb-3">
+                                  <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
+                                  <div class="col-sm-6">
+                                    <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
+                                  </div>
+                                  <div class="col-sm-2">
+                                    <button type="button" class="btn btn-primary">Upload</button>
+                                  </div>
+                                </div> -->
             </form>
           </div>
         </div>
@@ -281,4 +314,6 @@ export default {
       </div>
     </div>
   </div>
+  <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
+    message="Are you sure to delete profile?" />
 </template>

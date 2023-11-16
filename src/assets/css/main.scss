@@ -91,7 +91,7 @@ a {
 
   .left-menu {
     text-wrap: nowrap;
-    flex: 20%;
+    flex: 30%;
     max-width: 200px;
     padding: 1.5em;
 
@@ -141,12 +141,21 @@ a {
   font-size: 1.2em;
   font-weight: bold;
   flex: auto;
+  display: grid;
+  align-items: center;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
 
   .breadcrumb {
     margin: 0;
 
     .breadcrumb-item {
       color: $heading-color;
+
+      a {
+        font-weight: 400;
+        text-decoration: underline;
+      }
     }
   }
 }
@@ -211,16 +220,27 @@ a {
     border-bottom: 1px solid $card-border-color;
   }
 
+  .profile-item-container {
+    display: flex;
+    align-items: center;
+    height: 2rem;
+
+    .label-text {
+      flex: 60%;
+    }
+  }
+
   .profile-head {
     display: flex;
     gap: $card-gap;
 
     .profile-media {
+      position: relative;
+      padding-top: 0.5em;
       flex: $profile-left-card-width;
-      padding: 1.5em;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
       text-align: center;
 
@@ -228,8 +248,9 @@ a {
         position: relative;
 
         .profile-picture {
-          width: 120px;
-          height: 120px;
+          width: 130px;
+          height: 130px;
+          // aspect-ratio: 1 / 1;
           border-radius: $profile-pic-radius;
         }
 
@@ -251,12 +272,6 @@ a {
           &:hover {
             background-color: #000;
           }
-
-          .profile-picture-input {
-            width: 0px;
-            height: 0px;
-            overflow: hidden;
-          }
         }
       }
 
@@ -274,10 +289,6 @@ a {
       padding: 1.5em;
       gap: 2.5em;
       width: 100%;
-
-      p {
-        padding: 0.25em 0;
-      }
     }
   }
 
@@ -356,6 +367,12 @@ a {
       }
     }
   }
+}
+
+.icon-upload-input {
+  width: 0px;
+  height: 0px;
+  overflow: hidden;
 }
 
 .custom-table-style {
@@ -445,6 +462,17 @@ a {
   }
 }
 
+.filter-group {
+  input,
+  select {
+    padding: 0.4rem;
+  }
+}
+
+.input-group-text {
+  font-size: 1em !important;
+}
+
 .badge {
   a {
     color: $text-color-light;
@@ -500,7 +528,7 @@ a {
   justify-content: center;
   cursor: pointer;
   color: $text-color;
-  font-size: 0.8em;
+  font-size: 10px;
   transition: background-color, color 0.15s ease-in-out;
   border: 1px solid $text-color;
 
