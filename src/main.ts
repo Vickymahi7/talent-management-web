@@ -1,4 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-vue-next/dist/bootstrap-vue-next.css";
 import "bootstrap";
 import "vue-toastification/dist/index.css";
 import "./assets/css/main.scss";

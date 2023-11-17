@@ -79,10 +79,24 @@ export default {
 
       hrProfileList: [] as HrProfile[],
 
+      totalRows: 1,
+      currentPage: 1,
+      perPage: 10,
+
       dialogParam: {
         id: null as string | number | null,
       },
     }
+  },
+  computed: {
+    pageStart() {
+      return (this.currentPage - 1) * this.perPage;
+    }
+  },
+  watch: {
+    currentPage() {
+      this.getHrProfileList();
+    },
   },
   validations() {
     return {
@@ -100,10 +114,14 @@ export default {
       try {
         const queryParams = {
           searchText: this.searchText,
+          rows: this.perPage,
+          start: this.pageStart,
         };
         this.isLoading = true;
         const response: any = await axios.get('/hrprofile/list', { params: queryParams });
         this.hrProfileList = response.hrProfileList;
+        this.totalRows = response.numFound;
+        this.currentPage = response.numFound > this.perPage ? this.currentPage : 1;
       } catch (error: any) {
         this.toast.error(error.message);
       } finally {
@@ -125,6 +143,7 @@ export default {
           }
         }
       } catch (error: any) {
+        console.log(error)
         this.toast.error(error.message);
       }
       finally {
@@ -204,7 +223,8 @@ export default {
           </select>
         </div>
         <div class="col text-end">
-          <button class="btn primary-btn mx-2" type="button" @click="bsModalShow('hrProfileAddEditModal')">
+          <button class="btn primary-btn mx-2" type="button"
+            @click="bsModalShow('hrProfileAddEditModal'); modalId = 'hrProfileAddEditModal'">
             <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
             New Resource
           </button>
@@ -274,6 +294,8 @@ export default {
           </tbody>
         </table>
       </div>
+      <BPagination v-if="hrProfileList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
+        size="sm" />
     </loading-overlay>
   </div>
   <div class="modal fade" id="hrProfileAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
@@ -359,14 +381,14 @@ export default {
                   </div>
                 </div>
                 <!-- <div class="row mb-3">
-                                                                    <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
-                                                                    <div class="col-sm-6">
-                                                                      <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
-                                                                    </div>
-                                                                    <div class="col-sm-2">
-                                                                      <button type="button" class="btn btn-primary">Upload</button>
-                                                                    </div>
-                                                                  </div> -->
+                                                                                                                <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
+                                                                                                                <div class="col-sm-6">
+                                                                                                                  <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
+                                                                                                                </div>
+                                                                                                                <div class="col-sm-2">
+                                                                                                                  <button type="button" class="btn btn-primary">Upload</button>
+                                                                                                                </div>
+                                                                                                              </div> -->
               </form>
             </div>
           </div>

@@ -42,7 +42,18 @@ export default {
       dialogParam: {
         id: 0,
       },
+
+      totalRows: 1,
+      currentPage: 1,
+      perPage: 10,
     }
+  },
+  computed: {
+    filteredTenantList() {
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      const endIndex = startIndex + this.perPage;
+      return this.tenantList.slice(startIndex, endIndex);
+    },
   },
   validations() {
     return {
@@ -62,6 +73,7 @@ export default {
         this.isLoading = true;
         const response: any = await axios.get('/tenant/list')
         this.tenantList = response.tenantList;
+        this.totalRows = this.tenantList.length;
       } catch (error: any) {
         this.toast.error(error.message);
       }
@@ -161,7 +173,8 @@ export default {
     <loading-overlay :showOverlay="isLoading">
       <div class="row py-2">
         <div class="col text-end">
-          <button class="btn primary-btn mx-2" type="button" @click="bsModalShow('tenantAddEditModal')">
+          <button class="btn primary-btn mx-2" type="button"
+            @click="bsModalShow('tenantAddEditModal'); modalId = 'tenantAddEditModal'">
             <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
             New Tenant
           </button>
@@ -182,7 +195,7 @@ export default {
             </tr>
           </thead>
           <tbody class="custom-tbody-style">
-            <tr v-for="tenant in tenantList" :key="tenant.id">
+            <tr v-for="tenant in filteredTenantList" :key="tenant.id">
               <td>{{ tenant.tenant_id }}</td>
               <td>{{ tenant.name }}</td>
 
@@ -209,9 +222,9 @@ export default {
               <td>{{ formatDate(tenant.last_updated_dt) }}</td>
               <td>
                 <!-- <div v-if="!tenant.user.active" class="icon-btn me-3" @click="resendActivationMail(tenant.user_id)"
-                                                          title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
-                                                          <font-awesome-icon icon="fa-solid fa-share-from-square" />
-                                                        </div> -->
+                                                                              title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
+                                                                              <font-awesome-icon icon="fa-solid fa-share-from-square" />
+                                                                            </div> -->
                 <div class="icon-btn me-3" @click="deleteTenant(tenant.tenant_id)" title="Delete Tenant"
                   data-bs-toggle="modal" data-bs-target="#deleteTenant">
                   <font-awesome-icon icon="fa-solid fa-trash" />
@@ -221,6 +234,8 @@ export default {
           </tbody>
         </table>
       </div>
+      <BPagination v-if="tenantList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
+        size="sm" />
     </loading-overlay>
   </div>
   <div class="modal fade" id="tenantAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
@@ -292,5 +307,5 @@ export default {
   <dialog-component id="deleteTenant" :onYes="onYesTenant" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete tenant?" />
   <!-- <dialog-component id="resendConfirmation" :onYes="onYesConfirmation" :returnParams="dialogParam"
-                                                                                  title="Mail Resend Confirmation" message="Are you sure to resend activation mail?" /> -->
+                                                                                                      title="Mail Resend Confirmation" message="Are you sure to resend activation mail?" /> -->
 </template>

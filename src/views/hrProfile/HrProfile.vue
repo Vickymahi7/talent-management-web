@@ -611,8 +611,8 @@ export default {
           <div class="content-card">
             <h6 class="label-text">Note
               <!-- <span class="icon-btn float-end">
-                              <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                            </span> -->
+                                        <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                                      </span> -->
             </h6>
             <div class="note-input-group">
               <textarea name="" id="" class="form-control" rows="2"></textarea>
@@ -845,14 +845,14 @@ export default {
                 <template v-if="hrProfile.docs && hrProfile.docs.length > 0">
                   <div v-for="document, index in hrProfile.docs" :key="index" class="list-item">
                     <!-- <div v-if="elements.tabItemEdit" class="row">
-                                                                          <div class="col-12">
-                                                                            <input type="text" v-model="docsData.title" class="form-control form-control-sm"
-                                                                              placeholder="Enter Document Title">
-                                                                          </div>
-                                                                          <div class="col-12">
-                                                                            <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
-                                                                          </div>
-                                                                        </div> -->
+                            <div class="col-12">
+                              <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                                placeholder="Enter Document Title">
+                            </div>
+                            <div class="col-12">
+                              <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                            </div>
+                          </div> -->
                     <p class="label-text">Adhaar Card</p>
                     <div v-if="elements.tabItemEdit" class="text-end">
                       <span class="icon-btn me-1" @click="updateProfileChildItems(document, 'docs')">
@@ -948,7 +948,6 @@ export default {
             </div>
           </div>
           <div class="modal-footer">
-            <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
             <button type="button" @click="updateProfileChildItems(workExperienceData, 'work_experience')"
               class="btn primary-btn">Save</button>
           </div>
@@ -1004,7 +1003,6 @@ export default {
             </div>
           </div>
           <div class="modal-footer">
-            <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
             <button type="button" @click="updateProfileChildItems(educationData, 'education')"
               class="btn primary-btn">Save</button>
           </div>
@@ -1067,7 +1065,6 @@ export default {
             </div>
           </div>
           <div class="modal-footer">
-            <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
             <button type="button" @click="updateProfileChildItems(projectData, 'project')"
               class="btn primary-btn">Save</button>
           </div>

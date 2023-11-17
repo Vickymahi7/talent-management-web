@@ -8,7 +8,7 @@ import { USER_TYPES, ACCOUNT_STATUS } from '@/utils/constants'
 import { UserTypeId } from '@/utils/enums'
 import { Modal } from 'bootstrap'
 import { formatDate } from '@/utils/dateFormats'
-import { getUserStatusById, getUserTypeById, bsModalHide } from '@/utils/commonFunctions'
+import { getUserStatusById, getUserTypeById, bsModalHide, bsModalShow } from '@/utils/commonFunctions'
 export default {
   data() {
     return {
@@ -18,6 +18,7 @@ export default {
       getUserStatusById: getUserStatusById,
       getUserTypeById: getUserTypeById,
       bsModalHide: bsModalHide,
+      bsModalShow: bsModalShow,
 
       userEdit: false,
       isLoading: false,
@@ -39,6 +40,10 @@ export default {
       dialogParam: {
         id: 0,
       },
+
+      totalRows: 1,
+      currentPage: 1,
+      perPage: 10,
     }
   },
   computed: {
@@ -54,7 +59,12 @@ export default {
       else {
         return USER_TYPES.filter(data => data.id != UserTypeId.SAD);
       }
-    }
+    },
+    filteredUserList() {
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      const endIndex = startIndex + this.perPage;
+      return this.userList.slice(startIndex, endIndex);
+    },
   },
   validations() {
     return {
@@ -74,6 +84,7 @@ export default {
         this.isLoading = true;
         const response: any = await axios.get('/user/list')
         this.userList = response.userList;
+        this.totalRows = this.userList.length;
       } catch (error: any) {
         this.toast.error(error.message);
       }
@@ -174,8 +185,8 @@ export default {
     <loading-overlay :showOverlay="isLoading">
       <div class="row py-2">
         <div class="col text-end">
-          <button class="btn primary-btn mx-2" type="button" @click="modalId = 'userAddEditModal'" data-bs-toggle="modal"
-            data-bs-target="#userAddEditModal">
+          <button class="btn primary-btn mx-2" type="button"
+            @click="bsModalShow('userAddEditModal'); modalId = 'userAddEditModal'">
             <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
             New User
           </button>
@@ -196,7 +207,7 @@ export default {
             </tr>
           </thead>
           <tbody class="custom-tbody-style">
-            <tr v-for="user in userList" :key="user.id">
+            <tr v-for="user in filteredUserList" :key="user.id">
               <td>{{ user.user_id }}</td>
               <td>{{ user.user_name }}</td>
               <td>{{ user.email_id }}</td>
@@ -232,6 +243,8 @@ export default {
           </tbody>
         </table>
       </div>
+      <BPagination v-if="userList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
+        size="sm" />
     </loading-overlay>
   </div>
   <div class="modal fade" id="userAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">

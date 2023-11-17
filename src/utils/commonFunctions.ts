@@ -44,8 +44,11 @@ export function bsModalShow(elementId: string) {
 }
 
 export function bsModalHide(elementId: string) {
-  const myModal = new Modal(document.getElementById(elementId)!, {
-    keyboard: false,
-  });
-  myModal.dispose();
+  const myModal = Modal.getOrCreateInstance(
+    document.getElementById(elementId)!,
+    {
+      keyboard: false,
+    }
+  );
+  myModal.hide();
 }
