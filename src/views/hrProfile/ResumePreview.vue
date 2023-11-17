@@ -148,7 +148,7 @@ export default {
               <p>{{ workExperience.description }}</p>
             </div>
           </div>
-          <div v-if="hrProfile.work_experience" class="project-wrapper">
+          <div v-if="hrProfile.project" class="project-wrapper">
             <h2><span class="heading">Projects</span></h2>
             <div v-for="  project, index   in   hrProfile.project  " :key="index" class="project">
               <div class="project-title-wrapper">
@@ -158,7 +158,7 @@ export default {
                 <div class="project-role">Client - {{ project.client }}</div>
                 <div class="project-technologies">
                   <span>Technologies - </span>
-                  <span>{{ project.technologies }}</span>
+                  <span>{{ project.technology }}</span>
                 </div>
               </div>
               <p>{{ project.description }}</p>

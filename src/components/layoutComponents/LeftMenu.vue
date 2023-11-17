@@ -19,10 +19,10 @@ export default {
 <template>
   <div class="left-menu content-card">
     <ul>
-      <li v-if="userTypeId != UserTypeId.SAD">
+      <li>
         <a href="#">Manage</a>
         <ul class="sub-menu">
-          <li>
+          <li v-if="userTypeId != UserTypeId.SAD">
             <router-link :to="{ name: 'hrprofilemanagement' }" class="active">- Manage HR Profile</router-link>
           </li>
           <li>

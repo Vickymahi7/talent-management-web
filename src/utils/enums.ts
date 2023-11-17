@@ -14,12 +14,14 @@ export enum UserTypeId {
 
 export enum AccountStatus {
   ACT = "Active",
+  INA = "Inactive",
   BLO = "Blocked",
   SUS = "Suspended",
 }
 
 export enum AccountStatusId {
   ACT = 1,
-  BLO = 2,
-  SUS = 3,
+  INA = 2,
+  BLO = 3,
+  SUS = 4,
 }

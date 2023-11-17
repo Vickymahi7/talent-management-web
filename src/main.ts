@@ -26,11 +26,12 @@ import {
   faUserCheck,
   faUserXmark,
   faCamera,
-faShareFromSquare,
+  faShareFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
 import DialogComponent from "./components/modals/DialogComponent.vue";
+import LoadingOverlay from "./components/LoadingOverlay.vue";
 
 library.add(
   faXmarkCircle,
@@ -51,11 +52,13 @@ library.add(
   faRepeat,
   faUserXmark,
   faCamera,
-  faShareFromSquare
+  faShareFromSquare,
+  faEnvelope
 );
 const app = createApp(App);
 
 app.component("font-awesome-icon", FontAwesomeIcon);
+app.component("loading-overlay", LoadingOverlay);
 app.component("dialog-component", DialogComponent);
 app.use(router);
 app.use(Toast);

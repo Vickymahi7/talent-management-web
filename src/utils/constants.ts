@@ -9,6 +9,7 @@ export const USER_TYPES = [
 
 export const ACCOUNT_STATUS = [
   { id: AccountStatusId.ACT, status: AccountStatus.ACT },
+  { id: AccountStatusId.INA, status: AccountStatus.INA },
   { id: AccountStatusId.BLO, status: AccountStatus.BLO },
   { id: AccountStatusId.SUS, status: AccountStatus.SUS },
 ];
