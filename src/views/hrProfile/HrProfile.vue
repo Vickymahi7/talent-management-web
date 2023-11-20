@@ -126,6 +126,7 @@ export default {
       } as Docs,
 
       dialogParam: {
+        id: null as string | number | null,
         key: null as string | number | null,
         data: null as string | number | null,
       },
@@ -399,6 +400,25 @@ export default {
 
       this.updateHrProfile(profileData);
     },
+    deleteHrProfileResume: function (id: string) {
+      this.dialogParam.id = id;
+    },
+    async onYesHrProfileResume() {
+      try {
+        this.isLoading = true;
+        const response: any = await axios.delete('/hrprofile/deleteresume/' + this.dialogParam.id)
+        if (response.status == HttpStatusCode.Ok) {
+          this.toast.success(response.message);
+          this.getHrProfile();
+        }
+
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+      finally {
+        this.isLoading = false;
+      }
+    },
   }
 }
 </script>
@@ -408,7 +428,9 @@ export default {
       <!-- <label>HR Profile</label> -->
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Manage HR Profile</a></li>
+          <li class="breadcrumb-item">
+            <router-link :to="{ name: 'hrprofilemanagement' }">Manage HR Profile</router-link>
+          </li>
           <li class="breadcrumb-item active" aria-current="page">Profile - {{ hrProfile.first_name }}</li>
         </ol>
       </nav>
@@ -492,14 +514,14 @@ export default {
                   <p class="label-text">CTC</p>
                   <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
                     v-model="hrProfile.ctc">
-                <p v-else>{{ hrProfile.ctc }}</p>
-              </div>
-              <div class="profile-item-container">
-                <p class="label-text">Location</p>
-                <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                  v-model="hrProfile.location">
-                <p v-else>{{ hrProfile.location }}</p>
-              </div>
+                  <p v-else>{{ hrProfile.ctc }}</p>
+                </div>
+                <div class="profile-item-container">
+                  <p class="label-text">Location</p>
+                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.location">
+                  <p v-else>{{ hrProfile.location }}</p>
+                </div>
                 <div class="separator my-3"></div>
                 <div class="d-flex justify-content-between align-items-center">
                   <p class="label-text">
@@ -510,18 +532,21 @@ export default {
                     <span v-else class="text-muted">-- no resume --</span>
                   </p>
                   <div class="text-end">
-                    <button @click="fileUploadBtnClick('resume-input')" class="btn primary-btn br-0" type="button">
+                    <template v-if="hrProfile.resume_url">
+                      <a :href="hrProfile.resume_url" target="_blank" class="btn primary-btn ms-2 br-0" type="button">
+                        Show
+                      </a>
+                      <a href="#" class="btn primary-btn ms-2 br-0" type="button"
+                        @click.prevent="deleteHrProfileResume(hrProfile.id!)" data-bs-toggle="modal"
+                        data-bs-target="#deleteHrProfileResume">
+                        Remove
+                      </a>
+                    </template>
+                    <button v-else @click="fileUploadBtnClick('resume-input')" class="btn primary-btn br-0" type="button">
                       Upload
                       <input type="file" id="resume-input" class="icon-upload-input" @input="uploadResume"
                         placeholder="Choose File">
                     </button>
-                    <a v-if="hrProfile.resume_url" :href="hrProfile.resume_url" target="_blank"
-                      class="btn primary-btn ms-2 br-0" type="button">
-                      Show
-                    </a>
-                    <a v-if="hrProfile.resume_url" href="#" class="btn primary-btn ms-2 br-0" type="button">
-                      Remove
-                    </a>
                   </div>
                 </div>
               </div>
@@ -641,8 +666,8 @@ export default {
           <div class="content-card">
             <h6 class="label-text">Note
               <!-- <span class="icon-btn float-end">
-                                                                                                                    <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                                                                                                                  </span> -->
+                                      <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                                    </span> -->
             </h6>
             <div class="note-input-group">
               <textarea name="" id="" class="form-control" rows="2"></textarea>
@@ -703,8 +728,8 @@ export default {
               <div class="content-list">
                 <template v-if="hrProfile.work_experience && hrProfile.work_experience.length > 0">
                   <div v-for="workExperience, index in   hrProfile.work_experience" :key="index" class="list-item">
-                    <div>
-                      <p class="label-text">{{ workExperience.company }}</p>
+                    <div class="flex-fill">
+                      <h6 class="label-text">{{ workExperience.company }}</h6>
                       <p v-if="workExperience.position">{{ workExperience.position }}</p>
                       <p v-if="workExperience.start_date || workExperience.end_date || workExperience.location">
                         {{ workExperience.start_date }}
@@ -714,8 +739,20 @@ export default {
                         </span>
                         {{ workExperience.location }}
                       </p>
+                      <div class="collapse" :id="`collapse-workExp-${index}`">
+                        <!-- <div class="card card-body"> -->
+                        <p class="label-text">Responsibilities</p>
+                        {{ workExperience.description }}
+                        <!-- </div> -->
+                      </div>
+                      <p v-if="workExperience.description">
+                        <a data-bs-toggle="collapse" :href="`#collapse-workExp-${index}`" role="button"
+                          aria-expanded="false" aria-controls="collapse-workExp">
+                          more...
+                        </a>
+                      </p>
                     </div>
-                    <div class="text-end">
+                    <div class="text-nowrap text-end ms-2">
                       <span class="icon-btn me-2"
                         @click="showProfileChildItemEdit('work_experience', workExperience, 'workExperienceAddEditModal')">
                         <font-awesome-icon icon="fa-solid fa-pencil-alt" />
@@ -783,8 +820,8 @@ export default {
               <div class="content-list">
                 <template v-if="hrProfile.project && hrProfile.project.length > 0">
                   <div v-for="project, index in   hrProfile.project" :key="index" class="list-item">
-                    <div>
-                      <p class="label-text">{{ project.title }}</p>
+                    <div class="flex-fill">
+                      <h6 class="label-text">{{ project.title }}</h6>
                       <p v-if="project.client">Client: {{ project.client }}</p>
                       <p v-if="project.start_date || project.end_date">
                         <span v-if="project.start_date">{{ project.start_date }}</span>
@@ -792,8 +829,20 @@ export default {
                         <span v-if="project.end_date">{{ project.end_date }}</span>
                       </p>
                       <p v-if="project.technology">Technologies: {{ project.technology }}</p>
+                      <p v-if="project.description">
+                        <a data-bs-toggle="collapse" :href="`#collapse-project-${index}`" role="button"
+                          aria-expanded="false" aria-controls="collapse-project">
+                          more...
+                        </a>
+                      </p>
+                      <div class="collapse" :id="`collapse-project-${index}`">
+                        <!-- <div class="card card-body"> -->
+                        <p class="label-text">Responsibilities</p>
+                        {{ project.description }}
+                        <!-- </div> -->
+                      </div>
                     </div>
-                    <div class="text-end">
+                    <div class="text-nowrap text-end ms-2">
                       <span class="icon-btn me-2"
                         @click="showProfileChildItemEdit('project', project, 'projectAddEditModal')">
                         <font-awesome-icon icon="fa-solid fa-pencil-alt" />
@@ -896,14 +945,14 @@ export default {
                 <template v-if="hrProfile.docs && hrProfile.docs.length > 0">
                   <div v-for="document, index in hrProfile.docs" :key="index" class="list-item">
                     <!-- <div v-if="elements.tabItemEdit" class="row">
-                                                                                                        <div class="col-12">
-                                                                                                          <input type="text" v-model="docsData.title" class="form-control form-control-sm"
-                                                                                                            placeholder="Enter Document Title">
-                                                                                                        </div>
-                                                                                                        <div class="col-12">
-                                                                                                          <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
-                                                                                                        </div>
-                                                                                                      </div> -->
+                      <div class="col-12">
+                        <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                          placeholder="Enter Document Title">
+                      </div>
+                      <div class="col-12">
+                        <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                      </div>
+                    </div> -->
                     <p class="label-text">Adhaar Card</p>
                     <div v-if="elements.tabItemEdit" class="text-end">
                       <span class="icon-btn me-1" @click="updateProfileChildItems(document, 'docs')">
@@ -1126,4 +1175,6 @@ export default {
   <ResumePreviewModal :hrProfile="hrProfile" />
   <dialog-component id="removeProfileChildItem" :onYes="onYesProfileChildItemDelete" :returnParams="dialogParam"
     title="Delete Confirmation" :message="`Are you sure to delete ${deleteChildTitle} info?`" />
+  <dialog-component id="deleteHrProfileResume" :onYes="onYesHrProfileResume" :returnParams="dialogParam"
+    title="Delete Confirmation" :message="`Are you sure to delete resume`" />
 </template>

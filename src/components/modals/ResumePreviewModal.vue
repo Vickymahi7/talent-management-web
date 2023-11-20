@@ -1,5 +1,6 @@
 <script lang="ts">
 import type HrProfile from '@/types/HrProfile';
+import { formatDateMonthYear } from '@/utils/dateFormats';
 import type { PropType } from 'vue';
 
 export default {
@@ -7,13 +8,20 @@ export default {
     id: { type: String, default: 'resumePreviewModal' },
     hrProfile: { type: Object as PropType<HrProfile>, required: true },
   },
+  data() {
+    return {
+      formatDateMonthYear: formatDateMonthYear,
+    }
+  },
   methods: {
-    printContent() {
-      this.$htmlToPaper('printMe', {
-        name: '_blank',
+    async print() {
+      await this.$htmlToPaper('printMe', {
+        styles: ['../../resTemplateStyle.css'],
+        timeout: 10000,
         autoClose: true,
-        windowTitle: window.document.title,
-      });
+      }, () => {
+        console.log('testing...')
+      })
     }
   }
 }
@@ -28,14 +36,14 @@ export default {
         </div>
         <div class="modal-body">
           <div class="text-end mb-2">
-            <a href="#" @click="printContent"><font-awesome-icon class="mx-2" icon="fa-solid fa-download" /></a>
+            <a href="#" @click="print"><font-awesome-icon class="mx-2" icon="fa-solid fa-download" /></a>
             <button class="btn primary-btn mx-2" type="button">
               <font-awesome-icon class="me-2" icon="fa-solid fa-envelope" />
               Send Resume
             </button>
           </div>
-          <div class="resume-template mx-auto">
-            <div id="printMe" class="resume-wrapper">
+          <div id="printMe" class="resume-template mx-auto">
+            <div class="resume-wrapper">
               <header>
                 <div class="picture-resume-wrapper">
                   <div class="picture-resume">
@@ -57,7 +65,7 @@ export default {
                 <section class="left-section">
                   <template v-if="hrProfile.summary">
                     <h2><span class="heading">Summary</span></h2>
-                    <p class="">
+                    <p class="bold">
                       {{ hrProfile.summary }}
                     </p>
                   </template>
@@ -67,8 +75,8 @@ export default {
                     <li v-if="hrProfile.mobile">{{ hrProfile.mobile }}</li>
                     <li v-if="hrProfile.website">{{ hrProfile.website }}</li>
                     <li v-if="hrProfile.city">
-                      {{ hrProfile.city }}
-                      <span v-if="hrProfile.city && hrProfile.country">, </span>
+                    {{ hrProfile.city }}
+                    <span v-if="hrProfile.city && hrProfile.country">, </span>
                       <span v-if="hrProfile.country">{{ hrProfile.country }}</span>
                     </li>
                   </ul>
@@ -76,23 +84,27 @@ export default {
                     <h2><span class="heading">Education</span></h2>
                     <div class="education-info">
                       <div v-for="  education, index in hrProfile.education" :key="index" class="education-detail">
-                        <h6 v-if="education.start_date">{{ education.start_date }}</h6>
-                        <p v-if="education.degree || education.major">
+                        <h6 v-if="education.degree || education.major">
                           <span v-if="education.degree">{{ education.degree }}</span>
+                          <span v-if="education.degree && education.major">, </span>
                           <span v-if="education.major">{{ education.major }}</span>
-                        </p>
-                        <p v-if="education.university || education.location">
+                        </h6>
+                        <p v-if="education.university || education.location" class="bold">
                           <span v-if="education.university">{{ education.university }}</span>
                           <span v-if="education.location">{{ education.location }}</span>
                         </p>
+                        <p v-if="education.end_date">{{ formatDateMonthYear(education.end_date) }}</p>
                       </div>
                     </div>
                   </template>
                   <template v-if="hrProfile.skills">
                     <h2><span class="heading">Technical Skills</span></h2>
-                    <ul class="list-content">
-                      <li v-for="  skill, index   in   hrProfile.skills  " :key="index">{{ skill }}</li>
-                    </ul>
+                    <div class="badge-list">
+                      <span class="badge-item" v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}</span>
+                    </div>
+                    <!-- <ul class="list-content">
+                                                              <li v-for="  skill, index   in   hrProfile.skills  " :key="index">{{ skill }}</li>
+                                                            </ul> -->
                   </template>
                 </section>
                 <section class="right-section">
@@ -103,26 +115,31 @@ export default {
                       <h3>{{ workExperience.position }}</h3>
                       <div class="experience-company-wrapper">
                         <span class="experience-company me-2">{{ workExperience.company }} </span>
-                        <span class="muted-text">{{ workExperience.start_date }} - {{ workExperience.end_date }},
-                          {{ workExperience.location }}</span>
-                      </div>
-                      <p>{{ workExperience.description }}</p>
+                        <span class="muted-text">
+                          <span v-if="workExperience.start_date">{{ formatDateMonthYear(workExperience.start_date)
+                          }}</span>
+                          <span v-if="workExperience.start_date && workExperience.end_date"> - </span>
+                          <span v-if="workExperience.end_date">{{ formatDateMonthYear(workExperience.end_date) }}</span>
+                      </span>
                     </div>
+                    <p>{{ workExperience.description }}</p>
                   </div>
+                </div>
                   <div v-if="hrProfile.project" class="project-wrapper">
                     <h2><span class="heading">Projects</span></h2>
-                  <div v-for="  project, index   in   hrProfile.project  " :key="index" class="project">
-                    <div class="project-title-wrapper">
-                      <span class="project-title me-2">{{ project.title }} </span>
-                      <span class="muted-text">{{ project.start_date }}</span>
-                      <!-- <div class="project-role">Team Leader - </div> -->
-                        <div class="project-role">Client - {{ project.client }}</div>
-                        <div class="project-technologies">
+                    <div v-for="  project, index   in   hrProfile.project  " :key="index" class="project">
+                      <div class="project-title-wrapper">
+                        <span class="project-title me-2">{{ project.title }} </span>
+                        <span v-if="project.start_date" class="muted-text">{{ formatDateMonthYear(project.start_date)
+                        }}</span>
+                        <!-- <div class="project-role">Team Leader - </div> -->
+                        <div v-if="project.client" class="project-role">Client - {{ project.client }}</div>
+                        <div v-if="project.technology" class="project-technologies">
                           <span>Technologies - </span>
                           <span>{{ project.technology }}</span>
                         </div>
                       </div>
-                      <p>{{ project.description }}</p>
+                      <p v-if="project.description">{{ project.description }}</p>
                     </div>
                   </div>
                 </section>
@@ -131,11 +148,11 @@ export default {
           </div>
         </div>
         <!-- <div v-if="showFooter" class="modal-footer">
-                                            <button v-if="noButton" type="button" class="btn btn-secondary" @click="noClick"
-                                              data-bs-dismiss="modal">No</button>
-                                            <button v-if="yesButton" type="button" class="btn btn-primary" @click="yesClick"
-                                              data-bs-dismiss="modal">Yes</button>
-                                          </div> -->
+                                                                                                                                <button v-if="noButton" type="button" class="btn btn-secondary" @click="noClick"
+                                                                                                                                  data-bs-dismiss="modal">No</button>
+                                                                                                                                <button v-if="yesButton" type="button" class="btn btn-primary" @click="yesClick"
+                                                                                                                                  data-bs-dismiss="modal">Yes</button>
+                                                                                                                              </div> -->
       </div>
     </div>
   </div>
@@ -145,6 +162,7 @@ export default {
 // @import url(https://fonts.googleapis.com/css?family=Varela+Round);
 // @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700);
 
+$text-color: #000;
 $header-bg: #1f7e6c;
 $header-text-color: #fff;
 $heading-color: #000;
@@ -158,8 +176,9 @@ $left-section-color: #7a7a7a;
 $right-section-color: #000;
 $left-section-bg: #e9e9e9;
 $right-section-bg: #fff;
-$std-margin-bottom: 8px;
-$heading-margin-bottom: 12px;
+$std-margin-bottom: 5px;
+$heading-margin-top: 10px;
+$heading-margin-bottom: 10px;
 
 $boldColor: #4a4e51;
 
@@ -210,6 +229,7 @@ h2 {
   letter-spacing: 1px;
   color: $heading-color;
   position: relative;
+  margin-top: $heading-margin-top;
   margin-bottom: $heading-margin-bottom;
 
   .heading {
@@ -308,7 +328,7 @@ header {
   flex: 40%;
   color: $left-section-color;
   background-color: $left-section-bg;
-  padding: 25px 20px;
+  padding: 15px;
 
   ul {
     margin: 0;
@@ -323,6 +343,20 @@ header {
   .contact-info {
     font-weight: bold;
     font-style: italic;
+    color: $text-color;
+  }
+
+  .badge-list {
+
+    .badge-item {
+      padding: 2px 5px;
+      color: $header-text-color;
+      background-color: $header-bg;
+      border-radius: 5px;
+      display: inline-block;
+      margin-right: 3px;
+      margin-bottom: 3px;
+    }
   }
 
   .list-content {
@@ -337,7 +371,8 @@ header {
     h6 {
       font-size: 12px;
       font-style: italic;
-      margin-bottom: $std-margin-bottom;
+      margin-bottom: 3px;
+      color: $text-color;
     }
 
     p {
@@ -356,7 +391,7 @@ header {
   flex: 70%;
   color: $right-section-color;
   background-color: $right-section-bg;
-  padding: 25px 20px;
+  padding: 15px;
 
   .experience {
 

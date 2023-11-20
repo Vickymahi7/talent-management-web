@@ -24,6 +24,7 @@
     "bootstrap-vue-next": "^0.14.10",
     "dayjs": "^1.11.10",
     "vue": "^3.3.4",
+    "vue-html-to-paper": "^2.0.3",
     "vue-router": "^4.2.4",
     "vue-toastification": "^2.0.0-rc.5"
   },

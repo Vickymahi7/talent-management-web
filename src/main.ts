@@ -8,6 +8,7 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import Toast from "vue-toastification";
+import  VueHtmlToPaper from './plugins/VueHtmlToPaper'
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import {
@@ -63,6 +64,7 @@ const app = createApp(App);
 app.component("font-awesome-icon", FontAwesomeIcon);
 app.component("loading-overlay", LoadingOverlay);
 app.component("dialog-component", DialogComponent);
+app.use(VueHtmlToPaper)
 app.use(router);
 app.use(Toast);
 
