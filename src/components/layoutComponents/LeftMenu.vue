@@ -4,31 +4,27 @@ const SUPER_ADMIN_MENU = [
   {
     id: 1,
     name: "Manage",
-    subMenu: [
-      { id: 101, name: "User Management", routeName: "usermanagement" },
-      { id: 102, name: "Manage HR Profile", routeName: "hrprofilemanagement" },
-    ]
+    subMenu: [{ id: 101, name: "User Management", routeName: "usermanagement" },
+    { id: 102, name: "Manage HR Profile", routeName: "hrprofilemanagement" },]
   },
   {
     id: 2,
     name: "User Activity",
-    subMenu: [{ id: 201, name: "Talent Pool", routeName: "" },]
+    subMenu: [{ id: 201, name: "Talent Pool", routeName: "talentpool" },]
   },
 ];
 const ADMIN_MENU = [
   {
     id: 1,
     name: "Manage",
-    subMenu: [
-      { id: 101, name: "Manage HR Profile", routeName: "hrprofilemanagement" },
-      { id: 102, name: "User Management", routeName: "usermanagement" },
-      { id: 103, name: "Manage HR Profile", routeName: "hrprofilemanagement" },
-    ]
+    subMenu: [{ id: 101, name: "Manage HR Profile", routeName: "hrprofilemanagement" },
+    { id: 102, name: "User Management", routeName: "usermanagement" },
+    { id: 103, name: "Manage HR Profile", routeName: "hrprofilemanagement" },]
   },
   {
     id: 2,
     name: "User Activity",
-    subMenu: [{ id: 201, name: "Talent Pool", routeName: "" },]
+    subMenu: [{ id: 201, name: "Talent Pool", routeName: "talentpool" },]
   },
   {
     id: 3,

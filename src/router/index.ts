@@ -49,6 +49,12 @@ const routes = [
     meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
   },
   {
+    path: "/talentpool",
+    name: "talentpool",
+    component: () => import("@/views/hrProfile/TalentPool.vue"),
+    meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
+  },
+  {
     path: "/resumepreview/:id",
     name: "resumepreview",
     component: () => import("@/views/hrProfile/ResumePreview.vue"),

@@ -28,6 +28,7 @@ import {
   faUserXmark,
   faCamera,
   faShareFromSquare,
+  faEye,
 } from "@fortawesome/free-solid-svg-icons";
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
@@ -54,7 +55,8 @@ library.add(
   faUserXmark,
   faCamera,
   faShareFromSquare,
-  faEnvelope
+  faEnvelope,
+  faEye
 );
 const app = createApp(App);
 

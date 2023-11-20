@@ -43,6 +43,7 @@ export default {
 
       resumeFiles: '',
       modalId: '',
+      deleteChildTitle: '',
 
       hrProfile: {
         id: '',
@@ -123,6 +124,11 @@ export default {
         title: '',
         path: '',
       } as Docs,
+
+      dialogParam: {
+        key: null as string | number | null,
+        data: null as string | number | null,
+      },
     }
   },
   validations() {
@@ -181,6 +187,7 @@ export default {
           }
         }
       } catch (error: any) {
+        console.log(error)
         this.toast.error(error.message);
       }
       finally {
@@ -354,21 +361,41 @@ export default {
       this.showModal();
     },
     showModal() {
-      const modal = Modal.getOrCreateInstance(document.getElementById(this.modalId)!, {
+      const modalEl = document.getElementById(this.modalId);
+      if (!modalEl) return;
+      const modal = Modal.getOrCreateInstance(modalEl!, {
         keyboard: false
       })
       modal.show();
     },
     hideModal() {
-      const modal = Modal.getOrCreateInstance(document.getElementById(this.modalId)!, {
+      const modalEl = document.getElementById(this.modalId);
+      if (!modalEl) return;
+      const modal = Modal.getOrCreateInstance(modalEl!, {
         keyboard: false
       })
       modal.hide();
     },
-    removeProfileChildItem(key: string, item: any) {
+    removeProfileChildItem: function (key: string, data: any) {
+      this.dialogParam.key = key;
+      this.dialogParam.data = data;
+
+      if (key == 'work_experience') {
+        this.deleteChildTitle = 'Work Experience';
+      }
+      else if (key == 'education') {
+        this.deleteChildTitle = 'Education';
+      }
+      else if (key == 'project') {
+        this.deleteChildTitle = 'Project';
+      }
+    },
+    onYesProfileChildItemDelete() {
+      const key = this.dialogParam.key!;
+      const data = this.dialogParam.data;
       // remove the object with its reference
       const profileData: any = this.hrProfile;
-      profileData[key] = profileData[key] ? profileData[key].filter((data: any) => data !== item) : [];
+      profileData[key] = profileData[key] ? profileData[key].filter((item: any) => item !== data) : [];
 
       this.updateHrProfile(profileData);
     },
@@ -465,17 +492,17 @@ export default {
                   <p class="label-text">CTC</p>
                   <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
                     v-model="hrProfile.ctc">
-                  <p v-else>{{ hrProfile.ctc }}</p>
-                </div>
-                <div class="profile-item-container">
+                <p v-else>{{ hrProfile.ctc }}</p>
+              </div>
+              <div class="profile-item-container">
                 <p class="label-text">Location</p>
                 <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
                   v-model="hrProfile.location">
                 <p v-else>{{ hrProfile.location }}</p>
               </div>
-              <div class="separator my-3"></div>
-              <div class="d-flex justify-content-between align-items-center">
-                <p class="label-text">
+                <div class="separator my-3"></div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <p class="label-text">
                     <span class="icon-btn me-1">
                       <font-awesome-icon icon="fa-solid fa-paperclip" />
                     </span>
@@ -491,6 +518,9 @@ export default {
                     <a v-if="hrProfile.resume_url" :href="hrProfile.resume_url" target="_blank"
                       class="btn primary-btn ms-2 br-0" type="button">
                       Show
+                    </a>
+                    <a v-if="hrProfile.resume_url" href="#" class="btn primary-btn ms-2 br-0" type="button">
+                      Remove
                     </a>
                   </div>
                 </div>
@@ -611,8 +641,8 @@ export default {
           <div class="content-card">
             <h6 class="label-text">Note
               <!-- <span class="icon-btn float-end">
-                                        <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                                      </span> -->
+                                                                                                                    <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                                                                                                                  </span> -->
             </h6>
             <div class="note-input-group">
               <textarea name="" id="" class="form-control" rows="2"></textarea>
@@ -675,8 +705,14 @@ export default {
                   <div v-for="workExperience, index in   hrProfile.work_experience" :key="index" class="list-item">
                     <div>
                       <p class="label-text">{{ workExperience.company }}</p>
-                      <p>{{ workExperience.position }}</p>
-                      <p>{{ workExperience.start_date }} {{ workExperience.end_date }} | {{ workExperience.location }}.
+                      <p v-if="workExperience.position">{{ workExperience.position }}</p>
+                      <p v-if="workExperience.start_date || workExperience.end_date || workExperience.location">
+                        {{ workExperience.start_date }}
+                        <span v-if="workExperience.start_date && workExperience.end_date"> - </span>
+                        {{ workExperience.end_date }}
+                        <span v-if="(workExperience.start_date || workExperience.end_date) && workExperience.location"> |
+                        </span>
+                        {{ workExperience.location }}
                       </p>
                     </div>
                     <div class="text-end">
@@ -684,7 +720,8 @@ export default {
                         @click="showProfileChildItemEdit('work_experience', workExperience, 'workExperienceAddEditModal')">
                         <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                       </span>
-                      <span class="icon-btn" @click="removeProfileChildItem('work_experience', workExperience)">
+                      <span class="icon-btn" @click="removeProfileChildItem('work_experience', workExperience)"
+                        data-bs-toggle="modal" data-bs-target="#removeProfileChildItem">
                         <font-awesome-icon icon="fa-solid fa-trash" />
                       </span>
                     </div>
@@ -706,9 +743,19 @@ export default {
                 <template v-if="hrProfile.education && hrProfile.education.length > 0">
                   <div v-for="education, index in   hrProfile.education" :key="index" class="list-item">
                     <div>
-                      <p class="label-text">{{ education.degree }} - {{ education.major }}</p>
-                      <p>{{ education.university }}</p>
-                      <p>{{ education.start_date }} - {{ education.end_date }} | {{ education.location }}.</p>
+                      <p v-if="education.degree || education.major" class="label-text">
+                        <span v-if="education.degree">{{ education.degree }}</span>
+                        <span v-if="education.degree && education.major"> - </span>
+                        <span v-if="education.major">{{ education.major }}</span>
+                      </p>
+                      <p v-if="education.university">{{ education.university }}</p>
+                      <p>
+                        {{ education.start_date }}
+                        <span v-if="education.start_date && education.end_date"> - </span>
+                        <span v-if="education.end_date">{{ education.end_date }}</span>
+                        <span v-if="(education.start_date || education.end_date) && education.location"> | </span>
+                        <span v-if="education.location">{{ education.location }}</span>
+                      </p>
                     </div>
                     <div class="text-end">
                       <span class="icon-btn me-2"
@@ -738,9 +785,13 @@ export default {
                   <div v-for="project, index in   hrProfile.project" :key="index" class="list-item">
                     <div>
                       <p class="label-text">{{ project.title }}</p>
-                      <p>Client: {{ project.client }}</p>
-                      <p>{{ project.start_date }} - {{ project.end_date }}.</p>
-                      <p>Technologies: {{ project.technology }}</p>
+                      <p v-if="project.client">Client: {{ project.client }}</p>
+                      <p v-if="project.start_date || project.end_date">
+                        <span v-if="project.start_date">{{ project.start_date }}</span>
+                        <span v-if="project.start_date && project.end_date"> - </span>
+                        <span v-if="project.end_date">{{ project.end_date }}</span>
+                      </p>
+                      <p v-if="project.technology">Technologies: {{ project.technology }}</p>
                     </div>
                     <div class="text-end">
                       <span class="icon-btn me-2"
@@ -845,14 +896,14 @@ export default {
                 <template v-if="hrProfile.docs && hrProfile.docs.length > 0">
                   <div v-for="document, index in hrProfile.docs" :key="index" class="list-item">
                     <!-- <div v-if="elements.tabItemEdit" class="row">
-                            <div class="col-12">
-                              <input type="text" v-model="docsData.title" class="form-control form-control-sm"
-                                placeholder="Enter Document Title">
-                            </div>
-                            <div class="col-12">
-                              <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
-                            </div>
-                          </div> -->
+                                                                                                        <div class="col-12">
+                                                                                                          <input type="text" v-model="docsData.title" class="form-control form-control-sm"
+                                                                                                            placeholder="Enter Document Title">
+                                                                                                        </div>
+                                                                                                        <div class="col-12">
+                                                                                                          <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                                                                                                        </div>
+                                                                                                      </div> -->
                     <p class="label-text">Adhaar Card</p>
                     <div v-if="elements.tabItemEdit" class="text-end">
                       <span class="icon-btn me-1" @click="updateProfileChildItems(document, 'docs')">
@@ -1073,4 +1124,6 @@ export default {
     </div>
   </div>
   <ResumePreviewModal :hrProfile="hrProfile" />
+  <dialog-component id="removeProfileChildItem" :onYes="onYesProfileChildItemDelete" :returnParams="dialogParam"
+    title="Delete Confirmation" :message="`Are you sure to delete ${deleteChildTitle} info?`" />
 </template>

@@ -189,6 +189,7 @@ a {
   .page-link.active {
     color: $primary-btn-color;
     background-color: $primary-btn-bg;
+    border-color: $primary-btn-bg;
   }
 }
 
@@ -369,6 +370,7 @@ a {
 
         .summary-content {
           height: 220px;
+          overflow: auto;
 
           textarea {
             height: 100%;

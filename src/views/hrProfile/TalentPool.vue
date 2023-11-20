@@ -1,0 +1,159 @@
+<script lang="ts">
+import axios from '@/plugins/axios'
+import { useToast } from 'vue-toastification'
+import { formatDate } from '@/utils/dateFormats'
+import { PROFILE_STATUS } from '@/utils/constants'
+import { getProfileStatusById, bsModalHide, bsModalShow } from '@/utils/commonFunctions'
+import type HrProfile from '@/types/HrProfile'
+
+export default {
+  data() {
+    return {
+      toast: useToast(),
+      formatDate: formatDate,
+      profileStatus: PROFILE_STATUS,
+      getProfileStatusById: getProfileStatusById,
+      bsModalHide: bsModalHide,
+      bsModalShow: bsModalShow,
+
+      isLoading: false,
+      isModalLoading: false,
+      hrProfileEdit: false,
+      modalId: '',
+      searchText: '',
+      status_id: null as null | number,
+
+      hrProfileList: [] as HrProfile[],
+
+      totalRows: 1,
+      currentPage: 1,
+      perPage: 10,
+
+      dialogParam: {
+        id: null as string | number | null,
+      },
+    }
+  },
+  computed: {
+    pageStart() {
+      return (this.currentPage - 1) * this.perPage;
+    }
+  },
+  watch: {
+    currentPage() {
+      this.getHrProfileList();
+    },
+  },
+  mounted() {
+    this.getHrProfileList();
+  },
+  methods: {
+    async getHrProfileList() {
+      try {
+        const queryParams = {
+          searchText: this.searchText,
+          status_id: this.status_id,
+          rows: this.perPage,
+          start: this.pageStart,
+        };
+        this.isLoading = true;
+        const response: any = await axios.get('/hrprofile/list', { params: queryParams });
+        this.hrProfileList = response.hrProfileList;
+        this.totalRows = response.numFound;
+        this.currentPage = response.numFound > this.perPage ? this.currentPage : 1;
+      } catch (error: any) {
+        this.toast.error(error.message);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    skillsToolTip(skills?: string[]) {
+      let tooltipText = "";
+      if (skills && skills.length > 0) {
+        skills.forEach((skill, index) => {
+          if (index != 0) {
+            tooltipText += ", "
+          }
+          tooltipText += skill;
+        })
+      }
+      return tooltipText;
+    }
+  }
+}
+</script>
+<template>
+  <div class="content-card content-header">
+    <label>Talent Pool</label>
+  </div>
+  <div class="content-body content-card">
+    <loading-overlay :showOverlay="isLoading">
+      <div class="row filter-group py-2">
+        <div class="col-3">
+          <input type="text" v-model="searchText" class="form-control" @keyup.enter="getHrProfileList"
+            placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
+        </div>
+        <div class="col-2">
+          <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
+            <option :value="null">Profile Status</option>
+            <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
+          </select>
+        </div>
+        <!-- <div class="col text-end">
+                <button class="btn primary-btn" type="button">
+                  <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
+                  Resource Excel Import
+                </button>
+              </div> -->
+      </div>
+      <div class="table-responsive">
+        <table class="table table-borderless custom-table-style">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">
+                <input class="form-check-input" type="checkbox">
+              </th>
+              <th scope="col">ID</th>
+              <th scope="col">Profile Title</th>
+              <th scope="col">Resource Name</th>
+              <th scope="col">Email ID</th>
+              <th scope="col">Skills</th>
+              <th scope="col">Profile Status</th>
+              <th scope="col">Last Updated</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody class="custom-tbody-style">
+            <tr v-for="(hrProfile, index) in hrProfileList" :key="hrProfile.id">
+              <!-- @click="$router.push({ name: 'hrprofile', params: { id: hrProfile.id } })" -->
+              <td>
+                <input class="form-check-input" type="checkbox">
+              </td>
+              <td>{{ index + 1 }}</td>
+              <td>{{ hrProfile.profile_title }}</td>
+              <td>{{ hrProfile.first_name }} {{ hrProfile.last_name }}</td>
+              <td>{{ hrProfile.email_id }}</td>
+              <td>
+                <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfile.skills)">
+                  <span v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}<span
+                      v-if="hrProfile.skills && index < hrProfile.skills.length - 1">,
+                    </span>
+                  </span>
+                </div>
+              </td>
+              <td>{{ getProfileStatusById(hrProfile.status_id) }}</td>
+              <td>{{ formatDate(hrProfile.last_updated_dt) }}</td>
+              <td>
+                <div class="icon-btn me-3">
+                  <font-awesome-icon icon="fa-solid fa-eye" />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <BPagination v-if="hrProfileList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
+        size="sm" />
+    </loading-overlay>
+  </div>
+</template>

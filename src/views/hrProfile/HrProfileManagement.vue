@@ -28,6 +28,7 @@ export default {
       hrProfileEdit: false,
       modalId: '',
       searchText: '',
+      status_id: null as null | number,
       hrProfile: {
         id: '',
         hr_profile_id: '',
@@ -114,6 +115,7 @@ export default {
       try {
         const queryParams = {
           searchText: this.searchText,
+          status_id: this.status_id,
           rows: this.perPage,
           start: this.pageStart,
         };
@@ -202,6 +204,18 @@ export default {
         this.isLoading = false;
       }
     },
+    skillsToolTip(skills?: string[]) {
+      let tooltipText = "";
+      if (skills && skills.length > 0) {
+        skills.forEach((skill, index) => {
+          if (index != 0) {
+            tooltipText += ", "
+          }
+          tooltipText += skill;
+        })
+      }
+      return tooltipText;
+    }
   }
 }
 </script>
@@ -217,8 +231,8 @@ export default {
             placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
         </div>
         <div class="col-2">
-          <select class="form-select" aria-label="Default select example">
-            <option value="">Profile Status</option>
+          <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
+            <option :value="null">Profile Status</option>
             <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
           </select>
         </div>
@@ -262,7 +276,7 @@ export default {
               <td>{{ hrProfile.first_name }} {{ hrProfile.last_name }}</td>
               <td>{{ hrProfile.email_id }}</td>
               <td>
-                <div class="text-truncate table-th-width">
+                <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfile.skills)">
                   <span v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}<span
                       v-if="hrProfile.skills && index < hrProfile.skills.length - 1">,
                     </span>
@@ -381,14 +395,14 @@ export default {
                   </div>
                 </div>
                 <!-- <div class="row mb-3">
-                                                                                                                <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
-                                                                                                                <div class="col-sm-6">
-                                                                                                                  <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
-                                                                                                                </div>
-                                                                                                                <div class="col-sm-2">
-                                                                                                                  <button type="button" class="btn btn-primary">Upload</button>
-                                                                                                                </div>
-                                                                                                              </div> -->
+                  <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
+                  <div class="col-sm-6">
+                    <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
+                  </div>
+                  <div class="col-sm-2">
+                    <button type="button" class="btn btn-primary">Upload</button>
+                  </div>
+                </div> -->
               </form>
             </div>
           </div>
