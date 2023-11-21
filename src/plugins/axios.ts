@@ -31,10 +31,10 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     console.log(error);
-    if (error.response.data) {
+    if (error.response?.data) {
       return Promise.reject(error.response.data);
     } else {
-      return Promise.reject("Something went wrong");
+      return Promise.reject(new Error("Something went wrong"));
     }
   }
 );

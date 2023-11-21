@@ -37,11 +37,14 @@ export default {
         personalInfoEdit: false,
         aboutInfoEdit: false,
         skillEdit: false,
+        noteEdit: false,
         summaryEdit: false,
         tabItemEdit: false,
       },
 
       resumeFiles: '',
+      docFiles: '',
+      docId: '',
       modalId: '',
       deleteChildTitle: '',
 
@@ -121,6 +124,12 @@ export default {
         location: '',
       } as Project,
       docsData: {
+        id: '',
+        title: '',
+        path: '',
+      } as Docs,
+      docsEditData: {
+        id: '',
         title: '',
         path: '',
       } as Docs,
@@ -182,8 +191,10 @@ export default {
             this.elements.personalInfoEdit = false;
             this.elements.aboutInfoEdit = false;
             this.elements.skillEdit = false;
+            this.elements.noteEdit = false;
             this.elements.summaryEdit = false;
             this.elements.tabItemEdit = false;
+            this.clearDocData();
             this.hideModal();
           }
         }
@@ -253,6 +264,52 @@ export default {
         this.isLoading = false;
       }
     },
+    addDocumentFile(event: any) {
+      this.docFiles = event.target.files;
+    },
+    async uploadDocument() {
+      try {
+        if (this.docFiles.length > 0) {
+          let formData = new FormData();
+          formData.append('id', this.hrProfile.id!);
+          formData.append('hr_profile_id', this.hrProfile.hr_profile_id!);
+          formData.append('user_id', this.hrProfile.user_id!);
+          formData.append('email_id', this.hrProfile.email_id!);
+          formData.append('title', this.docsData.title);
+          formData.append('file', this.docFiles[0]);
+          const docList = this.hrProfile.docs?.length ? JSON.stringify(this.hrProfile.docs) : '';
+          formData.append('docs', docList);
+          this.isLoading = true;
+          const response: any = await axios.post('/hrprofile/docupload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          if (response.status == HttpStatusCode.Ok) {
+            this.toast.success(response.message);
+            this.getHrProfile();
+            this.clearDocData();
+          }
+        }
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+      finally {
+        this.isLoading = false;
+      }
+    },
+    editDoc(document: Docs) {
+      this.elements.tabItemEdit = true;
+      this.docId = document.id;
+      this.docsEditData = document;
+    },
+    clearDocData() {
+      this.docId = '';
+      this.elements.tabItemEdit = false;
+      this.docsData.id = '';
+      this.docsData.title = '';
+      this.docsData.path = '';
+    },
     updateTitleInfo() {
       const data = {
         email_id: this.hrProfile.email_id,
@@ -295,29 +352,13 @@ export default {
 
       this.updateHrProfile(data);
     },
-    updateAboutInfo() {
+    updateHrProfileItem(key: string) {
       const data = {
         email_id: this.hrProfile.email_id,
-        objective: this.hrProfile.objective,
       }
+      data[key] = this.hrProfile[key],
 
-      this.updateHrProfile(data);
-    },
-    updateSkill() {
-      const data = {
-        email_id: this.hrProfile.email_id,
-        skills: this.hrProfile.skills,
-      }
-
-      this.updateHrProfile(data);
-    },
-    updateSummary() {
-      const data = {
-        email_id: this.hrProfile.email_id,
-        summary: this.hrProfile.summary,
-      }
-
-      this.updateHrProfile(data);
+        this.updateHrProfile(data);
     },
     updateProfileChildItems(itemData: any, itemKey: string) {
       let itemVal = null;
@@ -412,6 +453,34 @@ export default {
           this.getHrProfile();
         }
 
+      } catch (error: any) {
+        this.toast.error(error.message);
+      }
+      finally {
+        this.isLoading = false;
+      }
+    },
+    deleteHrProfileDoc: function (id: string, data: any) {
+      this.dialogParam = data;
+    },
+    async onYesHrProfileDoc() {
+      this.hrProfile.docs = this.hrProfile.docs ? this.hrProfile.docs.filter((item: any) => item !== this.dialogParam) : [];
+      const data: any = {
+        id: this.hrProfile.id,
+        hr_profile_id: this.hrProfile.hr_profile_id,
+        user_id: this.hrProfile.user_id,
+        email_id: this.hrProfile.email_id,
+        docs: this.hrProfile.docs,
+        doc_id: this.dialogParam.id,
+      }
+      try {
+        this.isLoading = true;
+        const response: any = await axios.patch('/hrprofile/deletedoc', data);
+
+        if (response.status == HttpStatusCode.Ok) {
+          this.toast.success(response.message);
+          this.getHrProfile();
+        }
       } catch (error: any) {
         this.toast.error(error.message);
       }
@@ -614,7 +683,7 @@ export default {
                 <span class="icon-btn float-end" @click="elements.aboutInfoEdit = false">
                   <font-awesome-icon icon="fa-solid fa-xmark" />
                 </span>
-                <span class="icon-btn float-end me-1" @click="updateAboutInfo">
+                <span class="icon-btn float-end me-1" @click="updateHrProfileItem('objective')">
                   <font-awesome-icon icon="fa-solid fa-check" />
                 </span>
               </span>
@@ -631,7 +700,7 @@ export default {
           <div class="content-card">
             <h6 class="label-text">Skills
               <span v-if="elements.skillEdit" class="float-end">
-                <span class="icon-btn me-1" @click="updateSkill">
+                <span class="icon-btn me-1" @click="updateHrProfileItem('skills')">
                   <font-awesome-icon icon="fa-solid fa-check" />
                 </span>
                 <span class="icon-btn" @click="elements.skillEdit = false">
@@ -665,16 +734,29 @@ export default {
           </div>
           <div class="content-card">
             <h6 class="label-text">Note
-              <!-- <span class="icon-btn float-end">
-                                      <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                                    </span> -->
+              <span v-if="elements.noteEdit" class="float-end">
+                <span class="icon-btn me-1" @click="updateHrProfileItem('note')">
+                  <font-awesome-icon icon="fa-solid fa-check" />
+                </span>
+                <span class="icon-btn" @click="elements.noteEdit = false">
+                  <font-awesome-icon icon="fa-solid fa-xmark" />
+                </span>
+              </span>
+              <span v-else class="float-end">
+                <span class="icon-btn" @click="elements.noteEdit = true">
+                  <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                </span>
+              </span>
             </h6>
-            <div class="note-input-group">
-              <textarea name="" id="" class="form-control" rows="2"></textarea>
+            <div v-if="elements.noteEdit" class="note-input-group">
+              <textarea name="" id="" v-model="hrProfile.note" class="form-control" rows="2"></textarea>
               <button class="btn primary-btn d-block" type="button">
                 Add Note
               </button>
             </div>
+            <p v-else class="profile-short-content">
+              {{ hrProfile.note }}
+            </p>
           </div>
         </div>
         <div class="profile-details content-card">
@@ -704,7 +786,7 @@ export default {
               <div class="content-list">
                 <div class="d-block text-end mb-2">
                   <span v-if="elements.summaryEdit">
-                    <span class="icon-btn me-1" @click="updateSummary">
+                    <span class="icon-btn me-1" @click="updateHrProfileItem('summary')">
                       <font-awesome-icon icon="fa-solid fa-check" />
                     </span>
                     <span class="icon-btn" @click="elements.summaryEdit = false">
@@ -729,7 +811,7 @@ export default {
                 <template v-if="hrProfile.work_experience && hrProfile.work_experience.length > 0">
                   <div v-for="workExperience, index in   hrProfile.work_experience" :key="index" class="list-item">
                     <div class="flex-fill">
-                      <h6 class="label-text">{{ workExperience.company }}</h6>
+                      <p class="label-text">{{ workExperience.company }}</p>
                       <p v-if="workExperience.position">{{ workExperience.position }}</p>
                       <p v-if="workExperience.start_date || workExperience.end_date || workExperience.location">
                         {{ workExperience.start_date }}
@@ -821,7 +903,7 @@ export default {
                 <template v-if="hrProfile.project && hrProfile.project.length > 0">
                   <div v-for="project, index in   hrProfile.project" :key="index" class="list-item">
                     <div class="flex-fill">
-                      <h6 class="label-text">{{ project.title }}</h6>
+                      <p class="label-text">{{ project.title }}</p>
                       <p v-if="project.client">Client: {{ project.client }}</p>
                       <p v-if="project.start_date || project.end_date">
                         <span v-if="project.start_date">{{ project.start_date }}</span>
@@ -944,31 +1026,34 @@ export default {
               <div class="content-list">
                 <template v-if="hrProfile.docs && hrProfile.docs.length > 0">
                   <div v-for="document, index in hrProfile.docs" :key="index" class="list-item">
-                    <!-- <div v-if="elements.tabItemEdit" class="row">
-                      <div class="col-12">
-                        <input type="text" v-model="docsData.title" class="form-control form-control-sm"
-                          placeholder="Enter Document Title">
+                    <div class="flex-fill">
+                      <div v-if="elements.tabItemEdit && docId == document.id" class="row">
+                        <div class="col-4">
+                          <input type="text" v-model="docsEditData.title" class="form-control form-control-sm"
+                            placeholder="Enter Document Title">
+                        </div>
                       </div>
-                      <div class="col-12">
-                        <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
-                      </div>
-                    </div> -->
-                    <p class="label-text">Adhaar Card</p>
-                    <div v-if="elements.tabItemEdit" class="text-end">
-                      <span class="icon-btn me-1" @click="updateProfileChildItems(document, 'docs')">
-                        <font-awesome-icon icon="fa-solid fa-check" />
-                      </span>
-                      <span class="icon-btn" @click="elements.tabItemEdit = false">
-                        <font-awesome-icon icon="fa-solid fa-xmark" />
-                      </span>
+                      <a v-else-if="document.title" :href="document.path" target="_blank">{{
+                        document.title }}.{{ document.path.split(".").pop() }}</a>
                     </div>
-                    <div v-else class="text-end">
-                      <span class="icon-btn" @click="elements.tabItemEdit = true">
-                        <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                      </span>
-                      <span class="icon-btn">
-                        <font-awesome-icon icon="fa-solid fa-trash" />
-                      </span>
+                    <div class="text-nowrap text-end ms-2">
+                      <template v-if="elements.tabItemEdit && document.id == docId">
+                        <span class="icon-btn me-2" @click="updateProfileChildItems(docsEditData, 'docs')">
+                          <font-awesome-icon icon="fa-solid fa-check" />
+                        </span>
+                        <span class="icon-btn" @click="clearDocData(); getHrProfile();">
+                          <font-awesome-icon icon="fa-solid fa-xmark" />
+                        </span>
+                      </template>
+                      <template v-else>
+                        <span class="icon-btn me-2" @click="editDoc(document)">
+                          <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                        </span>
+                        <span class="icon-btn" @click.prevent="deleteHrProfileDoc(document.id!, document)"
+                          data-bs-toggle="modal" data-bs-target="#deleteHrProfileDoc">
+                          <font-awesome-icon icon="fa-solid fa-trash" />
+                        </span>
+                      </template>
                     </div>
                   </div>
                 </template>
@@ -976,20 +1061,26 @@ export default {
                   <p>No Document found</p>
                 </div>
                 <div class="py-3">
-                  <div v-if="elements.tabItemEdit" class="row">
-                    <div class="col-12">
+                  <div v-if="elements.tabItemEdit && !docId" class="row">
+                    <div class="col-4">
                       <input type="text" v-model="docsData.title" class="form-control form-control-sm"
                         placeholder="Enter Document Title">
                     </div>
-                    <div class="col-12">
-                      <input type="file" class="form-control form-control-sm" placeholder="Choose a file">
+                    <div class="col-4">
+                      <input type="file" @change="addDocumentFile" @click="docFiles = ''"
+                        class="form-control form-control-sm" placeholder="Choose a file">
+                    </div>
+                    <div class="col-4">
+                      <button class="btn primary-btn br-0 me-2" type="button" @click="uploadDocument">
+                        Save
+                      </button>
+                      <button class="btn primary-btn br-0" type="button" @click="elements.tabItemEdit = false">
+                        Cancel
+                      </button>
                     </div>
                   </div>
-                  <button v-if="elements.tabItemEdit" class="btn primary-btn br-0" type="button"
-                    @click="updateProfileChildItems(docsData, 'docs')">
-                    Save
-                  </button>
-                  <button v-else class="btn primary-btn br-0" type="button" @click="elements.tabItemEdit = true">
+                  <button v-if="!elements.tabItemEdit" class="btn primary-btn br-0" type="button"
+                    @click="elements.tabItemEdit = true">
                     Add Document
                   </button>
                 </div>
@@ -1177,4 +1268,6 @@ export default {
     title="Delete Confirmation" :message="`Are you sure to delete ${deleteChildTitle} info?`" />
   <dialog-component id="deleteHrProfileResume" :onYes="onYesHrProfileResume" :returnParams="dialogParam"
     title="Delete Confirmation" :message="`Are you sure to delete resume`" />
+  <dialog-component id="deleteHrProfileDoc" :onYes="onYesHrProfileDoc" :returnParams="dialogParam"
+    title="Delete Confirmation" :message="`Are you sure to delete Document`" />
 </template>

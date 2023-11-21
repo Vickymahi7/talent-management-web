@@ -330,15 +330,12 @@ a {
         padding: 0.5em 0;
 
         textarea {
-          border: none;
           width: 100%;
           height: auto;
           border-radius: $form-border-radius;
-          background-color: $bg-color;
           resize: none;
 
           &:focus {
-            border: none;
             outline: none;
           }
         }
@@ -434,6 +431,14 @@ a {
   tr:hover td {
     background-color: $table-hover-color;
     cursor: pointer;
+    transition: background-color 0.2s ease-in;
+  }
+  .clickable-cell {
+    text-decoration: underline;
+
+    &:is(:has(.form-select), :has(.form-control)) {
+      text-decoration: none;
+    }
   }
 }
 

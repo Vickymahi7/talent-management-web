@@ -23,6 +23,8 @@ export default {
       userEdit: false,
       isLoading: false,
       isModalLoading: false,
+      editId: null as number | null,
+      editKey: null as string | null,
 
       modalId: '',
       user: {
@@ -35,6 +37,16 @@ export default {
       },
 
       userList: [],
+      userFields: [
+        { key: 'user_id', label: 'ID' },
+        { key: 'user_name', label: 'User Name', isEditable: true },
+        { key: 'email_id', label: 'Email ID', isEditable: true },
+        { key: 'user_type_id', label: 'User Type', isEditable: true },
+        { key: 'active', label: 'Active' },
+        { key: 'user_status_id', label: 'Status', isEditable: true },
+        { key: 'last_updated_dt', label: 'Last Updated' },
+        { key: 'actions', label: 'Action' },
+      ],
       accountStatus: ACCOUNT_STATUS,
 
       dialogParam: {
@@ -60,7 +72,7 @@ export default {
         return USER_TYPES.filter(data => data.id != UserTypeId.SAD);
       }
     },
-    filteredUserList() {
+    filteredUserList(): any {
       const startIndex = (this.currentPage - 1) * this.perPage;
       const endIndex = startIndex + this.perPage;
       return this.userList.slice(startIndex, endIndex);
@@ -126,6 +138,8 @@ export default {
           this.toast.success(response.message);
           this.getUserList();
           this.userEdit = false;
+          this.editId = null;
+          this.editKey = null;
           // this.bsModalHide();
         }
         // }
@@ -174,6 +188,12 @@ export default {
         this.isLoading = false;
       }
     },
+    handleTableCellClick(field: any, item: any) {
+      if (field.key == 'user_status_id' || field.key == 'user_type_id') {
+        this.editId = item.user_id;
+        this.editKey = field.key;
+      }
+    }
   }
 }
 </script>
@@ -196,48 +216,53 @@ export default {
         <table class="table table-borderless custom-table-style">
           <thead class="table-dark">
             <tr>
-              <th scope="col">ID</th>
-              <th scope="col">User Name</th>
-              <th scope="col">Email ID</th>
-              <th scope="col">User Type</th>
-              <th scope="col">Active</th>
-              <th scope="col">Status</th>
-              <th scope="col">Last Updated</th>
-              <th scope="col">Action</th>
+              <th scope="col" v-for="field in userFields" :key="field.key">{{ field.label }}</th>
             </tr>
           </thead>
           <tbody class="custom-tbody-style">
-            <tr v-for="user in filteredUserList" :key="user.id">
-              <td>{{ user.user_id }}</td>
-              <td>{{ user.user_name }}</td>
-              <td>{{ user.email_id }}</td>
-              <td>{{ getUserTypeById(user.user_type_id) }}</td>
-              <td>
-                <div v-if="user.active" class="text-success">
-                  <font-awesome-icon icon="fa-solid fa-user-check" />
-                </div>
-                <div v-else class="text-danger">
-                  <font-awesome-icon icon="fa-solid fa-user-xmark" />
-                </div>
-              </td>
-              <td @click="userEdit = true">
-                <select v-if="userEdit" class="form-select form-control-sm" v-model="user.user_status_id"
-                  @change="updateUser(user, 'user_status_id', user.user_status_id)" aria-label="User Status">
-                  <option :value="null">Select</option>
-                  <option v-for="item in accountStatus" :key="item.id" :value="item.id">{{ item.status }}</option>
-                </select>
-                <span v-else>{{ getUserStatusById(user.user_status_id) }}</span>
-              </td>
-              <td>{{ formatDate(user.last_updated_dt) }}</td>
-              <td>
-                <div v-if="!user.active" class="icon-btn me-3" @click="resendActivationMail(user.user_id)"
-                  title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
-                  <font-awesome-icon icon="fa-solid fa-share-from-square" />
-                </div>
-                <div class="icon-btn me-3" @click="deleteUser(user.user_id)" title="Delete User" data-bs-toggle="modal"
-                  data-bs-target="#deleteUser">
-                  <font-awesome-icon icon="fa-solid fa-trash" />
-                </div>
+            <tr v-for="item in filteredUserList" :key="item">
+              <td v-for="field in userFields" :key="field.key" @click="handleTableCellClick(field, item)"
+                :class="{ 'clickable-cell': field.isEditable }">
+                <template v-if="field.key == 'user_type_id'">
+                  <select v-if="editId == item.user_id && editKey == field.key" class="form-select form-control-sm"
+                    v-model="item[field.key]" @change="updateUser(item, field.key, item[field.key])"
+                    :aria-label="field.label">
+                    <option :value="null">Select</option>
+                    <option v-for="info in userTypeList" :key="info.id" :value="info.id">{{ info.userType }}</option>
+                  </select>
+                  <span v-else>{{ getUserTypeById(item[field.key]) }}</span>
+                </template>
+                <template v-else-if="field.key == 'active'">
+                  <div v-if="item[field.key]" class="text-success">
+                    <font-awesome-icon icon="fa-solid fa-user-check" />
+                  </div>
+                  <div v-else class="text-danger">
+                    <font-awesome-icon icon="fa-solid fa-user-xmark" />
+                  </div>
+                </template>
+                <template v-else-if="field.key == 'user_status_id'">
+                  <select v-if="editId == item.user_id && editKey == field.key" class="form-select form-control-sm"
+                    v-model="item[field.key]" @change="updateUser(item, field.key, item[field.key])"
+                    aria-label="User Status">
+                    <option :value="null">Select</option>
+                    <option v-for="info in accountStatus" :key="info.id" :value="info.id">{{ info.status }}</option>
+                  </select>
+                  <span v-else>{{ getUserStatusById(item[field.key]) }}</span>
+                </template>
+                <template v-else-if="field.key == 'last_updated_dt'">
+                  {{ formatDate(user[field.key]) }}
+                </template>
+                <template v-else-if="field.key == 'actions'">
+                  <div v-if="!item.active" class="icon-btn me-3" @click="resendActivationMail(item.user_id)"
+                    title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
+                    <font-awesome-icon icon="fa-solid fa-share-from-square" />
+                  </div>
+                  <div class="icon-btn me-3" @click="deleteUser(item.user_id)" title="Delete User" data-bs-toggle="modal"
+                    data-bs-target="#deleteUser">
+                    <font-awesome-icon icon="fa-solid fa-trash" />
+                  </div>
+                </template>
+                <div v-else>{{ item[field.key] }}</div>
               </td>
             </tr>
           </tbody>
@@ -274,7 +299,7 @@ export default {
                     <select class="form-select" v-model="user.user_type_id"
                       :class="{ 'is-invalid': v$.user.user_type_id.$error }" aria-label="User Type">
                       <option :value="null">Select</option>
-                      <option v-for="item in userTypeList" :key="item.id" :value="item.id">{{ item.userType }}</option>
+                      <option v-for="info in userTypeList" :key="info.id" :value="info.id">{{ info.userType }}</option>
                     </select>
                     <div class="invalid-feedback" v-for="error of v$.user.user_type_id.$errors" :key="error.$uid">
                       {{ error.$message }}

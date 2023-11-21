@@ -103,8 +103,8 @@ export default {
                       <span class="badge-item" v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}</span>
                     </div>
                     <!-- <ul class="list-content">
-                                                              <li v-for="  skill, index   in   hrProfile.skills  " :key="index">{{ skill }}</li>
-                                                            </ul> -->
+                                                                  <li v-for="  skill, index   in   hrProfile.skills  " :key="index">{{ skill }}</li>
+                                                                </ul> -->
                   </template>
                 </section>
                 <section class="right-section">
@@ -120,11 +120,11 @@ export default {
                           }}</span>
                           <span v-if="workExperience.start_date && workExperience.end_date"> - </span>
                           <span v-if="workExperience.end_date">{{ formatDateMonthYear(workExperience.end_date) }}</span>
-                      </span>
+                        </span>
+                      </div>
+                      <p>{{ workExperience.description }}</p>
                     </div>
-                    <p>{{ workExperience.description }}</p>
                   </div>
-                </div>
                   <div v-if="hrProfile.project" class="project-wrapper">
                     <h2><span class="heading">Projects</span></h2>
                     <div v-for="  project, index   in   hrProfile.project  " :key="index" class="project">
@@ -148,11 +148,11 @@ export default {
           </div>
         </div>
         <!-- <div v-if="showFooter" class="modal-footer">
-                                                                                                                                <button v-if="noButton" type="button" class="btn btn-secondary" @click="noClick"
-                                                                                                                                  data-bs-dismiss="modal">No</button>
-                                                                                                                                <button v-if="yesButton" type="button" class="btn btn-primary" @click="yesClick"
-                                                                                                                                  data-bs-dismiss="modal">Yes</button>
-                                                                                                                              </div> -->
+          <button v-if="noButton" type="button" class="btn btn-secondary" @click="noClick"
+            data-bs-dismiss="modal">No</button>
+          <button v-if="yesButton" type="button" class="btn btn-primary" @click="yesClick"
+            data-bs-dismiss="modal">Yes</button>
+        </div> -->
       </div>
     </div>
   </div>
