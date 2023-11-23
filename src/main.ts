@@ -3,8 +3,10 @@ import "bootstrap-vue-next/dist/bootstrap-vue-next.css";
 import "bootstrap";
 import "vue-toastification/dist/index.css";
 import "./assets/css/main.scss";
+import 'element-plus/dist/index.css'
 
 import { createApp } from "vue";
+import ElementPlus from 'element-plus'
 import App from "./App.vue";
 import router from "./router";
 import Toast from "vue-toastification";
@@ -64,6 +66,7 @@ const app = createApp(App);
 app.component("font-awesome-icon", FontAwesomeIcon);
 app.component("loading-overlay", LoadingOverlay);
 app.component("dialog-component", DialogComponent);
+app.use(ElementPlus)
 app.use(VueHtmlToPaper)
 app.use(router);
 app.use(Toast);

@@ -53,11 +53,12 @@ export default {
 
 <template>
   <main class="login-container">
+    <img src="@/assets/img/logo.png" alt="">
     <div class="login-section">
       <h4 class="text-center">Login</h4>
-      <loading-overlay :showOverlay="isLoading">
-        <form class="p-3">
-          <div class="row gy-2">
+      <form v-loading="isLoading" class="p-3">
+        <div class="container">
+          <div class="row">
             <div class="col-12">
               <div class="form-group">
                 <label for="loginName">Email ID</label>
@@ -84,8 +85,8 @@ export default {
               Login
             </button>
           </div>
-        </form>
-      </loading-overlay>
+        </div>
+      </form>
     </div>
   </main>
 </template>

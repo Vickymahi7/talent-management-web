@@ -25,10 +25,14 @@ export default {
 
       isLoading: false,
       isModalLoading: false,
-      hrProfileEdit: false,
       modalId: '',
       searchText: '',
       status_id: null as null | number,
+
+      editId: null as string | null,
+      editKey: null as string | null,
+      editValue: null as string | null,
+
       hrProfile: {
         id: '',
         hr_profile_id: '',
@@ -79,6 +83,17 @@ export default {
       },
 
       hrProfileList: [] as HrProfile[],
+      hrProfileFields: [
+        { key: 'select', label: '' },
+        { key: 'index', label: 'SN' },
+        { key: 'profile_title', label: 'Profile Title' },
+        { key: 'first_name', label: 'Resource Name' },
+        { key: 'email_id', label: 'Email ID' },
+        { key: 'skills', label: 'Skills' },
+        { key: 'status_id', label: 'Profile Status', isEditable: true },
+        { key: 'last_updated_dt', label: 'Last Updated' },
+        { key: 'actions', label: 'Action' },
+      ],
 
       totalRows: 1,
       currentPage: 1,
@@ -166,7 +181,9 @@ export default {
         if (response.status == HttpStatusCode.Ok) {
           this.toast.success(response.message);
           this.getHrProfileList();
-          this.hrProfileEdit = false;
+          this.editId = null;
+          this.editKey = null;
+          this.editValue = null;
         }
       } catch (error: any) {
         this.toast.error(error.message);
@@ -215,6 +232,22 @@ export default {
         })
       }
       return tooltipText;
+    },
+    handleTableCellClick(field: any, item: any, event: Event) {
+      if (field.isEditable) {
+        event.stopPropagation();
+        this.editId = item.id;
+        this.editKey = field.key;
+        this.editValue = item[field.key];
+      }
+    },
+    cancelInlineEdit(item: any, field: any) {
+      item[field.key] = this.editValue;
+
+      this.editId = null;
+      this.editKey = null;
+      this.editValue = null;
+      this.getHrProfileList();
     }
   }
 }
@@ -223,76 +256,75 @@ export default {
   <div class="content-card content-header">
     <label>HR Profile Management</label>
   </div>
-  <div class="content-body content-card">
-    <loading-overlay :showOverlay="isLoading">
-      <div class="row filter-group py-2">
-        <div class="col-3">
-          <input type="text" v-model="searchText" class="form-control" @keyup.enter="getHrProfileList"
-            placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
-        </div>
-        <div class="col-2">
-          <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
-            <option :value="null">Profile Status</option>
-            <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
-          </select>
-        </div>
-        <div class="col text-end">
-          <button class="btn primary-btn mx-2" type="button"
-            @click="bsModalShow('hrProfileAddEditModal'); modalId = 'hrProfileAddEditModal'">
-            <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
-            New Resource
-          </button>
-          <button class="btn primary-btn" type="button">
-            <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
-            Resource Excel Import
-          </button>
-        </div>
+  <div v-loading="isLoading" class="content-body content-card">
+    <div class="row filter-group py-2">
+      <div class="col-3">
+        <input type="text" v-model="searchText" class="form-control" @keyup.enter="getHrProfileList"
+          placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
       </div>
-      <div class="table-responsive">
-        <table class="table table-borderless custom-table-style">
-          <thead class="table-dark">
-            <tr>
-              <th scope="col">
+      <div class="col-2">
+        <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
+          <option :value="null">Profile Status</option>
+          <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
+        </select>
+      </div>
+      <div class="col text-end">
+        <button class="btn primary-btn mx-2" type="button"
+          @click="bsModalShow('hrProfileAddEditModal'); modalId = 'hrProfileAddEditModal'">
+          <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
+          New Resource
+        </button>
+        <button class="btn primary-btn" type="button">
+          <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
+          Resource Excel Import
+        </button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-borderless custom-table-style">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col" v-for="field in hrProfileFields" :key="field.key">{{ field.label }}</th>
+          </tr>
+        </thead>
+        <tbody class="custom-tbody-style">
+          <tr v-for="(hrProfile, index) in hrProfileList" :key="hrProfile.id"
+            @click="$router.push({ name: 'hrprofile', params: { id: hrProfile.id } })">
+            <td v-for="field in hrProfileFields" :key="field.key" @click="handleTableCellClick(field, hrProfile, $event)"
+              :class="{ 'clickable-cell': field.isEditable }">
+              <!-- @click.stop=" -->
+              <template v-if="field.key == 'select'">
                 <input class="form-check-input" type="checkbox">
-              </th>
-              <th scope="col">ID</th>
-              <th scope="col">Profile Title</th>
-              <th scope="col">Resource Name</th>
-              <th scope="col">Email ID</th>
-              <th scope="col">Skills</th>
-              <th scope="col">Profile Status</th>
-              <th scope="col">Last Updated</th>
-              <th scope="col">Action</th>
-            </tr>
-          </thead>
-          <tbody class="custom-tbody-style">
-            <tr v-for="(hrProfile, index) in hrProfileList" :key="hrProfile.id"
-              @click="$router.push({ name: 'hrprofile', params: { id: hrProfile.id } })">
-              <td>
-                <input class="form-check-input" type="checkbox">
-              </td>
-              <td>{{ index + 1 }}</td>
-              <td>{{ hrProfile.profile_title }}</td>
-              <td>{{ hrProfile.first_name }} {{ hrProfile.last_name }}</td>
-              <td>{{ hrProfile.email_id }}</td>
-              <td>
+              </template>
+              <template v-else-if="field.key == 'index'">
+                {{ index + 1 }}
+              </template>
+              <template v-else-if="field.key == 'first_name'">
+                {{ hrProfile.first_name }} {{ hrProfile.last_name }}
+              </template>
+              <template v-else-if="field.key == 'skills'">
                 <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfile.skills)">
                   <span v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}<span
                       v-if="hrProfile.skills && index < hrProfile.skills.length - 1">,
                     </span>
                   </span>
                 </div>
-              </td>
-              <td @click.stop="hrProfileEdit = true">
-                <select v-if="hrProfileEdit" class="form-select form-control-sm" v-model="hrProfile.status_id"
-                  @change="updateHrProfile(hrProfile, 'status_id', hrProfile.status_id)" aria-label="User Status">
+              </template>
+              <template v-else-if="field.key == 'status_id'">
+
+                <select v-if="editId == hrProfile.id && editKey == field.key" class="form-select form-control-sm"
+                  v-model="hrProfile[field.key]" @change="updateHrProfile(hrProfile, field.key, hrProfile[field.key])"
+                  @blur="cancelInlineEdit(hrProfile, field.key)" :aria-label="field.label">
                   <option :value="null">Select</option>
-                  <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
+                  <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}
+                  </option>
                 </select>
                 <span v-else>{{ getProfileStatusById(hrProfile.status_id) }}</span>
-              </td>
-              <td>{{ formatDate(hrProfile.last_updated_dt) }}</td>
-              <td>
+              </template>
+              <template v-else-if="field.key == 'last_updated_dt'">
+                {{ formatDate(hrProfile.last_updated_dt) }}
+              </template>
+              <template v-else-if="field.key == 'actions'">
                 <div class="icon-btn me-3">
                   <font-awesome-icon icon="fa-solid fa-paperclip" />
                 </div>
@@ -303,115 +335,115 @@ export default {
                   data-bs-toggle="modal" data-bs-target="#deleteHrProfile">
                   <font-awesome-icon icon="fa-solid fa-trash" />
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <BPagination v-if="hrProfileList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
-        size="sm" />
-    </loading-overlay>
+              </template>
+              <template v-else>
+                {{ hrProfile[field.key] }}
+              </template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <BPagination v-if="hrProfileList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
+      size="sm" />
   </div>
   <div class="modal fade" id="hrProfileAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <loading-overlay :showOverlay="isModalLoading">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalLabel">New Profile</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="container">
-              <form>
-                <div class="row mb-3">
-                  <label for="profile_title" class="col-sm-4 col-form-label">Profile Title</label>
-                  <div class="col-sm-8">
-                    <input type="text" class="form-control" v-model="hrProfile.profile_title"
-                      :class="{ 'is-invalid': v$.hrProfile.profile_title.$error }" id="profile_title"
-                      placeholder="Enter Profile Title">
-                    <div class="invalid-feedback" v-for="error of v$.hrProfile.profile_title.$errors" :key="error.$uid">
-                      {{ error.$message }}
-                    </div>
+      <div v-loading="isModalLoading" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalLabel">New Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <form class="form-inline">
+              <div class="row">
+                <label for="profile_title" class="col-sm-4 col-form-label">Profile Title</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="hrProfile.profile_title"
+                    :class="{ 'is-invalid': v$.hrProfile.profile_title.$error }" id="profile_title"
+                    placeholder="Enter Profile Title">
+                  <div class="invalid-feedback" v-for="error of v$.hrProfile.profile_title.$errors" :key="error.$uid">
+                    {{ error.$message }}
                   </div>
                 </div>
-                <div class="row mb-3">
-                  <label for="first_name" class="col-sm-4 col-form-label">First Name</label>
-                  <div class="col-sm-8">
-                    <input type="text" class="form-control" v-model="hrProfile.first_name" id="first_name"
-                      placeholder="Enter First Name">
+              </div>
+              <div class="row">
+                <label for="first_name" class="col-sm-4 col-form-label">First Name</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="hrProfile.first_name" id="first_name"
+                    placeholder="Enter First Name">
+                </div>
+              </div>
+              <div class="row">
+                <label for="last_name" class="col-sm-4 col-form-label">Last Name</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="hrProfile.last_name" id="last_name"
+                    placeholder="Enter Last Name">
+                </div>
+              </div>
+              <div class="row">
+                <label for="email_id" class="col-sm-4 col-form-label">Email Id</label>
+                <div class="col-sm-8">
+                  <input type="email" class="form-control" v-model="hrProfile.email_id" id="email_id"
+                    :class="{ 'is-invalid': v$.hrProfile.email_id.$error }" placeholder="Enter Email Id">
+                  <div class="invalid-feedback" v-for="error of v$.hrProfile.email_id.$errors" :key="error.$uid">
+                    {{ error.$message }}
                   </div>
                 </div>
-                <div class="row mb-3">
-                  <label for="last_name" class="col-sm-4 col-form-label">Last Name</label>
-                  <div class="col-sm-8">
-                    <input type="text" class="form-control" v-model="hrProfile.last_name" id="last_name"
-                      placeholder="Enter Last Name">
+              </div>
+              <div class="row">
+                <label for="mobile" class="col-sm-4 col-form-label">Contact Number</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="hrProfile.mobile" id="mobile"
+                    placeholder="Enter Contact Number">
+                </div>
+              </div>
+              <div class="row">
+                <label for="work_experience" class="col-sm-4 col-form-label">Experience</label>
+                <div class="col-sm-8">
+                  <div class="input-group">
+                    <input type="text" v-model="hrProfile.experience_year" class="form-control" placeholder="Enter Year"
+                      aria-label="experience_year">
+                    <span class="input-group-text">years</span>
+                    <input type="text" v-model="hrProfile.experience_month" class="form-control" placeholder="Enter Month"
+                      aria-label="experience_month">
+                    <span class="input-group-text">months</span>
                   </div>
                 </div>
-                <div class="row mb-3">
-                  <label for="email_id" class="col-sm-4 col-form-label">Email Id</label>
-                  <div class="col-sm-8">
-                    <input type="email" class="form-control" v-model="hrProfile.email_id" id="email_id"
-                      :class="{ 'is-invalid': v$.hrProfile.email_id.$error }" placeholder="Enter Email Id">
-                    <div class="invalid-feedback" v-for="error of v$.hrProfile.email_id.$errors" :key="error.$uid">
-                      {{ error.$message }}
-                    </div>
+              </div>
+              <div class="row">
+                <label for="skills" class="col-sm-4 col-form-label">Skills</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" @keyup.enter.prevent="addSkills" id="skills"
+                    placeholder="Enter Skills">
+                  <div class="mt-2">
+                    <span v-for="skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1">
+                      <span class="pe-1">{{ skill }}</span>
+                      <a href="#" class="d-inline-block " @click="removeSkill(skill)">
+                        <font-awesome-icon icon="fa-solid fa-xmark" />
+                      </a>
+                    </span>
                   </div>
                 </div>
-                <div class="row mb-3">
-                  <label for="mobile" class="col-sm-4 col-form-label">Contact Number</label>
-                  <div class="col-sm-8">
-                    <input type="text" class="form-control" v-model="hrProfile.mobile" id="mobile"
-                      placeholder="Enter Contact Number">
-                  </div>
-                </div>
-                <div class="row mb-3">
-                  <label for="work_experience" class="col-sm-4 col-form-label">Experience</label>
-                  <div class="col-sm-8">
-                    <div class="input-group">
-                      <input type="text" v-model="hrProfile.experience_year" class="form-control" placeholder="Enter Year"
-                        aria-label="experience_year">
-                      <span class="input-group-text">years</span>
-                      <input type="text" v-model="hrProfile.experience_month" class="form-control"
-                        placeholder="Enter Month" aria-label="experience_month">
-                      <span class="input-group-text">months</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="row mb-3">
-                  <label for="skills" class="col-sm-4 col-form-label">Skills</label>
-                  <div class="col-sm-8">
-                    <input type="text" class="form-control" @keyup.enter.prevent="addSkills" id="skills"
-                      placeholder="Enter Skills">
-                    <div class="mt-2">
-                      <span v-for="skill, index in hrProfile.skills" :key="index"
-                        class="badge bg-green fw-normal color-light me-1">
-                        <span class="pe-1">{{ skill }}</span>
-                        <a href="#" class="d-inline-block " @click="removeSkill(skill)">
-                          <font-awesome-icon icon="fa-solid fa-xmark" />
-                        </a>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <!-- <div class="row mb-3">
-                  <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
-                  <div class="col-sm-6">
-                    <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
-                  </div>
-                  <div class="col-sm-2">
-                    <button type="button" class="btn btn-primary">Upload</button>
-                  </div>
-                </div> -->
-              </form>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
-            <button type="button" @click="addHrProfile" class="btn primary-btn">Save</button>
+              </div>
+              <!-- <div class="row">
+                                            <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
+                                            <div class="col-sm-6">
+                                              <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
+                                            </div>
+                                            <div class="col-sm-2">
+                                              <button type="button" class="btn btn-primary">Upload</button>
+                                            </div>
+                                          </div> -->
+            </form>
           </div>
         </div>
-      </loading-overlay>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
+          <button type="button" @click="addHrProfile" class="btn primary-btn">Save</button>
+        </div>
+      </div>
     </div>
   </div>
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
