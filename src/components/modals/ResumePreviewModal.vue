@@ -36,9 +36,9 @@ export default {
         </div>
         <div class="modal-body">
           <template v-if="hrProfile">
-            <div class="text-end mb-2">
+            <div class="resume-template-header text-end mb-2 mx-auto">
               <a href="#" @click="print"><font-awesome-icon class="mx-2" icon="fa-solid fa-download" /></a>
-              <button class="btn primary-btn mx-2" type="button">
+              <button class="btn primary-btn ms-2" type="button">
                 <font-awesome-icon class="me-2" icon="fa-solid fa-envelope" />
                 Send Resume
               </button>
@@ -104,8 +104,8 @@ export default {
                         <span class="badge-item" v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}</span>
                       </div>
                       <!-- <ul class="list-content">
-                                                                              <li v-for="  skill, index   in   hrProfile.skills  " :key="index">{{ skill }}</li>
-                                                                            </ul> -->
+                                                                                  <li v-for="  skill, index   in   hrProfile.skills  " :key="index">{{ skill }}</li>
+                                                                                </ul> -->
                     </template>
                   </section>
                   <section class="right-section">
@@ -153,11 +153,11 @@ export default {
           </template>
         </div>
         <!-- <div v-if="showFooter" class="modal-footer">
-                    <button v-if="noButton" type="button" class="btn btn-secondary" @click="noClick"
-                      data-bs-dismiss="modal">No</button>
-                    <button v-if="yesButton" type="button" class="btn btn-primary" @click="yesClick"
-                      data-bs-dismiss="modal">Yes</button>
-                  </div> -->
+                        <button v-if="noButton" type="button" class="btn btn-secondary" @click="noClick"
+                          data-bs-dismiss="modal">No</button>
+                        <button v-if="yesButton" type="button" class="btn btn-primary" @click="yesClick"
+                          data-bs-dismiss="modal">Yes</button>
+                      </div> -->
       </div>
     </div>
   </div>
@@ -167,13 +167,16 @@ export default {
 // @import url(https://fonts.googleapis.com/css?family=Varela+Round);
 // @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700);
 
+$res-template-width: 1000px;
+$res-template-height: 1350px;
+
 $text-color: #000;
 $header-bg: #1f7e6c;
 $header-text-color: #fff;
 $heading-color: #000;
 $sub-heading-color: $header-bg;
 $muted-color: #777777;
-$profile-title-color: header-text-color;
+$profile-title-color: $header-text-color;
 $profile-title-size: 14px;
 $heading-size: 18px;
 $profile-name-color: #fff;
@@ -197,8 +200,8 @@ $boldColor: #4a4e51;
   // font-family: 'Open Sans', sans-serif;
   font-size: 12px;
   line-height: 1.5em;
-  width: 1000px;
-  min-height: 1350px;
+  width: $res-template-width;
+  min-height: $res-template-height;
   margin-left: auto;
   margin-right: auto;
   display: flex;

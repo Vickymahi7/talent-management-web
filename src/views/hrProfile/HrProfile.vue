@@ -40,6 +40,7 @@ export default {
         noteEdit: false,
         summaryEdit: false,
         tabItemEdit: false,
+        modalEdit: false,
       },
 
       resumeFiles: '',
@@ -178,8 +179,8 @@ export default {
       try {
         this.v$.hrProfile.$touch();
         if (!this.v$.hrProfile.$invalid) {
-          this.isLoading = true;
-          this.isModalLoading = true;
+          if (this.elements.modalEdit) this.isModalLoading = true;
+          else this.isLoading = true;
           const response: any = await axios.patch('/hrprofile/update', data);
 
           if (response.status == HttpStatusCode.Ok) {
@@ -193,6 +194,7 @@ export default {
             this.elements.noteEdit = false;
             this.elements.summaryEdit = false;
             this.elements.tabItemEdit = false;
+            this.elements.modalEdit = false;
             this.clearDocData();
             this.hideModal();
           }
@@ -380,6 +382,7 @@ export default {
     },
     showProfileChildItemEdit(itemKey: string, itemData: HrProfileChilderen, modalId: string) {
       this.elements.tabItemEdit = true;
+      this.elements.modalEdit = true;
       this.modalId = modalId;
       if (itemKey === 'work_experience') {
         this.workExperienceData = itemData as WorkExperience;
@@ -664,7 +667,7 @@ export default {
     </div>
     <div class="profile-body">
       <div class="profile-description">
-        <div class="content-card">
+        <div class="content-card h-100 card-gap-mb">
           <h6 class="label-text mb-2">About
             <span v-if="elements.aboutInfoEdit">
               <span class="icon-btn float-end" @click="elements.aboutInfoEdit = false">
@@ -678,13 +681,14 @@ export default {
               <font-awesome-icon icon="fa-solid fa-pencil-alt" />
             </span>
           </h6>
-          <textarea v-if="elements.aboutInfoEdit" v-model="hrProfile.objective" name="" id="" class="form-control"
-            rows="2"></textarea>
+          <div v-if="elements.aboutInfoEdit" class="note-input-group">
+            <textarea v-model="hrProfile.objective" name="" id="" class="form-control" rows="2"></textarea>
+          </div>
           <p v-else class="profile-short-content">
             {{ hrProfile.objective }}
           </p>
         </div>
-        <div class="content-card">
+        <div class="content-card  h-100 card-gap-mb">
           <h6 class="label-text">Skills
             <span v-if="elements.skillEdit" class="float-end">
               <span class="icon-btn me-1" @click="updateHrProfileItem('skills')">
@@ -717,7 +721,7 @@ export default {
             </template>
           </p>
         </div>
-        <div class="content-card">
+        <div class="content-card  h-100">
           <h6 class="label-text">Note
             <span v-if="elements.noteEdit" class="float-end">
               <span class="icon-btn me-1" @click="updateHrProfileItem('note')">
@@ -735,9 +739,9 @@ export default {
           </h6>
           <div v-if="elements.noteEdit" class="note-input-group">
             <textarea name="" id="" v-model="hrProfile.note" class="form-control" rows="2"></textarea>
-            <button class="btn primary-btn d-block" type="button">
-              Add Note
-            </button>
+            <!-- <button class="btn primary-btn d-block" type="button">
+                      Add Note
+                    </button> -->
           </div>
           <p v-else class="profile-short-content">
             {{ hrProfile.note }}
@@ -836,7 +840,8 @@ export default {
               </div>
               <div class="py-3">
                 <button class="btn primary-btn br-0" type="button" data-bs-toggle="modal"
-                  data-bs-target="#workExperienceAddEditModal" @click="modalId = 'workExperienceAddEditModal'">
+                  data-bs-target="#workExperienceAddEditModal"
+                  @click="modalId = 'workExperienceAddEditModal'; elements.modalEdit = true">
                   Add Work Experience
                 </button>
               </div>
@@ -877,7 +882,8 @@ export default {
               </div>
               <div class="py-3">
                 <button class="btn primary-btn br-0" type="button" data-bs-toggle="modal"
-                  data-bs-target="#educationAddEditModal" @click="modalId = 'educationAddEditModal'">
+                  data-bs-target="#educationAddEditModal"
+                  @click="modalId = 'educationAddEditModal'; elements.modalEdit = true">
                   Add Education
                 </button>
               </div>
@@ -925,7 +931,8 @@ export default {
               </div>
               <div class="py-3">
                 <button class="btn primary-btn br-0" type="button" data-bs-toggle="modal"
-                  data-bs-target="#projectAddEditModal" @click="modalId = 'projectAddEditModal'">
+                  data-bs-target="#projectAddEditModal"
+                  @click="modalId = 'projectAddEditModal'; elements.modalEdit = true">
                   Add Project
                 </button>
               </div>
@@ -1195,14 +1202,14 @@ export default {
                 <label for="title" class="col-sm-4 col-form-label">Project Title</label>
                 <div class="col-sm-8">
                   <input type="text" class="form-control" v-model="projectData.title" id="title"
-                    placeholder="Enter Position">
+                    placeholder="Enter Project Title">
                 </div>
               </div>
               <div class="row">
                 <label for="client" class="col-sm-4 col-form-label">Client</label>
                 <div class="col-sm-8">
                   <input type="text" class="form-control" v-model="projectData.client" id="client"
-                    placeholder="Enter Company Name">
+                    placeholder="Enter Client Name">
                 </div>
               </div>
               <div class="row">

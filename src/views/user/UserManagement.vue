@@ -209,7 +209,7 @@ export default {
   <div class="content-card content-header">
     <label>Manage User</label>
   </div>
-  <div v-loading="isLoading" class="content-card h-100">
+  <div v-loading="isLoading" class="content-body content-card">
     <div class="row py-2">
       <div class="col text-end">
         <button class="btn primary-btn mx-2" type="button"

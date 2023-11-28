@@ -1,5 +1,8 @@
 <script lang="ts">
 import axios from '@/plugins/axios';
+import type { Education } from '@/types/Education';
+import type { Project } from '@/types/Project';
+import type { WorkExperience } from '@/types/WorkExperience';
 import { useToast } from 'vue-toastification';
 
 export default {
@@ -17,6 +20,7 @@ export default {
         first_name: '',
         last_name: '',
         middle_name: '',
+        profile_title: '',
         email_id: '',
         alternate_email_id: '',
         mobile: '',
@@ -50,10 +54,10 @@ export default {
         created_by_id: '',
         created_dt: '',
         last_updated_dt: '',
-        skills: [],
-        work_experience: [],
-        project: [],
-        education: [],
+        skills: [] as string[],
+        work_experience: [] as WorkExperience[],
+        project: [] as Project[],
+        education: [] as Education[],
         docs: [],
       },
     }

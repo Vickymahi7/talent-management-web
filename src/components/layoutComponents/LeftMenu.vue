@@ -43,8 +43,8 @@ export default {
 <template>
   <div class="left-menu content-card">
     <ul>
-      <li v-for="menu in getUserTypeMenu" :key="menu.id">
-        <a href="#">{{ menu.name }}</a>
+      <li v-for="menu in getUserTypeMenu" :key="menu.id" class="mb-2">
+        <p class="main-menu">{{ menu.name }}</p>
         <ul class="sub-menu">
           <li v-for="subMenu in menu.subMenu" :key="subMenu.id">
             <router-link :to="{ name: subMenu.routeName }" :class="{ 'active': $route.name == subMenu.routeName }">-

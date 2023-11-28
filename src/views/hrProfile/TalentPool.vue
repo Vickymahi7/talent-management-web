@@ -103,12 +103,6 @@ export default {
           <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
         </select>
       </div>
-      <!-- <div class="col text-end">
-                            <button class="btn primary-btn" type="button">
-                              <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
-                              Resource Excel Import
-                            </button>
-                          </div> -->
     </div>
     <div class="table-responsive">
       <table class="table table-borderless custom-table-style">

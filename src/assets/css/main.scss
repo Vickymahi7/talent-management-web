@@ -6,8 +6,9 @@ body {
   font-size: 12px;
   color: $text-color;
   background: $bg-color;
-  margin: 0 1.5rem;
-  height: calc(100vh - 2rem);
+  margin-right: 1.5rem;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
   line-height: 1.5;
   transition: color 0.5s, background-color 0.5s;
 }
@@ -62,10 +63,15 @@ a {
   border-radius: 0;
 }
 
+.card-gap-mt {
+  margin-top: $card-gap;
+}
+.card-gap-mb {
+  margin-bottom: $card-gap;
+}
 .card-gap-ms {
   margin-left: $card-gap;
 }
-
 .card-gap-me {
   margin-right: $card-gap;
 }
@@ -102,6 +108,13 @@ a {
     max-width: 220px;
     padding: 1.5em;
 
+    .main-menu {
+      margin-bottom: 0;
+      font-size: 0.9rem;
+      color: $text-color-light;
+      font-weight: 500;
+    }
+
     ul {
       padding: 0;
     }
@@ -132,6 +145,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: $card-gap;
+  min-width: 900px;
 }
 
 .content-card {
@@ -168,7 +182,7 @@ a {
 }
 
 .content-body {
-  height: 100%;
+  height: calc(100vh - 125px);
   overflow: auto;
 }
 
@@ -202,7 +216,6 @@ a {
 
 .profile-section {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   gap: $card-gap;
@@ -253,6 +266,7 @@ a {
   .profile-head {
     display: flex;
     gap: $card-gap;
+    height: 240px;
 
     .profile-media {
       position: relative;
@@ -322,10 +336,9 @@ a {
       display: flex;
       flex-direction: column;
       flex: $profile-left-card-width;
-      gap: $card-gap;
 
       .profile-short-content {
-        height: 6em;
+        // height: 6em;
         overflow: auto;
 
         &::-webkit-scrollbar {
@@ -377,9 +390,10 @@ a {
           overflow: auto;
 
           textarea {
-            height: 100%;
+            width: 100%;
+            height: auto;
+            border-radius: $form-border-radius;
             resize: none;
-            // background-color: $bg-color;
           }
         }
       }
@@ -600,17 +614,22 @@ a {
 
 .tab-content {
   padding: 1.5em;
-  height: calc(100% - 60px);
+  height: calc(100% - 50px);
   border-bottom-left-radius: $card-border-radius;
   border-bottom-right-radius: $card-border-radius;
   border-right: 1px solid $card-border-color;
   border-bottom: 1px solid $card-border-color;
   border-left: 1px solid $card-border-color;
+  overflow: auto;
+}
+
+.resume-template-header {
+  width: $res-template-width;
 }
 
 .resume-template {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   overflow-x: auto;
   align-items: center;
 }
