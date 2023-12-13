@@ -4,6 +4,7 @@ import { required, email } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { HttpStatusCode } from 'axios'
+import { UserTypeId } from '@/utils/enums';
 import { formatDate } from '@/utils/dateFormats'
 import { PROFILE_STATUS } from '@/utils/constants'
 import { getProfileStatusById, bsModalHide, bsModalShow } from '@/utils/commonFunctions'
@@ -12,9 +13,21 @@ import type { WorkExperience } from '@/types/WorkExperience'
 import type { Project } from '@/types/Project'
 import type { Education } from '@/types/Education'
 
+import HrProfileComponent from "@/views/hrProfile/HrProfile.vue";
+import { useMsal } from "../../composables/useMsal";
+import { loginRequest } from "../../utils/authConfig";
+import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser'
+import { Modal } from 'bootstrap'
+
 export default {
+  components: {
+    HrProfileComponent,
+  },
+  setup() {
+  },
   data() {
     return {
+      instance: useMsal().instance,
       v$: useVuelidate(),
       toast: useToast(),
       formatDate: formatDate,
@@ -22,9 +35,11 @@ export default {
       getProfileStatusById: getProfileStatusById,
       bsModalHide: bsModalHide,
       bsModalShow: bsModalShow,
+      UserTypeId: UserTypeId,
 
       isLoading: false,
       isModalLoading: false,
+      showInviteUserModal: false,
       modalId: '',
       searchText: '',
       status_id: null as null | number,
@@ -32,6 +47,9 @@ export default {
       editId: null as string | null,
       editKey: null as string | null,
       editValue: null as string | null,
+
+      accessToken: null as string | null,
+      hrProfileId: '',
 
       hrProfile: {
         id: '',
@@ -107,7 +125,12 @@ export default {
   computed: {
     pageStart() {
       return (this.currentPage - 1) * this.perPage;
-    }
+    },
+    userTypeId() {
+      const userTypeId
+        = localStorage.getItem("userTypeId");
+      return userTypeId ? parseInt(userTypeId) : null;
+    },
   },
   watch: {
     currentPage() {
@@ -152,7 +175,6 @@ export default {
           this.isModalLoading = true;
           const response: any = await axios.post('/hrprofile/add', this.hrProfile);
 
-          console.log(response)
           if (response.status == HttpStatusCode.Created) {
             this.toast.success(response.message);
             this.getHrProfileList();
@@ -160,7 +182,6 @@ export default {
           }
         }
       } catch (error: any) {
-        console.log(error)
         this.toast.error(error.message);
       }
       finally {
@@ -233,6 +254,15 @@ export default {
       }
       return tooltipText;
     },
+    handleTableRowClick(modalId: string, hrProfileId: string) {
+      if (this.userTypeId == UserTypeId.USR) {
+        this.$router.push({ name: 'hrprofile', params: { id: hrProfileId } });
+      }
+      else {
+        this.hrProfileId = hrProfileId;
+        this.showModal(modalId);
+      }
+    },
     handleTableCellClick(field: any, item: any, event: Event) {
       if (field.isEditable) {
         event.stopPropagation();
@@ -248,12 +278,48 @@ export default {
       this.editKey = null;
       this.editValue = null;
       this.getHrProfileList();
-    }
+    },
+    async loginPopup() {
+      // await this.instance.loginPopup(loginRequest);
+      this.getGraphData()
+    },
+    async getGraphData() {
+      this.isLoading = true;
+      const response = await this.instance.acquireTokenSilent({
+        ...loginRequest
+      }).catch(async (e) => {
+        if (e instanceof InteractionRequiredAuthError || e instanceof BrowserAuthError) {
+          // await this.instance.acquireTokenRedirect(loginRequest);
+          await this.instance.loginPopup(loginRequest);
+          this.loginPopup();
+        }
+        else {
+          throw e;
+        }
+      }).finally(() => {
+        this.isLoading = false;
+      });
+      if (response?.accessToken) {
+        this.accessToken = response.accessToken;
+        this.showInviteUserModal = true;
+        this.$nextTick(() => {
+          this.showModal('inviteAdUsersModal');
+        })
+      }
+    },
+    showModal(modalId: string) {
+      const modalEl = document.getElementById(modalId);
+      if (!modalEl) return;
+      const modal = Modal.getOrCreateInstance(modalEl!, {
+        keyboard: false
+      })
+      modal.show();
+    },
   }
 }
 </script>
 <template>
-  <div class="content-card content-header">
+  <div class="content-card content-header card-gap-mb">
     <label>HR Profile Management</label>
   </div>
   <div v-loading="isLoading" class="content-body content-card">
@@ -269,12 +335,12 @@ export default {
         </select>
       </div>
       <div class="col text-end">
-        <button class="btn primary-btn mx-2" type="button"
+        <button class="btn primary-btn" type="button"
           @click="bsModalShow('hrProfileAddEditModal'); modalId = 'hrProfileAddEditModal'">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New Resource
         </button>
-        <button class="btn primary-btn" type="button">
+        <button v-if="userTypeId != UserTypeId.USR" class="btn primary-btn ms-2" type="button" @click="loginPopup">
           <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
           Resource Excel Import
         </button>
@@ -289,7 +355,8 @@ export default {
         </thead>
         <tbody class="custom-tbody-style">
           <tr v-for="(hrProfile, index) in hrProfileList" :key="hrProfile.id"
-            @click="$router.push({ name: 'hrprofile', params: { id: hrProfile.id } })">
+            @click="handleTableRowClick('hrProfileModal', hrProfile.id!)">
+            <!-- @click="$router.push({ name: 'hrprofile', params: { id: hrProfile.id } })"> -->
             <td v-for="field in hrProfileFields" :key="field.key" @click="handleTableCellClick(field, hrProfile, $event)"
               :class="{ 'clickable-cell': field.isEditable }">
               <!-- @click.stop=" -->
@@ -448,4 +515,21 @@ export default {
   </div>
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
+  <InviteAdUsersModal v-if="showInviteUserModal" :accessToken="accessToken!" />
+  <div class="modal fade" id="hrProfileModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+      <div v-loading="isModalLoading" class="modal-content">
+        <!-- <div class="modal-header">
+          <h5 class="modal-title" id="modalLabel">Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div> -->
+        <div class="modal-body profile-modal">
+          <HrProfileComponent :id="hrProfileId" :key="hrProfileId" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>

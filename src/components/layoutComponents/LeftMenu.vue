@@ -1,5 +1,14 @@
 <script lang="ts">
 import { UserTypeId } from '@/utils/enums';
+const SUPER_ADMIN_MENU = [
+  {
+    id: 1,
+    name: "Manage",
+    subMenu: [{ id: 101, name: "Tenant Management", routeName: "tenantmanagement" },
+    { id: 102, name: "User Management", routeName: "usermanagement" },
+    ]
+  },
+];
 const ADMIN_MENU = [
   {
     id: 1,
@@ -13,13 +22,11 @@ const ADMIN_MENU = [
     subMenu: [{ id: 201, name: "Talent Pool", routeName: "talentpool" },]
   },
 ];
-const SUPER_ADMIN_MENU = [
+const USER_MENU = [
   {
     id: 1,
     name: "Manage",
-    subMenu: [{ id: 101, name: "Tenant Management", routeName: "tenantmanagement" },
-    { id: 102, name: "User Management", routeName: "usermanagement" },
-    ]
+    subMenu: [{ id: 101, name: "Manage HR Profile", routeName: "hrprofilemanagement" },]
   },
 ];
 export default {
@@ -35,7 +42,15 @@ export default {
       return userTypeId ? parseInt(userTypeId) : null;
     },
     getUserTypeMenu() {
-      return this.userTypeId == UserTypeId.SAD ? SUPER_ADMIN_MENU : ADMIN_MENU;
+      if (this.userTypeId == UserTypeId.SAD) {
+        return SUPER_ADMIN_MENU;
+      }
+      else if (this.userTypeId == UserTypeId.ADM) {
+        return ADMIN_MENU;
+      }
+      else {
+        return USER_MENU;
+      }
     }
   }
 }

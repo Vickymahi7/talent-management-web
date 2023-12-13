@@ -28,6 +28,12 @@ const routes = [
     },
   },
   {
+    path: "/userregistration/:token",
+    name: "userregistration",
+    component: () => import("@/views/user/InvitedUserRegistration.vue"),
+    props: true,
+  },
+  {
     path: "/useractivation/:token",
     name: "useractivation",
     component: () => import("@/views/user/UserActivation.vue"),
@@ -40,13 +46,19 @@ const routes = [
     name: "hrprofile",
     component: () => import("@/views/hrProfile/HrProfile.vue"),
     props: true,
-    meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
+    meta: {
+      layout: StandardLayout,
+      accessedBy: [UserTypeId.ADM, UserTypeId.USR],
+    },
   },
   {
     path: "/hrprofilemanagement",
     name: "hrprofilemanagement",
     component: () => import("@/views/hrProfile/HrProfileManagement.vue"),
-    meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
+    meta: {
+      layout: StandardLayout,
+      accessedBy: [UserTypeId.ADM, UserTypeId.USR],
+    },
   },
   {
     path: "/talentpool",

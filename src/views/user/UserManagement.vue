@@ -206,7 +206,7 @@ export default {
 }
 </script>
 <template>
-  <div class="content-card content-header">
+  <div class="content-card content-header card-gap-mb">
     <label>Manage User</label>
   </div>
   <div v-loading="isLoading" class="content-body content-card">

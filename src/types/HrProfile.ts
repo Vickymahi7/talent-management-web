@@ -46,7 +46,7 @@ export default interface HrProfile {
   active?: true;
   created_by_id?: string;
   created_dt?: string;
-  last_updated_dt?: Date;
+  last_updated_dt?: Date | null;
   skills?: string[];
   work_experience?: WorkExperience[];
   project?: Project[];

@@ -8,13 +8,21 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     BPagination: typeof import('bootstrap-vue-next')['BPagination']
+    copy: typeof import('./src/components/modals/InviteAdUsersModal copy.vue')['default']
     DialogComponent: typeof import('./src/components/modals/DialogComponent.vue')['default']
+    HrProfileModal: typeof import('./src/components/modals/HrProfileModal.vue')['default']
+    InviteAdUsersModal: typeof import('./src/components/modals/InviteAdUsersModal.vue')['default']
+    InviteAdUsersModaltest: typeof import('./src/components/modals/InviteAdUsersModaltest.vue')['default']
     LeftMenu: typeof import('./src/components/layoutComponents/LeftMenu.vue')['default']
     LoadingOverlay: typeof import('./src/components/LoadingOverlay.vue')['default']
     NavBar: typeof import('./src/components/layoutComponents/NavBar.vue')['default']
+    ProfileSection: typeof import('./src/components/ProfileSection.vue')['default']
+    ProfileSectionComponent: typeof import('./src/components/ProfileSectionComponent.vue')['default']
     ResumePreviewModal: typeof import('./src/components/modals/ResumePreviewModal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Testing: typeof import('./src/components/modals/testing.vue')['default']
+    Testingvue: typeof import('./src/components/modals/Testingvue.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

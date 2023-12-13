@@ -34,8 +34,12 @@ export default {
         localStorage.setItem("userTypeId", response.userTypeId)
         localStorage.setItem("userName", response.userName)
 
+        console.log(response.userTypeId)
         if (response.userTypeId == UserTypeId.SAD) {
           this.$router.push({ name: 'tenantmanagement' });
+        }
+        else if (response.userTypeId == UserTypeId.USR) {
+          this.$router.push({ name: 'hrprofilemanagement' });
         }
         else {
           this.$router.push({ name: 'hrprofilemanagement' });

@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" setup>
 import { useVuelidate } from '@vuelidate/core'
 import { required, email } from '@vuelidate/validators'
 import { Modal } from 'bootstrap'
@@ -15,485 +15,506 @@ import type { Project } from '@/types/Project'
 import type { Education } from '@/types/Education'
 import type { HrProfileChilderen } from '@/types/HrProfile'
 import type { Docs } from '@/types/Docs'
-export default {
-  props: ['id'],
-  components: {
-    ResumePreviewModal,
-  },
-  data() {
-    return {
-      v$: useVuelidate(),
-      toast: useToast(),
-      formatDate: formatDate,
-      fileUploadBtnClick: fileUploadBtnClick,
-      getProfileStatusById: getProfileStatusById,
-      profileStatus: PROFILE_STATUS,
+import { UserTypeId } from '@/utils/enums'
+import { computed, onMounted, reactive, ref } from 'vue'
+const props = defineProps({
+  id: String
+});
+const elements = reactive({
+  titleEdit: false,
+  primaryInfoEdit: false,
+  personalInfoEdit: false,
+  aboutInfoEdit: false,
+  skillEdit: false,
+  noteEdit: false,
+  summaryEdit: false,
+  tabItemEdit: false,
+  modalEdit: false,
+});
 
-      isLoading: false,
-      isModalLoading: false,
-      elements: {
-        titleEdit: false,
-        primaryInfoEdit: false,
-        personalInfoEdit: false,
-        aboutInfoEdit: false,
-        skillEdit: false,
-        noteEdit: false,
-        summaryEdit: false,
-        tabItemEdit: false,
-        modalEdit: false,
-      },
+const toast = useToast();
 
-      resumeFiles: '',
-      docFiles: '',
-      docId: '',
-      modalId: '',
-      deleteChildTitle: '',
+const isLoading = ref(false);
+const isModalLoading = ref(false);
 
-      hrProfile: {
-        id: '',
-        hr_profile_id: '',
-        tenant_id: '',
-        hr_profile_type_id: '',
-        profile_title: '',
-        first_name: '',
-        last_name: '',
-        middle_name: '',
-        email_id: '',
-        alternate_email_id: '',
-        mobile: '',
-        alternate_mobile: '',
-        phone: '',
-        office_phone: '',
-        location: '',
-        ctc: '',
-        experience_month: null as number | null,
-        experience_year: null as number | null,
-        summary: '',
-        objective: '',
-        note: '',
-        gender: '',
-        date_of_birth: '',
-        resume_url: '',
-        photo_url: '',
-        buiding_number: '',
-        street_name: '',
-        city: '',
-        state: '',
-        country: '',
-        postal_code: '',
-        website: '',
-        facebook_id: '',
-        twitter_id: '',
-        linkedin_id: '',
-        skype_id: '',
-        status: '',
-        status_id: null as number | null,
-        user_id: '',
-        active: true,
-        created_by_id: '',
-        created_dt: '',
-        last_updated_dt: null as Date | null,
-        skills: [] as string[],
-        work_experience: [] as WorkExperience[],
-        project: [] as Project[],
-        education: [] as Education[],
-      } as HrProfile,
+const resumeFiles = ref('');
+const docFiles = ref('');
+const docId = ref('');
+const modalId = ref('');
+const deleteChildTitle = ref('');
 
-      workExperienceData: {
-        company: '',
-        position: '',
-        location: '',
-        start_date: '',
-        end_date: '',
-        description: '',
-      } as WorkExperience,
-      educationData: {
-        degree: '',
-        major: '',
-        university: '',
-        location: '',
-        start_date: '',
-        end_date: '',
-      } as Education,
-      projectData: {
-        title: '',
-        start_date: '',
-        end_date: '',
-        client: '',
-        technology: '',
-        description: '',
-        location: '',
-      } as Project,
-      docsData: {
-        id: '',
-        title: '',
-        path: '',
-      } as Docs,
-      docsEditData: {
-        id: '',
-        title: '',
-        path: '',
-      } as Docs,
+let hrProfile: HrProfile = reactive({
+  id: '',
+  hr_profile_id: '',
+  tenant_id: '',
+  hr_profile_type_id: '',
+  profile_title: '',
+  first_name: '',
+  last_name: '',
+  middle_name: '',
+  email_id: '',
+  alternate_email_id: '',
+  mobile: '',
+  alternate_mobile: '',
+  phone: '',
+  office_phone: '',
+  location: '',
+  ctc: '',
+  experience_month: null as number | null,
+  experience_year: null as number | null,
+  summary: '',
+  objective: '',
+  note: '',
+  gender: '',
+  date_of_birth: '',
+  resume_url: '',
+  photo_url: '',
+  buiding_number: '',
+  street_name: '',
+  city: '',
+  state: '',
+  country: '',
+  postal_code: '',
+  website: '',
+  facebook_id: '',
+  twitter_id: '',
+  linkedin_id: '',
+  skype_id: '',
+  status: '',
+  status_id: null as number | null,
+  user_id: '',
+  active: true,
+  created_by_id: '',
+  created_dt: '',
+  last_updated_dt: null as Date | null,
+  skills: [] as string[],
+  work_experience: [] as WorkExperience[],
+  project: [] as Project[],
+  education: [] as Education[],
+  docs: [] as Docs[],
+});
 
-      dialogParam: {
-        id: null as string | number | null,
-        key: null as string | number | null,
-        data: null as string | number | null,
-        path: null as string | number | null,
-      },
-    }
-  },
-  validations() {
-    return {
-      hrProfile: {
-        email_id: { required, email },
-      }
-    }
-  },
-  computed: {
-    getImageUrlWithTimestamp() {
-      const imageUrl = this.hrProfile.photo_url;
-      const timestamp = new Date().getTime();
-      return `${imageUrl}?timestamp=${timestamp}`;
-    },
-  },
-  mounted() {
-    this.getHrProfile();
-  },
-  methods: {
-    async getHrProfile() {
-      try {
-        this.isLoading = true;
-        const response: any = await axios.get('/hrprofile/view/' + this.id);
-        this.hrProfile = response.hrProfile;
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    async updateHrProfile(data: any) {
-      data.id = this.hrProfile.id;
+let workExperienceData = reactive({
+  company: '',
+  position: '',
+  location: '',
+  start_date: '',
+  end_date: '',
+  description: '',
+}) as WorkExperience;
 
-      try {
-        this.v$.hrProfile.$touch();
-        if (!this.v$.hrProfile.$invalid) {
-          if (this.elements.modalEdit) this.isModalLoading = true;
-          else this.isLoading = true;
-          const response: any = await axios.patch('/hrprofile/update', data);
+let educationData = reactive({
+  degree: '',
+  major: '',
+  university: '',
+  location: '',
+  start_date: '',
+  end_date: '',
+}) as Education;
 
-          if (response.status == HttpStatusCode.Ok) {
-            this.toast.success(response.message);
-            this.getHrProfile();
-            this.elements.titleEdit = false;
-            this.elements.primaryInfoEdit = false;
-            this.elements.personalInfoEdit = false;
-            this.elements.aboutInfoEdit = false;
-            this.elements.skillEdit = false;
-            this.elements.noteEdit = false;
-            this.elements.summaryEdit = false;
-            this.elements.tabItemEdit = false;
-            this.elements.modalEdit = false;
-            this.clearDocData();
-            this.hideModal();
-          }
-        }
-      } catch (error: any) {
-        console.log(error)
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-        this.isModalLoading = false;
-      }
-    },
-    async uploadProfilePhoto(event: any) {
-      const files = event.target.files
-      try {
-        if (files.length > 0) {
-          let formData = new FormData();
+let projectData = reactive({
+  title: '',
+  start_date: '',
+  end_date: '',
+  client: '',
+  technology: '',
+  description: '',
+  location: '',
+}) as Project;
 
+const docsData = reactive({
+  id: '',
+  title: '',
+  path: '',
+}) as Docs;
+let docsEditData = reactive({
+  id: '',
+  title: '',
+  path: '',
+}) as Docs;
 
-          formData.append('id', this.hrProfile.id!);
-          formData.append('file', files[0]);
-          console.log(files);
+let dialogParam = {
+  id: null as string | number | null,
+  key: null as string | number | null,
+  data: null as string | number | null,
+  path: null as string | number | null,
+};
 
-          console.log(formData.values);
-          this.isLoading = true;
-          const response: any = await axios.post('/hrprofile/photoupload', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-          console.log(response);
-
-          if (response.status == HttpStatusCode.Ok) {
-            this.toast.success(response.message);
-            this.getHrProfile();
-          }
-        }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    async uploadResume(event: any) {
-      this.resumeFiles = event.target.files;
-      try {
-        if (this.resumeFiles.length > 0) {
-          let formData = new FormData();
-          formData.append('id', this.hrProfile.id!);
-          formData.append('file', this.resumeFiles[0]);
-          this.isLoading = true;
-          const response: any = await axios.post('/hrprofile/resumeupload', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-          if (response.status == HttpStatusCode.Ok) {
-            this.toast.success(response.message);
-            this.getHrProfile();
-          }
-        }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    addDocumentFile(event: any) {
-      this.docFiles = event.target.files;
-    },
-    async uploadDocument() {
-      try {
-        if (this.docFiles.length > 0) {
-          let formData = new FormData();
-          formData.append('id', this.hrProfile.id!);
-          formData.append('title', this.docsData.title);
-          formData.append('file', this.docFiles[0]);
-          const docList = this.hrProfile.docs?.length ? JSON.stringify(this.hrProfile.docs) : '';
-          formData.append('docs', docList);
-          this.isLoading = true;
-          const response: any = await axios.post('/hrprofile/docupload', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-          if (response.status == HttpStatusCode.Ok) {
-            this.toast.success(response.message);
-            this.getHrProfile();
-            this.clearDocData();
-          }
-        }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    editDoc(document: Docs) {
-      this.elements.tabItemEdit = true;
-      this.docId = document.id;
-      this.docsEditData = document;
-    },
-    clearDocData() {
-      this.docId = '';
-      this.elements.tabItemEdit = false;
-      this.docsData.id = '';
-      this.docsData.title = '';
-      this.docsData.path = '';
-    },
-    updateTitleInfo() {
-      const data = {
-        profile_title: this.hrProfile.profile_title,
-        first_name: this.hrProfile.first_name,
-        last_name: this.hrProfile.last_name,
-      }
-
-      this.updateHrProfile(data);
-    },
-    updatePrimaryInfo() {
-      const data = {
-        location: this.hrProfile.location,
-        ctc: this.hrProfile.ctc,
-        experience_month: this.hrProfile.experience_month,
-        experience_year: this.hrProfile.experience_year,
-        status_id: this.hrProfile.status_id,
-        status: this.getProfileStatusById(this.hrProfile.status_id),
-        email_id: this.hrProfile.email_id,
-        mobile: this.hrProfile.mobile,
-        linkedin_id: this.hrProfile.linkedin_id,
-      }
-
-      this.updateHrProfile(data);
-    },
-    updatePersonalInfo() {
-      const data = {
-
-        gender: this.hrProfile.gender,
-        date_of_birth: this.hrProfile.date_of_birth,
-        location: this.hrProfile.location,
-        buiding_number: this.hrProfile.buiding_number,
-        street_name: this.hrProfile.street_name,
-        city: this.hrProfile.city,
-        state: this.hrProfile.state,
-        country: this.hrProfile.country,
-        postal_code: this.hrProfile.postal_code,
-      }
-
-      this.updateHrProfile(data);
-    },
-    updateHrProfileItem(key: string) {
-      const data = {}
-      data[key] = this.hrProfile[key],
-
-        this.updateHrProfile(data);
-    },
-    updateProfileChildItems(itemData: any, itemKey: string) {
-      let itemVal = null;
-      const profileData = this.hrProfile as any;
-      if (this.elements.tabItemEdit) {
-        itemVal = profileData[itemKey];
-      }
-      else {
-        itemVal = profileData[itemKey] ? profileData[itemKey].concat([itemData]) : [itemData];
-      }
-
-      const data: any = {}
-      data[itemKey] = itemVal;
-
-      this.updateHrProfile(data);
-    },
-    addSkills(event: any) {
-      const skill = event.target.value;
-      this.hrProfile.skills = this.hrProfile.skills ?? [];
-      if (!this.hrProfile.skills.includes(skill)) {
-        this.hrProfile.skills.push(skill);
-        event.target.value = '';
-      }
-    },
-    removeSkill(skill: string) {
-      this.hrProfile.skills = this.hrProfile.skills ? this.hrProfile.skills.filter(item => item != skill) : [];
-    },
-    showProfileChildItemEdit(itemKey: string, itemData: HrProfileChilderen, modalId: string) {
-      this.elements.tabItemEdit = true;
-      this.elements.modalEdit = true;
-      this.modalId = modalId;
-      if (itemKey === 'work_experience') {
-        this.workExperienceData = itemData as WorkExperience;
-      }
-      else if (itemKey === 'education') {
-        this.educationData = itemData as Education;
-      }
-      else if (itemKey === 'project') {
-        this.projectData = itemData as Project;
-      }
-      this.showModal();
-    },
-    showModal() {
-      const modalEl = document.getElementById(this.modalId);
-      if (!modalEl) return;
-      const modal = Modal.getOrCreateInstance(modalEl!, {
-        keyboard: false
-      })
-      modal.show();
-    },
-    hideModal() {
-      const modalEl = document.getElementById(this.modalId);
-      if (!modalEl) return;
-      const modal = Modal.getOrCreateInstance(modalEl!, {
-        keyboard: false
-      })
-      modal.hide();
-    },
-    removeProfileChildItem: function (key: string, data: any) {
-      this.dialogParam.key = key;
-      this.dialogParam.data = data;
-
-      if (key == 'work_experience') {
-        this.deleteChildTitle = 'Work Experience';
-      }
-      else if (key == 'education') {
-        this.deleteChildTitle = 'Education';
-      }
-      else if (key == 'project') {
-        this.deleteChildTitle = 'Project';
-      }
-    },
-    onYesProfileChildItemDelete() {
-      const key = this.dialogParam.key!;
-      const data = this.dialogParam.data;
-      // remove the object with its reference
-      const profileData: any = this.hrProfile;
-      profileData[key] = profileData[key] ? profileData[key].filter((item: any) => item !== data) : [];
-
-      this.updateHrProfile(profileData);
-    },
-    deleteHrProfileResume: function (id: string) {
-      this.dialogParam.id = id;
-    },
-    async onYesHrProfileResume() {
-      try {
-        this.isLoading = true;
-        const response: any = await axios.delete('/hrprofile/deleteresume/' + this.dialogParam.id)
-        if (response.status == HttpStatusCode.Ok) {
-          this.toast.success(response.message);
-          this.getHrProfile();
-        }
-
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    deleteHrProfileDoc: function (id: string, data: any) {
-      this.dialogParam = data;
-    },
-    async onYesHrProfileDoc() {
-      this.hrProfile.docs = this.hrProfile.docs ? this.hrProfile.docs.filter((item: any) => item !== this.dialogParam) : [];
-      const data: any = {
-        id: this.hrProfile.id,
-        docs: this.hrProfile.docs,
-        doc_id: this.dialogParam.id,
-        path: this.dialogParam.path,
-      }
-      try {
-        this.isLoading = true;
-        const response: any = await axios.patch('/hrprofile/deletedoc', data);
-
-        if (response.status == HttpStatusCode.Ok) {
-          this.toast.success(response.message);
-          this.getHrProfile();
-        }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
+const rules = computed(() => {
+  return {
+    email_id: { required, email },
   }
-}
+})
+
+const v$ = useVuelidate(rules, hrProfile as any);
+
+const userTypeId = computed(() => {
+  const typeId
+    = localStorage.getItem("userTypeId");
+  return typeId ? parseInt(typeId) : null;
+})
+
+const getImageUrlWithTimestamp = computed(() => {
+  const imageUrl = hrProfile.photo_url;
+  const timestamp = new Date().getTime();
+  return `${imageUrl}?timestamp=${timestamp}`;
+})
+
+onMounted(() => {
+  getHrProfile();
+})
+
+const getHrProfile = async () => {
+  if (props.id) {
+    try {
+      isLoading.value = true;
+      const response: any = await axios.get('/hrprofile/view/' + props.id);
+      hrProfile = response.hrProfile;
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+    finally {
+      isLoading.value = false;
+    }
+  }
+};
+const updateHrProfile = async (data: any) => {
+  data.id = hrProfile.id;
+
+  try {
+    console.log(hrProfile)
+    // Validation not working
+    // const result = await v$.value.$validate();
+    // console.log(result)
+    // if (result) {
+    if (elements.modalEdit) isModalLoading.value = true;
+    else isLoading.value = true;
+    const response: any = await axios.patch('/hrprofile/update', data);
+
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getHrProfile();
+      elements.titleEdit = false;
+      elements.primaryInfoEdit = false;
+      elements.personalInfoEdit = false;
+      elements.aboutInfoEdit = false;
+      elements.skillEdit = false;
+      elements.noteEdit = false;
+      elements.summaryEdit = false;
+      elements.tabItemEdit = false;
+      elements.modalEdit = false;
+      clearDocData();
+      hideModal();
+    }
+    // }
+  } catch (error: any) {
+    console.log(error)
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+    isModalLoading.value = false;
+  }
+};
+const uploadProfilePhoto = async (event: any) => {
+  const files = event.target.files
+  try {
+    if (files.length > 0) {
+      let formData = new FormData();
+
+
+      formData.append('id', hrProfile.id!);
+      formData.append('file', files[0]);
+      console.log(files);
+
+      console.log(formData.values);
+      isLoading.value = true;
+      const response: any = await axios.post('/hrprofile/photoupload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log(response);
+
+      if (response.status == HttpStatusCode.Ok) {
+        toast.success(response.message);
+        getHrProfile();
+      }
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
+const uploadResume = async (event: any) => {
+  resumeFiles.value = event.target.files;
+  try {
+    if (resumeFiles.value.length > 0) {
+      let formData = new FormData();
+      formData.append('id', hrProfile.id!);
+      formData.append('file', resumeFiles.value[0]);
+      isLoading.value = true;
+      const response: any = await axios.post('/hrprofile/resumeupload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      if (response.status == HttpStatusCode.Ok) {
+        toast.success(response.message);
+        getHrProfile();
+      }
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
+const addDocumentFile = (event: any) => {
+  docFiles.value = event.target.files;
+};
+const uploadDocument = async () => {
+  try {
+    if (docFiles.value.length > 0) {
+      let formData = new FormData();
+      formData.append('id', hrProfile.id!);
+      formData.append('title', docsData.title);
+      formData.append('file', docFiles.value[0]);
+      const docList = hrProfile.docs?.length ? JSON.stringify(hrProfile.docs) : '';
+      formData.append('docs', docList);
+      isLoading.value = true;
+      const response: any = await axios.post('/hrprofile/docupload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      if (response.status == HttpStatusCode.Ok) {
+        toast.success(response.message);
+        getHrProfile();
+        clearDocData();
+      }
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
+const editDoc = (document: Docs) => {
+  elements.tabItemEdit = true;
+  docId.value = document.id;
+  docsEditData = document;
+};
+const clearDocData = () => {
+  docId.value = '';
+  elements.tabItemEdit = false;
+  docsData.id = '';
+  docsData.title = '';
+  docsData.path = '';
+};
+const updateTitleInfo = () => {
+  const data = {
+    profile_title: hrProfile.profile_title,
+    first_name: hrProfile.first_name,
+    last_name: hrProfile.last_name,
+  }
+
+  updateHrProfile(data);
+};
+const updatePrimaryInfo = () => {
+  const data = {
+    location: hrProfile.location,
+    ctc: hrProfile.ctc,
+    experience_month: hrProfile.experience_month,
+    experience_year: hrProfile.experience_year,
+    status_id: hrProfile.status_id,
+    status: getProfileStatusById(hrProfile.status_id),
+    email_id: hrProfile.email_id,
+    mobile: hrProfile.mobile,
+    linkedin_id: hrProfile.linkedin_id,
+  }
+
+  updateHrProfile(data);
+};
+const updatePersonalInfo = () => {
+  const data = {
+
+    gender: hrProfile.gender,
+    date_of_birth: hrProfile.date_of_birth,
+    location: hrProfile.location,
+    buiding_number: hrProfile.buiding_number,
+    street_name: hrProfile.street_name,
+    city: hrProfile.city,
+    state: hrProfile.state,
+    country: hrProfile.country,
+    postal_code: hrProfile.postal_code,
+  }
+
+  updateHrProfile(data);
+};
+const updateHrProfileItem = (key: string) => {
+  const data = {}
+  data[key] = hrProfile[key],
+
+    updateHrProfile(data);
+};
+const updateProfileChildItems = (itemData: any, itemKey: string) => {
+  let itemVal = null;
+  const profileData = hrProfile as any;
+  if (elements.tabItemEdit) {
+    itemVal = profileData[itemKey];
+  }
+  else {
+    itemVal = profileData[itemKey] ? profileData[itemKey].concat([itemData]) : [itemData];
+  }
+
+  const data: any = {}
+  data[itemKey] = itemVal;
+
+  updateHrProfile(data);
+};
+const addSkills = (event: any) => {
+  const skill = event.target.value;
+  hrProfile.skills = hrProfile.skills ?? [];
+  if (!hrProfile.skills.includes(skill)) {
+    hrProfile.skills.push(skill);
+    event.target.value = '';
+  }
+};
+const removeSkill = (skill: string) => {
+  hrProfile.skills = hrProfile.skills ? hrProfile.skills.filter(item => item != skill) : [];
+};
+const showProfileChildItemEdit = (itemKey: string, itemData: HrProfileChilderen, modId: string) => {
+  elements.tabItemEdit = true;
+  elements.modalEdit = true;
+  modalId.value = modId;
+  if (itemKey === 'work_experience') {
+    workExperienceData = itemData as WorkExperience;
+  }
+  else if (itemKey === 'education') {
+    educationData = itemData as Education;
+  }
+  else if (itemKey === 'project') {
+    projectData = itemData as Project;
+  }
+  showModal();
+};
+const showModal = () => {
+  const modalEl = document.getElementById(modalId.value);
+  if (!modalEl) return;
+  const modal = Modal.getOrCreateInstance(modalEl!, {
+    keyboard: false
+  })
+  modal.show();
+};
+const hideModal = () => {
+  const modalEl = document.getElementById(modalId.value);
+  if (!modalEl) return;
+  const modal = Modal.getOrCreateInstance(modalEl!, {
+    keyboard: false
+  })
+  modal.hide();
+};
+const removeProfileChildItem = (key: string, data: any) => {
+  dialogParam.key = key;
+  dialogParam.data = data;
+
+  if (key == 'work_experience') {
+    deleteChildTitle.value = 'Work Experience';
+  }
+  else if (key == 'education') {
+    deleteChildTitle.value = 'Education';
+  }
+  else if (key == 'project') {
+    deleteChildTitle.value = 'Project';
+  }
+};
+const onYesProfileChildItemDelete = () => {
+  const key = dialogParam.key!;
+  const data = dialogParam.data;
+  // remove the object with its reference
+  const profileData: any = hrProfile;
+  profileData[key] = profileData[key] ? profileData[key].filter((item: any) => item !== data) : [];
+
+  updateHrProfile(profileData);
+};
+const deleteHrProfileResume = (id: string) => {
+  dialogParam.id = id;
+};
+const onYesHrProfileResume = async () => {
+  try {
+    isLoading.value = true;
+    const response: any = await axios.delete('/hrprofile/deleteresume/' + dialogParam.id)
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getHrProfile();
+    }
+
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
+const deleteHrProfileDoc = (id: string, data: any) => {
+  dialogParam = data;
+};
+const onYesHrProfileDoc = async () => {
+  hrProfile.docs = hrProfile.docs ? hrProfile.docs.filter((item: any) => item !== dialogParam) : [];
+  const data: any = {
+    id: hrProfile.id,
+    docs: hrProfile.docs,
+    doc_id: dialogParam.id,
+    path: dialogParam.path,
+  }
+  try {
+    isLoading.value = true;
+    const response: any = await axios.patch('/hrprofile/deletedoc', data);
+
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getHrProfile();
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
+// }
+// props: ['id'],
+//   components: {
+//   ResumePreviewModal,
+//   },
+// },
+//   computed: {
+//
+// },
+// const mounted = () => {
+//   getHrProfile();
+// },
+//   methods:
+// }
+// }
 </script>
 <template>
-  <div class="d-flex">
+  <div class="d-flex card-gap-mb">
     <div class="content-card content-header">
-      <!-- <label>HR Profile</label> -->
-      <nav aria-label="breadcrumb">
+      <label>{{ hrProfile.first_name }} - {{ hrProfile.profile_title }}</label>
+      <!-- <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item">
             <router-link :to="{ name: 'hrprofilemanagement' }">Manage HR Profile</router-link>
           </li>
           <li class="breadcrumb-item active" aria-current="page">Profile - {{ hrProfile.first_name }}</li>
         </ol>
-      </nav>
+      </nav> -->
     </div>
     <button class="btn primary-btn ms-2" type="button" data-bs-toggle="modal" data-bs-target="#resumePreviewModal">
       <font-awesome-icon class="me-2" icon="fa-solid fa-download" />
@@ -612,10 +633,10 @@ export default {
             <div class="profile-container">
               <div class="profile-item-container">
                 <p class="label-text">Profile Status</p>
-                <select v-if="elements.primaryInfoEdit" class="form-select form-control-sm" v-model="hrProfile.status_id"
-                  aria-label="Profile Status">
+                <select v-if="elements.primaryInfoEdit && userTypeId != UserTypeId.USR"
+                  class="form-select form-control-sm" v-model="hrProfile.status_id" aria-label="Profile Status">
                   <option value="">Select</option>
-                  <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}
+                  <option v-for="status in PROFILE_STATUS" :key="status.id" :value="status.id">{{ status.status }}
                   </option>
                 </select>
                 <p v-else>{{ getProfileStatusById(hrProfile.status_id) }}</p>
