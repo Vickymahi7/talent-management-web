@@ -7,9 +7,11 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AddHrProfileModal: typeof import('./src/components/modals/AddHrProfileModal.vue')['default']
     BPagination: typeof import('bootstrap-vue-next')['BPagination']
-    copy: typeof import('./src/components/modals/InviteAdUsersModal copy.vue')['default']
+    copy: typeof import('./src/components/modals/ResumePreviewModal copy.vue')['default']
     DialogComponent: typeof import('./src/components/modals/DialogComponent.vue')['default']
+    HrProfileAddEditModal: typeof import('./src/components/modals/HrProfileAddEditModal.vue')['default']
     HrProfileModal: typeof import('./src/components/modals/HrProfileModal.vue')['default']
     InviteAdUsersModal: typeof import('./src/components/modals/InviteAdUsersModal.vue')['default']
     InviteAdUsersModaltest: typeof import('./src/components/modals/InviteAdUsersModaltest.vue')['default']

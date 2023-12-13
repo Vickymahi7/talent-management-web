@@ -12,8 +12,8 @@ import type HrProfile from '@/types/HrProfile'
 import type { WorkExperience } from '@/types/WorkExperience'
 import type { Project } from '@/types/Project'
 import type { Education } from '@/types/Education'
-
 import HrProfileComponent from "@/views/hrProfile/HrProfile.vue";
+import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
 import { useMsal } from "../../composables/useMsal";
 import { loginRequest } from "../../utils/authConfig";
 import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser'
@@ -22,6 +22,7 @@ import { Modal } from 'bootstrap'
 export default {
   components: {
     HrProfileComponent,
+    AddHrProfileModal,
   },
   setup() {
   },
@@ -147,6 +148,9 @@ export default {
   },
   mounted() {
     this.getHrProfileList();
+  },
+  beforeUnmount() {
+    this.hideModal('hrProfileModal');
   },
   methods: {
     async getHrProfileList() {
@@ -315,6 +319,14 @@ export default {
       })
       modal.show();
     },
+    hideModal(modalId: string) {
+      const modalEl = document.getElementById(modalId);
+      if (!modalEl) return;
+      const modal = Modal.getOrCreateInstance(modalEl!, {
+        keyboard: false
+      })
+      modal.hide();
+    },
   }
 }
 </script>
@@ -336,7 +348,7 @@ export default {
       </div>
       <div class="col text-end">
         <button class="btn primary-btn" type="button"
-          @click="bsModalShow('hrProfileAddEditModal'); modalId = 'hrProfileAddEditModal'">
+          @click="bsModalShow('addHrProfileModal-profileManage'); modalId = 'addHrProfileModal-profileManage'">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New Resource
         </button>
@@ -414,105 +426,7 @@ export default {
     <BPagination v-if="hrProfileList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
       size="sm" />
   </div>
-  <div class="modal fade" id="hrProfileAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div v-loading="isModalLoading" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalLabel">New Profile</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="container">
-            <form class="form-inline">
-              <div class="row">
-                <label for="profile_title" class="col-sm-4 col-form-label">Profile Title</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="hrProfile.profile_title"
-                    :class="{ 'is-invalid': v$.hrProfile.profile_title.$error }" id="profile_title"
-                    placeholder="Enter Profile Title">
-                  <div class="invalid-feedback" v-for="error of v$.hrProfile.profile_title.$errors" :key="error.$uid">
-                    {{ error.$message }}
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <label for="first_name" class="col-sm-4 col-form-label">First Name</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="hrProfile.first_name" id="first_name"
-                    placeholder="Enter First Name">
-                </div>
-              </div>
-              <div class="row">
-                <label for="last_name" class="col-sm-4 col-form-label">Last Name</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="hrProfile.last_name" id="last_name"
-                    placeholder="Enter Last Name">
-                </div>
-              </div>
-              <div class="row">
-                <label for="email_id" class="col-sm-4 col-form-label">Email Id</label>
-                <div class="col-sm-8">
-                  <input type="email" class="form-control" v-model="hrProfile.email_id" id="email_id"
-                    :class="{ 'is-invalid': v$.hrProfile.email_id.$error }" placeholder="Enter Email Id">
-                  <div class="invalid-feedback" v-for="error of v$.hrProfile.email_id.$errors" :key="error.$uid">
-                    {{ error.$message }}
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <label for="mobile" class="col-sm-4 col-form-label">Contact Number</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="hrProfile.mobile" id="mobile"
-                    placeholder="Enter Contact Number">
-                </div>
-              </div>
-              <div class="row">
-                <label for="work_experience" class="col-sm-4 col-form-label">Experience</label>
-                <div class="col-sm-8">
-                  <div class="input-group">
-                    <input type="text" v-model="hrProfile.experience_year" class="form-control" placeholder="Enter Year"
-                      aria-label="experience_year">
-                    <span class="input-group-text">years</span>
-                    <input type="text" v-model="hrProfile.experience_month" class="form-control" placeholder="Enter Month"
-                      aria-label="experience_month">
-                    <span class="input-group-text">months</span>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <label for="skills" class="col-sm-4 col-form-label">Skills</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" @keyup.enter.prevent="addSkills" id="skills"
-                    placeholder="Enter Skills">
-                  <div class="mt-2">
-                    <span v-for="skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1">
-                      <span class="pe-1">{{ skill }}</span>
-                      <a href="#" class="d-inline-block " @click="removeSkill(skill)">
-                        <font-awesome-icon icon="fa-solid fa-xmark" />
-                      </a>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <!-- <div class="row">
-                                            <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
-                                            <div class="col-sm-6">
-                                              <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
-                                            </div>
-                                            <div class="col-sm-2">
-                                              <button type="button" class="btn btn-primary">Upload</button>
-                                            </div>
-                                          </div> -->
-            </form>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
-          <button type="button" @click="addHrProfile" class="btn primary-btn">Save</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <AddHrProfileModal id="addHrProfileModal-profileManage" />
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
   <InviteAdUsersModal v-if="showInviteUserModal" :accessToken="accessToken!" />

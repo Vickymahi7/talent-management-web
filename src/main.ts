@@ -32,6 +32,7 @@ import {
   faCamera,
   faShareFromSquare,
   faEye,
+  faEllipsisVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
@@ -62,7 +63,8 @@ library.add(
   faCamera,
   faShareFromSquare,
   faEnvelope,
-  faEye
+  faEye,
+  faEllipsisVertical
 );
 const accounts = msalInstance.getAllAccounts();
 if (accounts.length > 0) {

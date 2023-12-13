@@ -3,7 +3,7 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-size: $std-font-size;
   color: $text-color;
   background: $bg-color;
   margin-right: 1.5rem;
@@ -163,14 +163,18 @@ a {
 }
 
 .content-header {
-  color: $heading-color;
   font-size: 1.2em;
   font-weight: bold;
   flex: auto;
-  display: grid;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   padding-top: 0.35rem;
   padding-bottom: 0.35rem;
+
+  label {
+    color: $heading-color;
+  }
 
   .breadcrumb {
     margin: 0;
@@ -587,6 +591,16 @@ a {
       border-color: $secondary-btn-hover-border;
     }
   }
+}
+
+.hide-caret {
+  &.dropdown-toggle::after {
+    display: none !important;
+  }
+}
+
+.dropdown-item {
+  font-size: $std-font-size;
 }
 
 .dropdown-item:active {

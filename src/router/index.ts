@@ -48,7 +48,17 @@ const routes = [
     props: true,
     meta: {
       layout: StandardLayout,
-      accessedBy: [UserTypeId.ADM, UserTypeId.USR],
+      accessedBy: [UserTypeId.ADM],
+    },
+  },
+  {
+    path: "/userhrprofile",
+    name: "userhrprofile",
+    component: () => import("@/views/hrProfile/HrProfile.vue"),
+    props: true,
+    meta: {
+      layout: StandardLayout,
+      accessedBy: [UserTypeId.USR],
     },
   },
   {
