@@ -4,24 +4,24 @@ import type HrProfile from '@/types/HrProfile';
 import useVuelidate from '@vuelidate/core';
 import { email, required } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
-import { ref, reactive } from 'vue';
+import { ref } from 'vue';
 import { useToast } from 'vue-toastification';
-const props = defineProps({
+defineProps({
   id: { type: String, default: 'addHrProfileModal' },
   // hrProfile: { type: Object as PropType<HrProfile | undefined | null> },
 });
 const emit = defineEmits(['refreshParent']);
 
-const rules = {
+const validations = {
   hrProfile: {
     profile_title: { required },
     email_id: { required, email },
   }
 }
 
-const hrProfile = reactive({} as HrProfile);
+const hrProfile = ref({} as HrProfile);
 
-const v$ = useVuelidate(rules, { hrProfile });
+const v$ = useVuelidate(validations, { hrProfile });
 const toast = useToast();
 
 const isModalLoading = ref(false);
@@ -31,7 +31,7 @@ const addHrProfile = async () => {
     v$.value.hrProfile.$touch();
     if (!v$.value.hrProfile.$invalid) {
       isModalLoading.value = true;
-      const response: any = await axios.post('/hrprofile/add', hrProfile);
+      const response: any = await axios.post('/hrprofile/add', hrProfile.value);
 
       if (response.status == HttpStatusCode.Created) {
         toast.success(response.message);
@@ -49,19 +49,19 @@ const addHrProfile = async () => {
 
 const addSkills = (event: any) => {
   const skill = event.target.value as string;
-  hrProfile.skills = hrProfile.skills ?? [];
-  if (!hrProfile.skills.includes(skill)) {
-    hrProfile.skills.push(skill);
+  hrProfile.value.skills = hrProfile.value.skills ?? [];
+  if (!hrProfile.value.skills.includes(skill)) {
+    hrProfile.value.skills.push(skill);
     event.target.value = '';
   }
 }
 
 const removeSkill = (skill: string) => {
-  hrProfile.skills = hrProfile.skills?.filter(item => item != skill);
+  hrProfile.value.skills = hrProfile.value.skills?.filter(item => item != skill);
 }
 </script>
 <template>
-  <div class="modal fade" :id="props.id" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+  <div class="modal fade" :id="id" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div v-loading="isModalLoading" class="modal-content">
         <div class="modal-header">
@@ -155,7 +155,7 @@ const removeSkill = (skill: string) => {
         </div>
         <div class="modal-footer">
           <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
-          <button type="button" @click="addHrProfile" class="btn primary-btn">Save</button>
+          <button type="button" @click="addHrProfile" class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>

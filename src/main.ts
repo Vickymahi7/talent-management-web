@@ -35,7 +35,7 @@ import {
   faEllipsisVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
-import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
+import { faCopy, faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
 import DialogComponent from "./components/modals/DialogComponent.vue";
 import LoadingOverlay from "./components/LoadingOverlay.vue";
 import { msalPlugin } from "./plugins/msalPlugin";
@@ -64,7 +64,8 @@ library.add(
   faShareFromSquare,
   faEnvelope,
   faEye,
-  faEllipsisVertical
+  faEllipsisVertical,
+  faCopy
 );
 const accounts = msalInstance.getAllAccounts();
 if (accounts.length > 0) {

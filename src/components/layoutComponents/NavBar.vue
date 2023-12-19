@@ -1,19 +1,26 @@
-<script lang="ts">
+<script lang="ts" setup>
 import { USER_TYPES } from '@/utils/constants';
-export default {
-  computed: {
-    userName() {
-      return localStorage.getItem("userName") ?? '';
-    },
-    userType() {
-      const userTypeId = parseInt(localStorage.getItem("userTypeId") ?? '');
-      let userType = '';
-      if (userTypeId) {
-        userType = USER_TYPES.find(data => data.id === userTypeId)?.userType ?? '';
-      }
-      return userType;
-    },
+import { Moon, Sunny } from '@element-plus/icons-vue'
+import { computed, ref } from 'vue';
+
+const isDarkMode = ref(false);
+
+const userName = computed(() => {
+  return localStorage.getItem("userName") ?? '';
+});
+
+const userType = computed(() => {
+  const userTypeId = parseInt(localStorage.getItem("userTypeId") ?? '');
+  let result = '';
+  if (userTypeId) {
+    result = USER_TYPES.find(data => data.id === userTypeId)?.userType ?? '';
   }
+  return result;
+});
+
+const toggleMode = () => {
+  // isDarkMode.value = !isDarkMode.value;
+  document.body.classList.toggle('dark-mode', isDarkMode.value);
 }
 </script>
 <template>
@@ -27,6 +34,12 @@ export default {
     </button>
     <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
       <ul class="navbar-nav align-items-center">
+        <li class="nav-item">
+          <a class="nav-link" href="#">
+            <el-switch class="dark-mode-switch" v-model="isDarkMode" @change="toggleMode" :active-action-icon="Moon"
+              :inactive-action-icon="Sunny" />
+          </a>
+        </li>
         <li class="nav-item">
           <a class="nav-link" href="#">
             <div class="icon-btn">

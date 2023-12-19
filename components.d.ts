@@ -11,6 +11,7 @@ declare module 'vue' {
     BPagination: typeof import('bootstrap-vue-next')['BPagination']
     copy: typeof import('./src/components/modals/ResumePreviewModal copy.vue')['default']
     DialogComponent: typeof import('./src/components/modals/DialogComponent.vue')['default']
+    ElSwitch: typeof import('element-plus/es')['ElSwitch']
     HrProfileAddEditModal: typeof import('./src/components/modals/HrProfileAddEditModal.vue')['default']
     HrProfileModal: typeof import('./src/components/modals/HrProfileModal.vue')['default']
     InviteAdUsersModal: typeof import('./src/components/modals/InviteAdUsersModal.vue')['default']

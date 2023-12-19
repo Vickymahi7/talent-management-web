@@ -122,7 +122,7 @@ export default defineComponent({
         </div>
         <div class="modal-body" @scroll="handleScroll('scroller', !isModalLoading, 'getAdUserList')" ref="scroller">
           <!-- <div class="text-end mb-3">
-            <button type="button" class="btn primary-btn">
+            <button type="button" class="btn btn-primary">
               Invite
               <span v-if="inviteUserList.length > 0" class="badge bg-light text-dark"> {{ inviteUserList.length
               }}</span>
@@ -140,7 +140,7 @@ export default defineComponent({
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn primary-btn" @click="inviteAdUsers">
+          <button type="button" class="btn btn-primary" @click="inviteAdUsers">
             Invite
             <span v-if="inviteUserList.length > 0" class="badge bg-light text-dark"> {{ inviteUserList.length
             }}</span>

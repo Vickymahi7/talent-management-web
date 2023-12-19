@@ -182,7 +182,7 @@ export default {
   <div v-loading="isLoading" class="content-body content-card">
     <div class="row py-2">
       <div class="col text-end">
-        <button class="btn primary-btn mx-2" type="button"
+        <button class="btn btn-primary mx-2" type="button"
           @click="bsModalShow('tenantAddEditModal'); modalId = 'tenantAddEditModal'">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New Tenant
@@ -191,7 +191,7 @@ export default {
     </div>
     <div class="table-responsive">
       <table class="table table-borderless custom-table-style">
-        <thead class="table-dark">
+        <thead class="table-primary">
           <tr>
             <th scope="col" v-for="field in tenantFields" :key="field.key">{{ field.label }}</th>
           </tr>
@@ -304,7 +304,7 @@ export default {
         </div>
         <div class="modal-footer">
           <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
-          <button type="button" @click="addTenant" class="btn primary-btn">Save</button>
+          <button type="button" @click="addTenant" class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>

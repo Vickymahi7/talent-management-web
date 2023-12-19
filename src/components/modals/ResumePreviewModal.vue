@@ -38,7 +38,7 @@ export default {
           <template v-if="hrProfile">
             <div class="resume-template-header text-end mb-2 mx-auto">
               <a href="#" @click="print"><font-awesome-icon class="mx-2" icon="fa-solid fa-download" /></a>
-              <button class="btn primary-btn ms-2" type="button">
+              <button class="btn btn-primary ms-2" type="button">
                 <font-awesome-icon class="me-2" icon="fa-solid fa-envelope" />
                 Send Resume
               </button>

@@ -347,20 +347,20 @@ export default {
         </select>
       </div>
       <div class="col text-end">
-        <button class="btn primary-btn" type="button"
+        <button class="btn btn-primary" type="button"
           @click="bsModalShow('addHrProfileModal-profileManage'); modalId = 'addHrProfileModal-profileManage'">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
-          New Resource
+          New Profile
         </button>
-        <button v-if="userTypeId != UserTypeId.USR" class="btn primary-btn ms-2" type="button" @click="loginPopup">
+        <button v-if="userTypeId != UserTypeId.USR" class="btn btn-primary ms-2" type="button" @click="loginPopup">
           <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
-          Resource Excel Import
+          Profile Excel Import
         </button>
       </div>
     </div>
     <div class="table-responsive">
       <table class="table table-borderless custom-table-style">
-        <thead class="table-dark">
+        <thead class="table-primary">
           <tr>
             <th scope="col" v-for="field in hrProfileFields" :key="field.key">{{ field.label }}</th>
           </tr>

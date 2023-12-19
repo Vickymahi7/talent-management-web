@@ -45,15 +45,17 @@ const modalId = ref('');
 const deleteChildTitle = ref('');
 const profileCount = ref(0);
 
-const rules = {
+const validations = {
   hrProfile: {
     email_id: { required, email },
   }
 }
 
+const modalKey = ref(1);
 const hrProfileList = ref([] as HrProfile[]);
 
 const hrProfile = ref({} as HrProfile);
+const existingHrProfileData = ref({} as HrProfile);
 
 const workExperienceData = ref({
   company: '',
@@ -102,10 +104,10 @@ const dialogParam = ref({
 });
 
 const isEmptyProfile = computed(() => {
-  return !(profileCount.value > 0);
+  return !(profileCount.value > 0) && !props.id;
 })
 
-const v$ = useVuelidate(rules, { hrProfile });
+const v$ = useVuelidate(validations, { hrProfile });
 
 const userTypeId = computed(() => {
   const typeId = localStorage.getItem("userTypeId");
@@ -117,6 +119,21 @@ const getImageUrlWithTimestamp = computed(() => {
   const timestamp = new Date().getTime();
   return `${imageUrl}?timestamp=${timestamp}`;
 })
+
+const duplicateProfileTitle = computed(() => {
+  let baseTitle = hrProfile.value.profile_title || '';
+  let copyPattern = /\s-\sCopy(\(\d+\))?$/;
+
+  if (copyPattern.test(baseTitle)) {
+    let match = baseTitle.match(/\(\d+\)$/);
+    let copyCount = match ? parseInt(match[0].replace(/\D/g, ''), 10) + 1 : 1;
+
+    baseTitle = baseTitle.replace(copyPattern, ` - Copy(${copyCount})`);
+  } else {
+    baseTitle += ' - Copy';
+  }
+  return baseTitle;
+});
 
 onMounted(() => {
   refreshPageData();
@@ -150,7 +167,7 @@ const getHrProfileList = async () => {
     hrProfileList.value = response.hrProfileList as HrProfile[];
     profileCount.value = response.numFound;
     if (profileCount.value == 0) {
-      showModal('addHrProfileModal-hrProfile');
+      showHrProfileAddModal('addHrProfileModal-hrProfile');
       hrProfile.value = {};
     } else {
       hrProfile.value = hrProfileList.value[0];
@@ -195,6 +212,29 @@ const updateHrProfile = async (data: any) => {
     isModalLoading.value = false;
   }
 };
+const duplicateHrProfile = (id: string) => {
+  dialogParam.value.id = id;
+};
+const onYesDuplicateProfile = async () => {
+  let existingProfileTitle = hrProfile.value.profile_title;
+  try {
+    hrProfile.value.profile_title = duplicateProfileTitle.value;
+
+    isModalLoading.value = true;
+    const response: any = await axios.post('/hrprofile/add', hrProfile.value);
+
+    if (response.status == HttpStatusCode.Created) {
+      toast.success(response.message);
+      getHrProfileList();
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+    hrProfile.value.profile_title = existingProfileTitle;
+  }
+  finally {
+    isModalLoading.value = false;
+  }
+}
 const uploadProfilePhoto = async (event: any) => {
   const files = event.target.files
   try {
@@ -379,7 +419,12 @@ const showProfileChildItemEdit = (itemKey: string, itemData: HrProfileChilderen,
   }
   showModal(modalId.value);
 };
+const showHrProfileAddModal = (modId: string) => {
+  existingHrProfileData.value = hrProfile.value;
+  showModal(modId);
+}
 const showModal = (modId: string) => {
+  modalKey.value++;
   const modalEl = document.getElementById(modId);
   if (!modalEl) return;
   const modal = Modal.getOrCreateInstance(modalEl!, {
@@ -500,9 +545,9 @@ const onYesHrProfileDoc = async () => {
         </ol>
       </nav> -->
       <div class="d-flex">
-        <div v-if="hrProfileList.length > 1" class="dropdown">
-          <span class="badge bg-dark hide-caret cursor-pointer dropdown-toggle me-3" role="button"
-            id="dropdownMenuProfileSwitch" data-bs-toggle="dropdown" aria-expanded="false">
+        <div v-if="profileCount > 1" class="dropdown">
+          <span class="badge bg-primary hide-caret dropdown-toggle me-3" role="button" id="dropdownMenuProfileSwitch"
+            data-bs-toggle="dropdown" aria-expanded="false">
             Switch Profiles
           </span>
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuProfileSwitch">
@@ -514,15 +559,23 @@ const onYesHrProfileDoc = async () => {
           </ul>
         </div>
         <div class="dropdown">
-          <a class="hide-caret dropdown-toggle" href="#" id="dropdownMenuOptions" data-bs-toggle="dropdown"
+          <a class="me-3" href="#" title="Duplicate Profile"
+            data-bs-toggle="modal" data-bs-target="#duplicateProfileConfirmation">
+            <font-awesome-icon icon="fa-regular fa-copy" />
+          </a>
+          <a class="" href="#" @click="deleteHrProfile(hrProfile.id!)" data-bs-toggle="modal"
+            data-bs-target="#deleteHrProfile" title="Delete Profile">
+            <font-awesome-icon icon="fa-solid fa-trash" />
+          </a>
+          <!-- <a class="hide-caret dropdown-toggle" href="#" id="dropdownMenuOptions" data-bs-toggle="dropdown"
             aria-expanded="false">
             <font-awesome-icon icon="fa-solid fa-ellipsis-vertical" />
           </a>
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuOptions">
             <li>
-              <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addHrProfileModal-hrProfile">
-                <font-awesome-icon icon="fa-solid fa-plus-circle" class="me-2" />
-                Add New Profile
+              <a class="dropdown-item" href="#" @click="duplicateHrProfile">
+                <font-awesome-icon icon="fa-regular fa-copy" class="me-2" />
+                Duplicate Profile
               </a>
             </li>
             <li>
@@ -532,11 +585,15 @@ const onYesHrProfileDoc = async () => {
                 Delete Profile
               </a>
             </li>
-          </ul>
+          </ul> -->
         </div>
       </div>
     </div>
-    <button class="btn primary-btn ms-2" type="button" data-bs-toggle="modal" data-bs-target="#resumePreviewModal">
+    <button class="btn btn-primary ms-2" type="button" @click="showHrProfileAddModal('addHrProfileModal-hrProfile')">
+      <font-awesome-icon icon="fa-solid fa-plus-circle" class="me-2" />
+      Add New Profile
+    </button>
+    <button class="btn btn-primary ms-2" type="button" data-bs-toggle="modal" data-bs-target="#resumePreviewModal">
       <font-awesome-icon class="me-2" icon="fa-solid fa-download" />
       Resume Preview
     </button>
@@ -547,8 +604,7 @@ const onYesHrProfileDoc = async () => {
         <div class="mb-3">
           No Profile Found
         </div>
-        <button class="btn primary-btn ms-2" type="button" data-bs-toggle="modal"
-          data-bs-target="#addHrProfileModal-hrProfile">
+        <button class="btn btn-primary ms-2" type="button" @click="showHrProfileAddModal('addHrProfileModal-hrProfile')">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           Add New Profile
         </button>
@@ -646,16 +702,16 @@ const onYesHrProfileDoc = async () => {
                   </p>
                   <div class="text-end" :class="{ 'invisible': elements.primaryInfoEdit }">
                     <template v-if="hrProfile.resume_url">
-                      <a :href="hrProfile.resume_url" target="_blank" class="btn primary-btn ms-2 br-0" type="button">
+                      <a :href="hrProfile.resume_url" target="_blank" class="btn btn-primary ms-2 br-0" type="button">
                         Show
                       </a>
-                      <a href="#" class="btn primary-btn ms-2 br-0" type="button"
+                      <a href="#" class="btn btn-primary ms-2 br-0" type="button"
                         @click.prevent="deleteHrProfileResume(hrProfile.id!)" data-bs-toggle="modal"
                         data-bs-target="#deleteHrProfileResume">
                         Remove
                       </a>
                     </template>
-                    <button v-else @click="fileUploadBtnClick('resume-input')" class="btn primary-btn br-0" type="button">
+                    <button v-else @click="fileUploadBtnClick('resume-input')" class="btn btn-primary br-0" type="button">
                       Upload
                       <input type="file" id="resume-input" class="icon-upload-input" @input="uploadResume"
                         placeholder="Choose File">
@@ -793,7 +849,7 @@ const onYesHrProfileDoc = async () => {
             </h6>
             <div v-if="elements.noteEdit" class="note-input-group">
               <textarea name="" id="" v-model="hrProfile.note" class="form-control" rows="2"></textarea>
-              <!-- <button class="btn primary-btn d-block" type="button">
+              <!-- <button class="btn btn-primary d-block" type="button">
                         Add Note
                       </button> -->
             </div>
@@ -893,7 +949,7 @@ const onYesHrProfileDoc = async () => {
                   <p>No record found</p>
                 </div>
                 <div class="py-3">
-                  <button class="btn primary-btn br-0" type="button" data-bs-toggle="modal"
+                  <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
                     data-bs-target="#workExperienceAddEditModal"
                     @click="modalId = 'workExperienceAddEditModal'; elements.modalEdit = true">
                     Add Work Experience
@@ -935,7 +991,7 @@ const onYesHrProfileDoc = async () => {
                   <p>No record found</p>
                 </div>
                 <div class="py-3">
-                  <button class="btn primary-btn br-0" type="button" data-bs-toggle="modal"
+                  <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
                     data-bs-target="#educationAddEditModal"
                     @click="modalId = 'educationAddEditModal'; elements.modalEdit = true">
                     Add Education
@@ -984,7 +1040,7 @@ const onYesHrProfileDoc = async () => {
                   <p>No Projects found</p>
                 </div>
                 <div class="py-3">
-                  <button class="btn primary-btn br-0" type="button" data-bs-toggle="modal"
+                  <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
                     data-bs-target="#projectAddEditModal"
                     @click="modalId = 'projectAddEditModal'; elements.modalEdit = true">
                     Add Project
@@ -1117,15 +1173,15 @@ const onYesHrProfileDoc = async () => {
                         class="form-control form-control-sm" placeholder="Choose a file">
                     </div>
                     <div class="col-4">
-                      <button class="btn primary-btn br-0 me-2" type="button" @click="uploadDocument">
+                      <button class="btn btn-primary br-0 me-2" type="button" @click="uploadDocument">
                         Save
                       </button>
-                      <button class="btn primary-btn br-0" type="button" @click="elements.tabItemEdit = false">
+                      <button class="btn btn-primary br-0" type="button" @click="elements.tabItemEdit = false">
                         Cancel
                       </button>
                     </div>
                   </div>
-                  <button v-if="!elements.tabItemEdit" class="btn primary-btn br-0" type="button"
+                  <button v-if="!elements.tabItemEdit" class="btn btn-primary br-0" type="button"
                     @click="elements.tabItemEdit = true">
                     Add Document
                   </button>
@@ -1185,7 +1241,7 @@ const onYesHrProfileDoc = async () => {
         </div>
         <div class="modal-footer">
           <button type="button" @click="updateProfileChildItems(workExperienceData, 'work_experience')"
-            class="btn primary-btn">Save</button>
+            class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>
@@ -1238,7 +1294,7 @@ const onYesHrProfileDoc = async () => {
         </div>
         <div class="modal-footer">
           <button type="button" @click="updateProfileChildItems(educationData, 'education')"
-            class="btn primary-btn">Save</button>
+            class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>
@@ -1298,13 +1354,14 @@ const onYesHrProfileDoc = async () => {
         </div>
         <div class="modal-footer">
           <button type="button" @click="updateProfileChildItems(projectData, 'project')"
-            class="btn primary-btn">Save</button>
+            class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>
   </div>
   <ResumePreviewModal :hrProfile="hrProfile" />
-  <AddHrProfileModal id="addHrProfileModal-hrProfile" @refreshParent="refreshPageData" />
+  <AddHrProfileModal id="addHrProfileModal-hrProfile" :key="'addHrProfileModal' + modalKey"
+    :hrProfile="existingHrProfileData" @refreshParent="refreshPageData" />
   <dialog-component id="removeProfileChildItem" :onYes="onYesProfileChildItemDelete" :returnParams="dialogParam"
     title="Delete Confirmation" :message="`Are you sure to delete ${deleteChildTitle} info?`" />
   <dialog-component id="deleteHrProfileResume" :onYes="onYesHrProfileResume" :returnParams="dialogParam"
@@ -1313,4 +1370,6 @@ const onYesHrProfileDoc = async () => {
     title="Delete Confirmation" :message="`Are you sure to delete Document`" />
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
+  <dialog-component id="duplicateProfileConfirmation" :onYes="onYesDuplicateProfile" :returnParams="dialogParam"
+    title="Create Duplicate Profile" message="Are you sure you want to create a copy of this profile?" />
 </template>

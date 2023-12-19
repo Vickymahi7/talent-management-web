@@ -123,7 +123,7 @@ export default {
             </div>
           </div>
           <div class="text-center mt-3">
-            <button class="btn primary-btn" type="submit" @click.prevent="activateUser">
+            <button class="btn btn-primary" type="submit" @click.prevent="activateUser">
               Save
             </button>
           </div>

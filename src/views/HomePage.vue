@@ -85,7 +85,7 @@ export default {
             </div>
           </div>
           <div class="text-center">
-            <button class="btn primary-btn" type="submit" @click.prevent="loginUser()">
+            <button class="btn btn-primary" type="submit" @click.prevent="loginUser()">
               Login
             </button>
           </div>

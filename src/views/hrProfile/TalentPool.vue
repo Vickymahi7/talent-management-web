@@ -106,7 +106,7 @@ export default {
     </div>
     <div class="table-responsive">
       <table class="table table-borderless custom-table-style">
-        <thead class="table-dark">
+        <thead class="table-primary">
           <tr>
             <th scope="col">
               <input class="form-check-input" type="checkbox">
