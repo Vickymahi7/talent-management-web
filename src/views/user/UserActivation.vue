@@ -1,7 +1,7 @@
 <script lang="ts">
 import axios from '@/plugins/axios'
 import useVuelidate from '@vuelidate/core';
-import { required, minLength, sameAs } from '@vuelidate/validators'
+import { required, minLength, sameAs, helpers } from '@vuelidate/validators'
 import { HttpStatusCode } from 'axios';
 import { useToast } from 'vue-toastification';
 export default {
@@ -30,11 +30,14 @@ export default {
   validations() {
     return {
       user: {
-        password: { required, minLength: minLength(6), },
+        password: {
+          required: helpers.withMessage('Password is required', required),
+          minLength: helpers.withMessage(({ $params }) =>
+            `Password must have a minimum length of ${$params.min} characters`, minLength(6)),
+        },
         confirm_password: {
-          required,
-          minLength: minLength(6),
-          sameAsPassword: sameAs(this.user.password),
+          required: helpers.withMessage('Please confirm your password', required),
+          sameAsPassword: helpers.withMessage('Passwords does not match', sameAs(this.user.password)),
         }
       }
     }

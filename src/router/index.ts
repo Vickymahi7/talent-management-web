@@ -67,7 +67,7 @@ const routes = [
     component: () => import("@/views/hrProfile/HrProfileManagement.vue"),
     meta: {
       layout: StandardLayout,
-      accessedBy: [UserTypeId.ADM, UserTypeId.USR],
+      accessedBy: [UserTypeId.ADM],
     },
   },
   {

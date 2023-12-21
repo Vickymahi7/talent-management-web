@@ -4,8 +4,9 @@ const SUPER_ADMIN_MENU = [
   {
     id: 1,
     name: "Manage",
-    subMenu: [{ id: 101, name: "Tenant Management", routeName: "tenantmanagement" },
-    { id: 102, name: "User Management", routeName: "usermanagement" },
+    subMenu: [
+      { id: 101, name: "Tenant Management", routeName: "tenantmanagement" },
+      { id: 102, name: "User Management", routeName: "usermanagement" },
     ]
   },
 ];
@@ -13,8 +14,10 @@ const ADMIN_MENU = [
   {
     id: 1,
     name: "Manage",
-    subMenu: [{ id: 101, name: "User Management", routeName: "usermanagement" },
-    { id: 102, name: "Manage HR Profile", routeName: "hrprofilemanagement" },]
+    subMenu: [
+      { id: 101, name: "User Management", routeName: "usermanagement" },
+      { id: 102, name: "Manage HR Profile", routeName: "hrprofilemanagement" },
+    ]
   },
   {
     id: 2,
@@ -26,7 +29,7 @@ const USER_MENU = [
   {
     id: 1,
     name: "Manage",
-    subMenu: [{ id: 101, name: "Manage HR Profile", routeName: "hrprofilemanagement" },]
+    subMenu: [{ id: 101, name: "Manage Profile", routeName: "userhrprofile" },]
   },
 ];
 export default {

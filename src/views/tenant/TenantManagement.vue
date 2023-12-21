@@ -1,6 +1,6 @@
 <script lang="ts">
 import { useVuelidate } from '@vuelidate/core'
-import { required, email } from '@vuelidate/validators'
+import { required, email, helpers } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { HttpStatusCode } from 'axios'
@@ -70,9 +70,16 @@ export default {
   validations() {
     return {
       tenant: {
-        name: { required },
-        user_name: { required },
-        email_id: { required, email },
+        name: {
+          required: helpers.withMessage('Tenant Name required', required),
+        },
+        user_name: {
+          required: helpers.withMessage('Primary User Name is required', required),
+        },
+        email_id: {
+          required: helpers.withMessage('Email ID is required', required),
+          email: helpers.withMessage('Enter a valid Email ID', email),
+        },
       }
     }
   },

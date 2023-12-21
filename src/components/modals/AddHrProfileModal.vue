@@ -1,25 +1,81 @@
 <script lang="ts" setup>
 import axios from '@/plugins/axios';
+import type { Docs } from '@/types/Docs';
+import type { Education } from '@/types/Education';
 import type HrProfile from '@/types/HrProfile';
+import type { Project } from '@/types/Project';
+import type { WorkExperience } from '@/types/WorkExperience';
 import useVuelidate from '@vuelidate/core';
-import { email, required } from '@vuelidate/validators';
+import { email, helpers, required } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
 import { ref } from 'vue';
 import { useToast } from 'vue-toastification';
 defineProps({
   id: { type: String, default: 'addHrProfileModal' },
-  // hrProfile: { type: Object as PropType<HrProfile | undefined | null> },
 });
 const emit = defineEmits(['refreshParent']);
 
 const validations = {
   hrProfile: {
-    profile_title: { required },
-    email_id: { required, email },
+    profile_title: {
+      required: helpers.withMessage('Profile Title is required', required),
+    },
+    email_id: {
+      required: helpers.withMessage('Email ID is required', required),
+      email: helpers.withMessage('Enter a valid Email ID', email),
+    },
   }
 }
 
-const hrProfile = ref({} as HrProfile);
+const hrProfile = ref({
+  id: '',
+  hr_profile_id: '',
+  tenant_id: '',
+  hr_profile_type_id: '',
+  profile_title: '',
+  first_name: '',
+  last_name: '',
+  middle_name: '',
+  email_id: '',
+  alternate_email_id: '',
+  mobile: '',
+  alternate_mobile: '',
+  phone: '',
+  office_phone: '',
+  location: '',
+  ctc: '',
+  experience_month: null,
+  experience_year: null,
+  objective: '',
+  note: '',
+  gender: '',
+  date_of_birth: '',
+  resume_url: '',
+  photo_url: '',
+  buiding_number: '',
+  street_name: '',
+  city: '',
+  state: '',
+  country: '',
+  postal_code: '',
+  website: '',
+  facebook_id: '',
+  twitter_id: '',
+  linkedin_id: '',
+  skype_id: '',
+  status: '',
+  status_id: null,
+  user_id: '',
+  active: true,
+  created_by_id: '',
+  created_dt: null,
+  last_updated_dt: null,
+  skills: [] as string[],
+  work_experience: [] as WorkExperience[],
+  project: [] as Project[],
+  education: [] as Education[],
+  docs: [] as Docs[],
+} as HrProfile);
 
 const v$ = useVuelidate(validations, { hrProfile });
 const toast = useToast();
@@ -48,7 +104,7 @@ const addHrProfile = async () => {
 }
 
 const addSkills = (event: any) => {
-  const skill = event.target.value as string;
+  const skill = event.target.value.trim();
   hrProfile.value.skills = hrProfile.value.skills ?? [];
   if (!hrProfile.value.skills.includes(skill)) {
     hrProfile.value.skills.push(skill);
@@ -142,14 +198,14 @@ const removeSkill = (skill: string) => {
                 </div>
               </div>
               <!-- <div class="row">
-                                            <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
-                                            <div class="col-sm-6">
-                                              <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
-                                            </div>
-                                            <div class="col-sm-2">
-                                              <button type="button" class="btn btn-primary">Upload</button>
-                                            </div>
-                                          </div> -->
+                    <label for="resumeInput" class="col-sm-4 col-form-label">Resume Attachment</label>
+                    <div class="col-sm-6">
+                      <input type="file" class="form-control" id="resumeInput" placeholder="Add Resume Attachment">
+                    </div>
+                    <div class="col-sm-2">
+                      <button type="button" class="btn btn-primary">Upload</button>
+                    </div>
+                  </div> -->
             </form>
           </div>
         </div>

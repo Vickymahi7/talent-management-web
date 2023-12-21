@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
-import { required, email } from '@vuelidate/validators'
+import { required, email, helpers } from '@vuelidate/validators'
 import { Modal } from 'bootstrap'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
@@ -21,8 +21,11 @@ import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
 const props = defineProps({
   id: String
 });
+const toast = useToast();
+
 const elements = ref({
   titleEdit: false,
+  nameEdit: false,
   primaryInfoEdit: false,
   personalInfoEdit: false,
   aboutInfoEdit: false,
@@ -33,8 +36,7 @@ const elements = ref({
   modalEdit: false,
 });
 
-const toast = useToast();
-
+const profileTItleRef = ref<HTMLInputElement | null>(null);
 const isLoading = ref(false);
 const isModalLoading = ref(false);
 
@@ -47,11 +49,13 @@ const profileCount = ref(0);
 
 const validations = {
   hrProfile: {
-    email_id: { required, email },
+    email_id: {
+      required: helpers.withMessage('Email ID is required', required),
+      email: helpers.withMessage('Enter a valid Email ID', email),
+    },
   }
 }
 
-const modalKey = ref(1);
 const hrProfileList = ref([] as HrProfile[]);
 
 const hrProfile = ref({} as HrProfile);
@@ -192,6 +196,7 @@ const updateHrProfile = async (data: any) => {
         toast.success(response.message);
         refreshPageData();
         elements.value.titleEdit = false;
+        elements.value.nameEdit = false;
         elements.value.primaryInfoEdit = false;
         elements.value.personalInfoEdit = false;
         elements.value.aboutInfoEdit = false;
@@ -211,9 +216,6 @@ const updateHrProfile = async (data: any) => {
     isLoading.value = false;
     isModalLoading.value = false;
   }
-};
-const duplicateHrProfile = (id: string) => {
-  dialogParam.value.id = id;
 };
 const onYesDuplicateProfile = async () => {
   let existingProfileTitle = hrProfile.value.profile_title;
@@ -335,6 +337,7 @@ const clearDocData = () => {
 const updateTitleInfo = () => {
   const data = {
     profile_title: hrProfile.value.profile_title,
+    position: hrProfile.value.position,
     first_name: hrProfile.value.first_name,
     last_name: hrProfile.value.last_name,
   }
@@ -394,7 +397,7 @@ const updateProfileChildItems = (itemData: any, itemKey: string) => {
   updateHrProfile(data);
 };
 const addSkills = (event: any) => {
-  const skill = event.target.value;
+  const skill = event.target.value.trim();
   hrProfile.value.skills = hrProfile.value.skills ?? [];
   if (!hrProfile.value.skills.includes(skill)) {
     hrProfile.value.skills.push(skill);
@@ -424,7 +427,6 @@ const showHrProfileAddModal = (modId: string) => {
   showModal(modId);
 }
 const showModal = (modId: string) => {
-  modalKey.value++;
   const modalEl = document.getElementById(modId);
   if (!modalEl) return;
   const modal = Modal.getOrCreateInstance(modalEl!, {
@@ -534,16 +536,32 @@ const onYesHrProfileDoc = async () => {
 </script>
 <template>
   <div v-if="!isEmptyProfile" class="d-flex card-gap-mb">
-    <div class="content-card content-header">
-      <label class="d-inline-block">{{ hrProfile.first_name }} - {{ hrProfile.profile_title }}</label>
+    <div :class="{ 'visually-hidden-focusable': !elements.titleEdit }"
+      class="content-card content-header justify-content-start">
+      <input type="text" ref="profileTItleRef" class="form-control py-1 d-inline-block w-25"
+        v-model="hrProfile.profile_title" placeholder="Profile Title">
+      <div class="d-inline-flex">
+        <span class="icon-btn mx-1" @click="updateTitleInfo">
+          <font-awesome-icon icon="fa-solid fa-check" />
+        </span>
+        <span class="icon-btn" @click="elements.titleEdit = false">
+          <font-awesome-icon icon="fa-solid fa-xmark" />
+        </span>
+      </div>
+    </div>
+    <div v-if="!elements.titleEdit" class="content-card content-header">
+      <span>
+        <label class="d-inline-block me-2">My Profile - {{ hrProfile.profile_title }} </label>
+        <font-awesome-icon icon="fa-solid fa-pencil-alt" @click="elements.titleEdit = true; profileTItleRef!.focus();" />
+      </span>
       <!-- <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item">
-            <router-link :to="{ name: 'hrprofilemanagement' }">Manage HR Profile</router-link>
-          </li>
-          <li class="breadcrumb-item active" aria-current="page">Profile - {{ hrProfile.first_name }}</li>
-        </ol>
-      </nav> -->
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <router-link :to="{ name: 'hrprofilemanagement' }">Manage HR Profile</router-link>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Profile - {{ hrProfile.first_name }}</li>
+          </ol>
+        </nav> -->
       <div class="d-flex">
         <div v-if="profileCount > 1" class="dropdown">
           <span class="badge bg-primary hide-caret dropdown-toggle me-3" role="button" id="dropdownMenuProfileSwitch"
@@ -559,33 +577,14 @@ const onYesHrProfileDoc = async () => {
           </ul>
         </div>
         <div class="dropdown">
-          <a class="me-3" href="#" title="Duplicate Profile"
-            data-bs-toggle="modal" data-bs-target="#duplicateProfileConfirmation">
+          <a class="me-3" href="#" title="Duplicate Profile" data-bs-toggle="modal"
+            data-bs-target="#duplicateProfileConfirmation">
             <font-awesome-icon icon="fa-regular fa-copy" />
           </a>
           <a class="" href="#" @click="deleteHrProfile(hrProfile.id!)" data-bs-toggle="modal"
             data-bs-target="#deleteHrProfile" title="Delete Profile">
             <font-awesome-icon icon="fa-solid fa-trash" />
           </a>
-          <!-- <a class="hide-caret dropdown-toggle" href="#" id="dropdownMenuOptions" data-bs-toggle="dropdown"
-            aria-expanded="false">
-            <font-awesome-icon icon="fa-solid fa-ellipsis-vertical" />
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="dropdownMenuOptions">
-            <li>
-              <a class="dropdown-item" href="#" @click="duplicateHrProfile">
-                <font-awesome-icon icon="fa-regular fa-copy" class="me-2" />
-                Duplicate Profile
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#" @click="deleteHrProfile(hrProfile.id!)" data-bs-toggle="modal"
-                data-bs-target="#deleteHrProfile">
-                <font-awesome-icon icon="fa-solid fa-trash" class="me-2" />
-                Delete Profile
-              </a>
-            </li>
-          </ul> -->
         </div>
       </div>
     </div>
@@ -614,15 +613,15 @@ const onYesHrProfileDoc = async () => {
       <div class="profile-head">
         <div class="profile-media content-card">
           <div class="align-self-end">
-            <span v-if="elements.titleEdit">
-              <span class="icon-btn float-end" @click="elements.titleEdit = false">
+            <span v-if="elements.nameEdit">
+              <span class="icon-btn float-end" @click="elements.nameEdit = false">
                 <font-awesome-icon icon="fa-solid fa-xmark" />
               </span>
               <span class="icon-btn float-end me-1" @click="updateTitleInfo">
                 <font-awesome-icon icon="fa-solid fa-check" />
               </span>
             </span>
-            <span v-else class="icon-btn float-end" @click="elements.titleEdit = true">
+            <span v-else class="icon-btn float-end" @click="elements.nameEdit = true">
               <font-awesome-icon icon="fa-solid fa-pencil-alt" />
             </span>
           </div>
@@ -635,16 +634,16 @@ const onYesHrProfileDoc = async () => {
             </span>
           </div>
           <div class="title-block">
-            <div v-if="elements.titleEdit">
+            <div v-if="elements.nameEdit">
               <input type="text" class="form-control form-control-sm d-inline-block w-50" v-model="hrProfile.first_name"
                 placeholder="First Name">
               <input type="text" class="form-control form-control-sm d-inline-block w-50" v-model="hrProfile.last_name"
                 placeholder="Last Name">
             </div>
             <p v-else class="title-text">{{ hrProfile.first_name }} {{ hrProfile.last_name }}</p>
-            <input v-if="elements.titleEdit" type="text" class="form-control form-control-sm"
-              v-model="hrProfile.profile_title" placeholder="Profile Title">
-            <p v-else>{{ hrProfile.profile_title }}</p>
+            <input v-if="elements.nameEdit" type="text" class="form-control form-control-sm" v-model="hrProfile.position"
+              placeholder="Position">
+            <p v-else>{{ hrProfile.position }}</p>
           </div>
         </div>
         <div class="profile-prime-info content-card">
@@ -1218,6 +1217,13 @@ const onYesHrProfileDoc = async () => {
                 </div>
               </div>
               <div class="row">
+                <label for="location" class="col-sm-4 col-form-label">Location</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="workExperienceData.location" id="location"
+                    placeholder="Enter Location">
+                </div>
+              </div>
+              <div class="row">
                 <label for="start_date" class="col-sm-4 col-form-label">Start Date</label>
                 <div class="col-sm-8">
                   <input type="date" class="form-control" v-model="workExperienceData.start_date" id="start_date">
@@ -1261,6 +1267,13 @@ const onYesHrProfileDoc = async () => {
                 <div class="col-sm-8">
                   <input type="text" class="form-control" v-model="educationData.university" id="university"
                     placeholder="Enter School / College Name">
+                </div>
+              </div>
+              <div class="row">
+                <label for="location" class="col-sm-4 col-form-label">Location</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" v-model="educationData.location" id="location"
+                    placeholder="Enter Location">
                 </div>
               </div>
               <div class="row">
@@ -1360,8 +1373,8 @@ const onYesHrProfileDoc = async () => {
     </div>
   </div>
   <ResumePreviewModal :hrProfile="hrProfile" />
-  <AddHrProfileModal id="addHrProfileModal-hrProfile" :key="'addHrProfileModal' + modalKey"
-    :hrProfile="existingHrProfileData" @refreshParent="refreshPageData" />
+  <AddHrProfileModal id="addHrProfileModal-hrProfile" :hrProfile="existingHrProfileData"
+    @refreshParent="refreshPageData" />
   <dialog-component id="removeProfileChildItem" :onYes="onYesProfileChildItemDelete" :returnParams="dialogParam"
     title="Delete Confirmation" :message="`Are you sure to delete ${deleteChildTitle} info?`" />
   <dialog-component id="deleteHrProfileResume" :onYes="onYesHrProfileResume" :returnParams="dialogParam"

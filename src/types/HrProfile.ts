@@ -12,6 +12,7 @@ export default interface HrProfile {
   first_name?: string;
   last_name?: string;
   middle_name?: string;
+  position?: string;
   email_id?: string;
   alternate_email_id?: string;
   mobile?: string;
@@ -45,7 +46,7 @@ export default interface HrProfile {
   user_id?: string;
   active?: true;
   created_by_id?: string;
-  created_dt?: string;
+  created_dt?: Date | null;
   last_updated_dt?: Date | null;
   skills?: string[];
   work_experience?: WorkExperience[];

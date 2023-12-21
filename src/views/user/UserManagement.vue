@@ -1,6 +1,6 @@
-<script lang="ts">
+<script lang="ts" setup>
 import { useVuelidate } from '@vuelidate/core'
-import { required, email } from '@vuelidate/validators'
+import { required, email, helpers } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { HttpStatusCode } from 'axios'
@@ -8,201 +8,195 @@ import { USER_TYPES, ACCOUNT_STATUS } from '@/utils/constants'
 import { UserTypeId } from '@/utils/enums'
 import { formatDate } from '@/utils/dateFormats'
 import { getUserStatusById, getUserTypeById, bsModalHide, bsModalShow } from '@/utils/commonFunctions'
-export default {
-  data() {
-    return {
-      v$: useVuelidate(),
-      toast: useToast(),
-      formatDate: formatDate,
-      getUserStatusById: getUserStatusById,
-      getUserTypeById: getUserTypeById,
-      bsModalHide: bsModalHide,
-      bsModalShow: bsModalShow,
+import { computed, onMounted, ref } from 'vue'
+const toast = useToast();
 
-      isLoading: false,
-      isModalLoading: false,
-      editId: null as number | null,
-      editKey: null as string | null,
-      editValue: null as string | null,
+const isLoading = ref(false);
+const isModalLoading = ref(false);
+const editId = ref(null as number | null);
+const editKey = ref(null as string | null);
+const editValue = ref(null as string | null);
 
-      modalId: '',
-      user: {
-        user_id: null,
-        user_type_id: null,
-        user_name: null,
-        email_id: null,
-        phone: null,
-        user_status_id: null,
-      },
+const modalId = ref('');
+const user = ref({
+  user_id: null,
+  user_type_id: null,
+  user_name: null,
+  email_id: null,
+  phone: null,
+  user_status_id: null,
+});
 
-      userList: [],
-      userFields: [
-        { key: 'user_id', label: 'ID' },
-        { key: 'user_name', label: 'User Name', isEditable: true },
-        { key: 'email_id', label: 'Email ID', isEditable: true },
-        { key: 'user_type_id', label: 'User Type', isEditable: true },
-        { key: 'active', label: 'Active' },
-        { key: 'user_status_id', label: 'Status', isEditable: true },
-        { key: 'last_updated_dt', label: 'Last Updated' },
-        { key: 'actions', label: 'Action' },
-      ],
-      accountStatus: ACCOUNT_STATUS,
+const userList = ref([]);
+const userFields = ref([
+  { key: 'user_id', label: 'ID' },
+  { key: 'user_name', label: 'Display Name', isEditable: true },
+  { key: 'email_id', label: 'Email ID', isEditable: true },
+  { key: 'user_type_id', label: 'User Type', isEditable: true },
+  { key: 'active', label: 'Active' },
+  { key: 'user_status_id', label: 'Status', isEditable: true },
+  { key: 'last_updated_dt', label: 'Last Updated' },
+  { key: 'actions', label: 'Action' },
+]);
 
-      dialogParam: {
-        id: 0,
-      },
+const dialogParam = ref({
+  id: 0,
+});
 
-      totalRows: 1,
-      currentPage: 1,
-      perPage: 10,
-    }
-  },
-  computed: {
-    userTypeId() {
-      const userTypeId
-        = localStorage.getItem("userTypeId");
-      return userTypeId ? parseInt(userTypeId) : null;
-    },
-    userTypeList() {
-      if (this.userTypeId == UserTypeId.SAD) {
-        return USER_TYPES.filter(data => data.id == UserTypeId.SAD);
-      }
-      else {
-        return USER_TYPES.filter(data => data.id != UserTypeId.SAD);
-      }
-    },
-    filteredUserList(): any {
-      const startIndex = (this.currentPage - 1) * this.perPage;
-      const endIndex = startIndex + this.perPage;
-      return this.userList.slice(startIndex, endIndex);
-    },
-  },
-  validations() {
-    return {
-      user: {
-        user_name: { required },
-        email_id: { required, email },
-        user_type_id: { required },
-      }
-    }
-  },
-  mounted() {
-    this.getUserList();
-  },
-  methods: {
-    async getUserList() {
-      try {
-        this.isLoading = true;
-        const response: any = await axios.get('/user/list')
-        this.userList = response.userList;
-        this.totalRows = this.userList.length;
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    async addUser() {
-      try {
-        this.v$.user.$touch();
-        if (!this.v$.user.$invalid) {
-          this.isModalLoading = true;
-          const response: any = await axios.post('/user/add', this.user);
-          if (response.status == HttpStatusCode.Created) {
-            this.toast.success(response.message);
-            this.getUserList();
-            this.bsModalHide(this.modalId);
-          }
-        }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isModalLoading = false;
-      }
-    },
-    async updateUser(userData: any, updateKey: string) {
-      try {
-        // this.v$.user.$touch();
-        // if (!this.v$.user.$invalid) {
-        const data: any = {}
-        data.user_id = userData.user_id;
-        data.user_name = userData.user_name;
-        data.email_id = userData.email_id;
-        data[updateKey] = userData[updateKey];
-        this.isLoading = true;
-        const response: any = await axios.patch('/user/update', data);
-        if (response.status == HttpStatusCode.Ok) {
-          this.toast.success(response.message);
-          this.getUserList();
-          this.editId = null;
-          this.editKey = null;
-          this.editValue = null;
-          // this.bsModalHide();
-        }
-        // }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    deleteUser: function (id: number) {
-      this.dialogParam.id = id;
-    },
-    async onYesUser() {
-      try {
-        this.isLoading = true;
-        const response: any = await axios.delete('/user/delete/' + this.dialogParam.id)
-        if (response.status == HttpStatusCode.Ok) {
-          this.toast.success(response.message);
-          this.getUserList();
-        }
+const totalRows = ref(1);
+const currentPage = ref(1);
+const perPage = ref(10);
 
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    resendActivationMail: function (id: number) {
-      this.dialogParam.id = id;
-    },
-    async onYesConfirmation() {
-      try {
-        this.isLoading = true;
-        const response: any = await axios.post('/user/resendactivation/' + this.dialogParam.id)
-        if (response.status == HttpStatusCode.Ok) {
-          this.toast.success(response.message);
-          this.getUserList();
-        }
-
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    handleTableCellClick(field: any, item: any) {
-      if (field.isEditable) {
-        this.editId = item.user_id;
-        this.editKey = field.key;
-        this.editValue = item[field.key];
-      }
-    },
-    cancelInlineEdit(item: any, field: any) {
-      item[field.key] = this.editValue;
-
-      this.editId = null;
-      this.editKey = null;
-      this.editValue = null;
-      this.getUserList();
-    }
+const userTypeId = computed(() => {
+  const userTypeId
+    = localStorage.getItem("userTypeId");
+  return userTypeId ? parseInt(userTypeId) : null;
+});
+const userTypeList = computed(() => {
+  if (userTypeId.value == UserTypeId.SAD) {
+    return USER_TYPES.filter(data => data.id == UserTypeId.SAD);
   }
+  else {
+    return USER_TYPES.filter(data => data.id != UserTypeId.SAD);
+  }
+});
+const filteredUserList = computed((): any => {
+  const startIndex = (currentPage.value - 1) * perPage.value;
+  const endIndex = startIndex + perPage.value;
+  return userList.value.slice(startIndex, endIndex);
+});
+
+const validations = {
+  user: {
+    user_name: {
+      required: helpers.withMessage('Display Name is required', required),
+    },
+    email_id: {
+      required: helpers.withMessage('Email ID is required', required),
+      email: helpers.withMessage('Enter a valid Email ID', email),
+    },
+    user_type_id: {
+      required: helpers.withMessage('User Type is required', required),
+    },
+  }
+};
+const v$ = useVuelidate(validations, { user });
+
+onMounted(() => {
+  getUserList();
+});
+
+const getUserList = async () => {
+  try {
+    isLoading.value = true;
+    const response: any = await axios.get('/user/list')
+    userList.value = response.userList;
+    totalRows.value = userList.value.length;
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+}
+const addUser = async () => {
+  try {
+    v$.value.user.$touch();
+    if (!v$.value.user.$invalid) {
+      isModalLoading.value = true;
+      const response: any = await axios.post('/user/add', user);
+      if (response.status == HttpStatusCode.Created) {
+        toast.success(response.message);
+        getUserList();
+        bsModalHide(modalId.value);
+      }
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isModalLoading.value = false;
+  }
+}
+const updateUser = async (userData: any, updateKey: string) => {
+  try {
+    // v$.user.$touch();
+    // if (!v$.user.$invalid) {
+    const data: any = {}
+    data.user_id = userData.user_id;
+    data.user_name = userData.user_name;
+    data.email_id = userData.email_id;
+    data[updateKey] = userData[updateKey];
+    isLoading.value = true;
+    const response: any = await axios.patch('/user/update', data);
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getUserList();
+      editId.value = null;
+      editKey.value = null;
+      editValue.value = null;
+      // bsModalHide();
+    }
+    // }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+}
+const deleteUser = (id: number) => {
+  dialogParam.value.id = id;
+}
+const onYesUser = async () => {
+  try {
+    isLoading.value = true;
+    const response: any = await axios.delete('/user/delete/' + dialogParam.value.id)
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getUserList();
+    }
+
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+}
+const resendActivationMail = (id: number) => {
+  dialogParam.value.id = id;
+}
+const onYesConfirmation = async () => {
+  try {
+    isLoading.value = true;
+    const response: any = await axios.post('/user/resendactivation/' + dialogParam.value.id)
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getUserList();
+    }
+
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+}
+const handleTableCellClick = (field: any, item: any) => {
+  if (field.isEditable) {
+    editId.value = item.user_id;
+    editKey.value = field.key;
+    editValue.value = item[field.key];
+  }
+}
+const cancelInlineEdit = (item: any, field: any) => {
+  item[field.key] = editValue;
+
+  editId.value = null;
+  editKey.value = null;
+  editValue.value = null;
+  getUserList();
 }
 </script>
 <template>
@@ -264,7 +258,7 @@ export default {
                   v-model="item[field.key]" @change="updateUser(item, field.key)"
                   @blur="cancelInlineEdit(item, field.key)" :aria-label="field.label">
                   <option :value="null">Select</option>
-                  <option v-for="info in accountStatus" :key="info.id" :value="info.id">{{ info.status }}</option>
+                  <option v-for="info in ACCOUNT_STATUS" :key="info.id" :value="info.id">{{ info.status }}</option>
                 </select>
                 <span v-else>{{ getUserStatusById(item[field.key]) }}</span>
               </template>
@@ -301,10 +295,10 @@ export default {
           <div class="container">
             <form class="form-inline">
               <div class="row">
-                <label for="user_name" class="col-sm-4 col-form-label">Name</label>
+                <label for="user_name" class="col-sm-4 col-form-label">Display Name</label>
                 <div class="col-sm-8">
                   <input type="text" class="form-control" v-model="user.user_name" id="user_name"
-                    :class="{ 'is-invalid': v$.user.user_name.$error }" placeholder="Enter Name">
+                    :class="{ 'is-invalid': v$.user.user_name.$error }" placeholder="Enter Display Name">
                   <div class="invalid-feedback" v-for="error of v$.user.user_name.$errors" :key="error.$uid">
                     {{ error.$message }}
                   </div>

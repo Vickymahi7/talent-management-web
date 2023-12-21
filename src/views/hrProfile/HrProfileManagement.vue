@@ -1,333 +1,225 @@
-<script lang="ts">
-import { useVuelidate } from '@vuelidate/core'
-import { required, email } from '@vuelidate/validators'
+<script lang="ts" setup>
 import axios from '@/plugins/axios'
 import { useToast } from 'vue-toastification'
 import { HttpStatusCode } from 'axios'
 import { UserTypeId } from '@/utils/enums';
 import { formatDate } from '@/utils/dateFormats'
 import { PROFILE_STATUS } from '@/utils/constants'
-import { getProfileStatusById, bsModalHide, bsModalShow } from '@/utils/commonFunctions'
+import { getProfileStatusById, bsModalShow } from '@/utils/commonFunctions'
 import type HrProfile from '@/types/HrProfile'
-import type { WorkExperience } from '@/types/WorkExperience'
-import type { Project } from '@/types/Project'
-import type { Education } from '@/types/Education'
 import HrProfileComponent from "@/views/hrProfile/HrProfile.vue";
 import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
 import { useMsal } from "../../composables/useMsal";
 import { loginRequest } from "../../utils/authConfig";
 import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser'
 import { Modal } from 'bootstrap'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
-export default {
-  components: {
-    HrProfileComponent,
-    AddHrProfileModal,
-  },
-  setup() {
-  },
-  data() {
-    return {
-      instance: useMsal().instance,
-      v$: useVuelidate(),
-      toast: useToast(),
-      formatDate: formatDate,
-      profileStatus: PROFILE_STATUS,
-      getProfileStatusById: getProfileStatusById,
-      bsModalHide: bsModalHide,
-      bsModalShow: bsModalShow,
-      UserTypeId: UserTypeId,
+const instance = useMsal().instance;
+const toast = useToast();
+const router = useRouter();
 
-      isLoading: false,
-      isModalLoading: false,
-      showInviteUserModal: false,
-      modalId: '',
-      searchText: '',
-      status_id: null as null | number,
+const isLoading = ref(false);
+const isModalLoading = ref(false);
+const showInviteUserModal = ref(false);
+const modalId = ref('');
+const searchText = ref('');
+const status_id = ref(null as null | number);
 
-      editId: null as string | null,
-      editKey: null as string | null,
-      editValue: null as string | null,
+const editId = ref(null as string | null);
+const editKey = ref(null as string | null);
+const editValue = ref(null as string | null);
 
-      accessToken: null as string | null,
-      hrProfileId: '',
+const accessToken = ref(null as string | null);
+const hrProfileId = ref('');
 
-      hrProfile: {
-        id: '',
-        hr_profile_id: '',
-        tenant_id: '',
-        hr_profile_type_id: '',
-        profile_title: '',
-        first_name: '',
-        last_name: '',
-        middle_name: '',
-        email_id: '',
-        alternate_email_id: '',
-        mobile: '',
-        alternate_mobile: '',
-        phone: '',
-        office_phone: '',
-        location: '',
-        ctc: '',
-        experience_month: '',
-        experience_year: '',
-        objective: '',
-        note: '',
-        gender: '',
-        date_of_birth: '',
-        resume_url: '',
-        photo_url: '',
-        buiding_number: '',
-        street_name: '',
-        city: '',
-        state: '',
-        country: '',
-        postal_code: '',
-        website: '',
-        facebook_id: '',
-        twitter_id: '',
-        linkedin_id: '',
-        skype_id: '',
-        status: '',
-        status_id: '',
-        user_id: '',
-        active: true,
-        created_by_id: '',
-        created_dt: '',
-        last_updated_dt: '',
-        skills: [] as string[],
-        work_experience: [] as WorkExperience[],
-        project: [] as Project[],
-        education: [] as Education[],
-      },
+const hrProfileList = ref([] as HrProfile[]);
+const hrProfileFields = [
+  { key: 'select', label: '' },
+  { key: 'index', label: 'SN' },
+  { key: 'profile_title', label: 'Profile Title' },
+  { key: 'first_name', label: 'Resource Name' },
+  { key: 'email_id', label: 'Email ID' },
+  { key: 'skills', label: 'Skills' },
+  { key: 'status_id', label: 'Profile Status', isEditable: true },
+  { key: 'last_updated_dt', label: 'Last Updated' },
+  { key: 'actions', label: 'Action' },
+];
 
-      hrProfileList: [] as HrProfile[],
-      hrProfileFields: [
-        { key: 'select', label: '' },
-        { key: 'index', label: 'SN' },
-        { key: 'profile_title', label: 'Profile Title' },
-        { key: 'first_name', label: 'Resource Name' },
-        { key: 'email_id', label: 'Email ID' },
-        { key: 'skills', label: 'Skills' },
-        { key: 'status_id', label: 'Profile Status', isEditable: true },
-        { key: 'last_updated_dt', label: 'Last Updated' },
-        { key: 'actions', label: 'Action' },
-      ],
+const totalRows = ref(1);
+const currentPage = ref(1);
+const perPage = ref(10);
 
-      totalRows: 1,
-      currentPage: 1,
-      perPage: 10,
+const dialogParam = ref({
+  id: null as string | number | null,
+});
 
-      dialogParam: {
-        id: null as string | number | null,
-      },
-    }
-  },
-  computed: {
-    pageStart() {
-      return (this.currentPage - 1) * this.perPage;
-    },
-    userTypeId() {
-      const userTypeId
-        = localStorage.getItem("userTypeId");
-      return userTypeId ? parseInt(userTypeId) : null;
-    },
-  },
-  watch: {
-    currentPage() {
-      this.getHrProfileList();
-    },
-  },
-  validations() {
-    return {
-      hrProfile: {
-        profile_title: { required },
-        email_id: { required, email },
-      }
-    }
-  },
-  mounted() {
-    this.getHrProfileList();
-  },
-  beforeUnmount() {
-    this.hideModal('hrProfileModal');
-  },
-  methods: {
-    async getHrProfileList() {
-      try {
-        const queryParams = {
-          searchText: this.searchText,
-          status_id: this.status_id,
-          rows: this.perPage,
-          start: this.pageStart,
-        };
-        this.isLoading = true;
-        const response: any = await axios.get('/hrprofile/list', { params: queryParams });
-        this.hrProfileList = response.hrProfileList;
-        this.totalRows = response.numFound;
-        this.currentPage = response.numFound > this.perPage ? this.currentPage : 1;
-      } catch (error: any) {
-        this.toast.error(error.message);
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    async addHrProfile() {
-      try {
-        this.v$.hrProfile.$touch();
-        if (!this.v$.hrProfile.$invalid) {
-          this.isModalLoading = true;
-          const response: any = await axios.post('/hrprofile/add', this.hrProfile);
+const pageStart = computed(() => {
+  return (currentPage.value - 1) * perPage.value;
+})
+const userTypeId = computed(() => {
+  const userTypeId
+    = localStorage.getItem("userTypeId");
+  return userTypeId ? parseInt(userTypeId) : null;
+})
 
-          if (response.status == HttpStatusCode.Created) {
-            this.toast.success(response.message);
-            this.getHrProfileList();
-            this.bsModalHide(this.modalId);
-          }
-        }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isModalLoading = false;
-      }
-    },
-    async updateHrProfile(hrProfileData: any, updateKey: string, updateVal: any) {
-      const data: any = {};
-      data.id = hrProfileData.id;
-      data.hr_profile_id = hrProfileData.hr_profile_id;
-      data.user_id = hrProfileData.user_id;
-      data.email_id = hrProfileData.email_id;
-      data[updateKey] = updateVal;
+watch(currentPage, () => {
+  getHrProfileList();
+})
 
-      try {
-        this.isLoading = true;
-        const response: any = await axios.patch('/hrprofile/update', data);
-        if (response.status == HttpStatusCode.Ok) {
-          this.toast.success(response.message);
-          this.getHrProfileList();
-          this.editId = null;
-          this.editKey = null;
-          this.editValue = null;
-        }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    addSkills(event: any) {
-      const skill = event.target.value as string;
-      if (!this.hrProfile.skills.includes(skill)) {
-        this.hrProfile.skills.push(skill);
-        event.target.value = '';
-      }
-    },
-    removeSkill(skill: string) {
-      this.hrProfile.skills = this.hrProfile.skills.filter(item => item != skill);
-    },
-    deleteHrProfile: function (id: string) {
-      this.dialogParam.id = id;
-    },
-    async onYesProfile() {
-      try {
-        this.isLoading = true;
-        const response: any = await axios.delete('/hrprofile/delete/' + this.dialogParam.id)
-        if (response.status == HttpStatusCode.Ok) {
-          this.toast.success(response.message);
-          this.getHrProfileList();
-        }
+onMounted(() => {
+  getHrProfileList();
+});
 
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    skillsToolTip(skills?: string[]) {
-      let tooltipText = "";
-      if (skills && skills.length > 0) {
-        skills.forEach((skill, index) => {
-          if (index != 0) {
-            tooltipText += ", "
-          }
-          tooltipText += skill;
-        })
-      }
-      return tooltipText;
-    },
-    handleTableRowClick(modalId: string, hrProfileId: string) {
-      if (this.userTypeId == UserTypeId.USR) {
-        this.$router.push({ name: 'hrprofile', params: { id: hrProfileId } });
-      }
-      else {
-        this.hrProfileId = hrProfileId;
-        this.showModal(modalId);
-      }
-    },
-    handleTableCellClick(field: any, item: any, event: Event) {
-      if (field.isEditable) {
-        event.stopPropagation();
-        this.editId = item.id;
-        this.editKey = field.key;
-        this.editValue = item[field.key];
-      }
-    },
-    cancelInlineEdit(item: any, field: any) {
-      item[field.key] = this.editValue;
+onBeforeUnmount(() => {
+  hideModal('hrProfileModal');
+});
 
-      this.editId = null;
-      this.editKey = null;
-      this.editValue = null;
-      this.getHrProfileList();
-    },
-    async loginPopup() {
-      // await this.instance.loginPopup(loginRequest);
-      this.getGraphData()
-    },
-    async getGraphData() {
-      this.isLoading = true;
-      const response = await this.instance.acquireTokenSilent({
-        ...loginRequest
-      }).catch(async (e) => {
-        if (e instanceof InteractionRequiredAuthError || e instanceof BrowserAuthError) {
-          // await this.instance.acquireTokenRedirect(loginRequest);
-          await this.instance.loginPopup(loginRequest);
-          this.loginPopup();
-        }
-        else {
-          throw e;
-        }
-      }).finally(() => {
-        this.isLoading = false;
-      });
-      if (response?.accessToken) {
-        this.accessToken = response.accessToken;
-        this.showInviteUserModal = true;
-        this.$nextTick(() => {
-          this.showModal('inviteAdUsersModal');
-        })
-      }
-    },
-    showModal(modalId: string) {
-      const modalEl = document.getElementById(modalId);
-      if (!modalEl) return;
-      const modal = Modal.getOrCreateInstance(modalEl!, {
-        keyboard: false
-      })
-      modal.show();
-    },
-    hideModal(modalId: string) {
-      const modalEl = document.getElementById(modalId);
-      if (!modalEl) return;
-      const modal = Modal.getOrCreateInstance(modalEl!, {
-        keyboard: false
-      })
-      modal.hide();
-    },
+const getHrProfileList = async () => {
+  try {
+    const queryParams = {
+      searchText: searchText.value,
+      status_id: status_id.value,
+      rows: perPage.value,
+      start: pageStart.value,
+    };
+    isLoading.value = true;
+    const response: any = await axios.get('/hrprofile/list', { params: queryParams });
+    hrProfileList.value = response.hrProfileList;
+    totalRows.value = response.numFound;
+    currentPage.value = response.numFound > perPage.value ? currentPage.value : 1;
+  } catch (error: any) {
+    toast.error(error.message);
+  } finally {
+    isLoading.value = false;
   }
+}
+const updateHrProfile = async (hrProfileData: any, updateKey: string, updateVal: any) => {
+  const data: any = {};
+  data.id = hrProfileData.id;
+  data.hr_profile_id = hrProfileData.hr_profile_id;
+  data.user_id = hrProfileData.user_id;
+  data.email_id = hrProfileData.email_id;
+  data[updateKey] = updateVal;
+
+  try {
+    isLoading.value = true;
+    const response: any = await axios.patch('/hrprofile/update', data);
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getHrProfileList();
+      editId.value = null;
+      editKey.value = null;
+      editValue.value = null;
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+}
+const deleteHrProfile = (id: string) => {
+  dialogParam.value.id = id;
+}
+const onYesProfile = async () => {
+  try {
+    isLoading.value = true;
+    const response: any = await axios.delete('/hrprofile/delete/' + dialogParam.value.id)
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getHrProfileList();
+    }
+
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+}
+const skillsToolTip = (skills?: string[]) => {
+  let tooltipText = "";
+  if (skills && skills.length > 0) {
+    skills.forEach((skill, index) => {
+      if (index != 0) {
+        tooltipText += ", "
+      }
+      tooltipText += skill;
+    })
+  }
+  return tooltipText;
+}
+const handleTableRowClick = (modalId: string, _hrProfileId: string) => {
+  if (userTypeId.value == UserTypeId.USR) {
+    router.push({ name: 'hrprofile', params: { id: _hrProfileId } });
+  }
+  else {
+    hrProfileId.value = _hrProfileId;
+    showModal(modalId);
+  }
+}
+const handleTableCellClick = (field: any, item: any, event: Event) => {
+  if (field.isEditable) {
+    event.stopPropagation();
+    editId.value = item.id;
+    editKey.value = field.key;
+    editValue.value = item[field.key];
+  }
+}
+const cancelInlineEdit = (item: any, field: any) => {
+  item[field.key] = editValue;
+
+  editId.value = null;
+  editKey.value = null;
+  editValue.value = null;
+  getHrProfileList();
+}
+const loginPopup = async () => {
+  // await instance.loginPopup(loginRequest);
+  getGraphData()
+}
+const getGraphData = async () => {
+  isLoading.value = true;
+  const response = await instance.acquireTokenSilent({
+    ...loginRequest
+  }).catch(async (e) => {
+    if (e instanceof InteractionRequiredAuthError || e instanceof BrowserAuthError) {
+      // await instance.acquireTokenRedirect(loginRequest);
+      await instance.loginPopup(loginRequest);
+      loginPopup();
+    }
+    else {
+      throw e;
+    }
+  }).finally(() => {
+    isLoading.value = false;
+  });
+  if (response?.accessToken) {
+    accessToken.value = response.accessToken;
+    showInviteUserModal.value = true;
+    nextTick(() => {
+      showModal('inviteAdUsersModal');
+    })
+  }
+};
+const showModal = (modalId: string) => {
+  const modalEl = document.getElementById(modalId);
+  if (!modalEl) return;
+  const modal = Modal.getOrCreateInstance(modalEl!, {
+    keyboard: false
+  })
+  modal.show();
+}
+const hideModal = (modalId: string) => {
+  const modalEl = document.getElementById(modalId);
+  if (!modalEl) return;
+  const modal = Modal.getOrCreateInstance(modalEl!, {
+    keyboard: false
+  })
+  modal.hide();
 }
 </script>
 <template>
@@ -335,20 +227,30 @@ export default {
     <label>HR Profile Management</label>
   </div>
   <div v-loading="isLoading" class="content-body content-card">
-    <div class="row filter-group py-2">
+    <div class="row filter-group py-2 align-items-center">
       <div class="col-3">
         <input type="text" v-model="searchText" class="form-control" @keyup.enter="getHrProfileList"
           placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
       </div>
-      <div class="col-2">
-        <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
+      <div class="col">
+        <div class="form-check form-check-inline mb-0">
+          <input class="form-check-input" v-model="status_id" type="radio" name="profileStatusOptions"
+            id="inlineRadioStatusAll" :value="null" @change="getHrProfileList">
+          <label class="form-check-label" for="inlineRadioStatusAll">All</label>
+        </div>
+        <div v-for="status in PROFILE_STATUS" :key="status.id" class="form-check form-check-inline mb-0">
+          <input class="form-check-input" v-model="status_id" type="radio" name="profileStatusOptions"
+            :id="'inlineRadio' + status.id" :value="status.id" @change="getHrProfileList">
+          <label class="form-check-label" :for="'inlineRadio' + status.id">{{ status.status }}</label>
+        </div>
+        <!-- <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
           <option :value="null">Profile Status</option>
           <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
-        </select>
+        </select> -->
       </div>
       <div class="col text-end">
         <button class="btn btn-primary" type="button"
-          @click="bsModalShow('addHrProfileModal-profileManage'); modalId = 'addHrProfileModal-profileManage'">
+          @click="bsModalShow('addHrProfileModal-profileManage'); modalId = 'addHrProfileModal-profileManage';">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New Profile
         </button>
@@ -395,7 +297,7 @@ export default {
                   v-model="hrProfile[field.key]" @change="updateHrProfile(hrProfile, field.key, hrProfile[field.key])"
                   @blur="cancelInlineEdit(hrProfile, field.key)" :aria-label="field.label">
                   <option :value="null">Select</option>
-                  <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}
+                  <option v-for="status in PROFILE_STATUS" :key="status.id" :value="status.id">{{ status.status }}
                   </option>
                 </select>
                 <span v-else>{{ getProfileStatusById(hrProfile.status_id) }}</span>
@@ -426,7 +328,7 @@ export default {
     <BPagination v-if="hrProfileList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
       size="sm" />
   </div>
-  <AddHrProfileModal id="addHrProfileModal-profileManage" />
+  <AddHrProfileModal id="addHrProfileModal-profileManage" @refreshParent="getHrProfileList" />
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
   <InviteAdUsersModal v-if="showInviteUserModal" :accessToken="accessToken!" />

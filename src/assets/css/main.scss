@@ -1,3 +1,37 @@
+// default variable overrides here
+$primary: black;
+$secondary: #666;
+
+// table default bg-color modification removal
+$table-bg-scale: 0%;
+
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+
+// .default-theme {
+//   // colors
+//   $primary: #000;
+//   $secondary: #666;
+
+//   $btn-hover-bg-tint-amount: 25%;
+//   $btn-hover-border-tint-amount: 25%;
+//   $btn-active-bg-tint-amount: 25%;
+//   $btn-active-border-tint-amount: 25%;
+
+//   // $hover-background: shade-color($primary, $btn-hover-bg-shade-amount);
+//   // $hover-border: shade-color($primary, $btn-hover-border-shade-amount);
+//   // $active-background: shade-color($primary, $btn-active-bg-shade-amount);
+//   // $active-border: shade-color($primary, $btn-active-border-shade-amount);
+// }
+
+// .dark-mode {
+//   // colors
+//   $primary: grey;
+//   $secondary: #666;
+//   background: $primary;
+// }
+@import "node_modules/bootstrap/scss/bootstrap";
+// @import "./theme/theme-default.scss";
 @import "./base.scss";
 
 body {
@@ -11,6 +45,17 @@ body {
   margin-bottom: 1rem;
   line-height: 1.5;
   transition: color 0.5s, background-color 0.5s;
+
+  // .btn-primary {
+  //   @include button-variant(
+  //     $primary,
+  //     $primary,
+  //     $hover-background: tint-color($primary, $btn-hover-bg-tint-amount),
+  //     $hover-border: tint-color($primary, $btn-hover-border-tint-amount),
+  //     $active-background: tint-color($primary, $btn-active-bg-tint-amount),
+  //     $active-border: tint-color($primary, $btn-active-border-tint-amount)
+  //   );
+  // }
 }
 
 a {
@@ -30,11 +75,6 @@ a {
       color: $spl-link-hover;
     }
   }
-}
-
-.checkbox-lg {
-  width: 15px;
-  height: 15px;
 }
 
 #app {
@@ -169,8 +209,9 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.35rem;
-  padding-bottom: 0.35rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  height: 35px;
 
   label {
     color: $heading-color;
@@ -200,7 +241,7 @@ a {
 
   &.tab-btn {
     color: $primary-btn-color;
-    background-color: $primary-btn-bg;
+    background-color: $primary;
   }
 
   &.tab-btn:not(.active):hover {
@@ -210,18 +251,23 @@ a {
   }
 }
 
-.pagination {
-  .page-link {
-    color: $text-color;
-    box-shadow: none;
-  }
-  .active > .page-link,
-  .page-link.active {
-    color: $primary-btn-color;
-    background-color: $primary-btn-bg;
-    border-color: $primary-btn-bg;
-  }
+.checkbox-lg {
+  width: 15px;
+  height: 15px;
 }
+
+// .pagination {
+//   .page-link {
+//     color: $text-color;
+//     box-shadow: none;
+//   }
+//   .active > .page-link,
+//   .page-link.active {
+//     color: $primary-btn-color;
+//     background-color: $primary;
+//     border-color: $primary;
+//   }
+// }
 
 .profile-section {
   width: 100%;
@@ -320,6 +366,10 @@ a {
 
       .title-block {
         margin-top: 1em;
+
+        .form-control {
+          text-align: center;
+        }
 
         .title-text {
           color: $text-color;
@@ -568,17 +618,17 @@ a {
   font-size: 0.8rem;
   padding: 0.4em 1.2em;
 
-  &.primary-btn {
-    color: $primary-btn-color;
-    background-color: $primary-btn-bg;
+  // &.primary-btn {
+  //   color: $primary-btn-color;
+  //   background-color: $primary;
 
-    &:active,
-    &:hover {
-      color: $primary-btn-hover-color;
-      background-color: $primary-btn-hover-bg;
-      border-color: $primary-btn-hover-border;
-    }
-  }
+  //   &:active,
+  //   &:hover {
+  //     color: $primary-btn-hover-color;
+  //     background-color: $primary-btn-hover-bg;
+  //     border-color: $primary-btn-hover-border;
+  //   }
+  // }
 
   &.secondary-btn {
     color: $secondary-btn-color;
@@ -589,6 +639,18 @@ a {
       color: $secondary-btn-hover-color;
       background-color: $secondary-btn-hover-bg;
       border-color: $secondary-btn-hover-border;
+    }
+  }
+}
+
+.dark-mode-switch {
+  &.el-switch.is-checked .el-switch__core {
+    border-color: $form-border-color;
+    background-color: $primary;
+
+    .el-icon,
+    .el-switch__action {
+      color: $primary !important;
     }
   }
 }
@@ -605,7 +667,7 @@ a {
 
 .dropdown-item:active {
   color: $primary-btn-color;
-  background-color: $primary-btn-bg;
+  background-color: $primary;
 }
 
 .icon-btn {
