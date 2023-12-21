@@ -322,7 +322,7 @@ const hideModal = (modalId: string) => {
               </template>
             </td>
           </tr>
-          <tr v-if="hrProfileList.length == 0" class="d-flex justify-content-center">
+          <tr v-if="hrProfileList.length == 0">
             <td colspan="12" class="text-center"> No record found </td>
           </tr>
         </tbody>
