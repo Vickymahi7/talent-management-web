@@ -1,6 +1,6 @@
 export enum UserType {
   SAD = "Super Admin",
-  ADM = "Admin",
+  ADM = "Power User", // Admin / Power User
   HRU = "Hr User",
   USR = "User",
 }

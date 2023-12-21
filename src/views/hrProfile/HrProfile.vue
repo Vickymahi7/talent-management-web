@@ -551,17 +551,9 @@ const onYesHrProfileDoc = async () => {
     </div>
     <div v-if="!elements.titleEdit" class="content-card content-header">
       <span>
-        <label class="d-inline-block me-2">My Profile - {{ hrProfile.profile_title }} </label>
+        <label class="d-inline-block me-2">Profile - {{ hrProfile.profile_title }} </label>
         <font-awesome-icon icon="fa-solid fa-pencil-alt" @click="elements.titleEdit = true; profileTItleRef!.focus();" />
       </span>
-      <!-- <nav aria-label="breadcrumb">
-          <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-              <router-link :to="{ name: 'hrprofilemanagement' }">Manage HR Profile</router-link>
-            </li>
-            <li class="breadcrumb-item active" aria-current="page">Profile - {{ hrProfile.first_name }}</li>
-          </ol>
-        </nav> -->
       <div class="d-flex">
         <div v-if="profileCount > 1" class="dropdown">
           <span class="badge bg-primary hide-caret dropdown-toggle me-3" role="button" id="dropdownMenuProfileSwitch"

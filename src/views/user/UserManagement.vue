@@ -33,7 +33,7 @@ const userFields = ref([
   { key: 'user_name', label: 'Display Name', isEditable: true },
   { key: 'email_id', label: 'Email ID', isEditable: true },
   { key: 'user_type_id', label: 'User Type', isEditable: true },
-  { key: 'active', label: 'Active' },
+  // { key: 'active', label: 'Active' },
   { key: 'user_status_id', label: 'Status', isEditable: true },
   { key: 'last_updated_dt', label: 'Last Updated' },
   { key: 'actions', label: 'Action' },
@@ -118,7 +118,7 @@ const addUser = async () => {
     isModalLoading.value = false;
   }
 }
-const updateUser = async (userData: any, updateKey: string) => {
+const updateUser = async (userData: any) => {
   try {
     // v$.user.$touch();
     // if (!v$.user.$invalid) {
@@ -126,7 +126,10 @@ const updateUser = async (userData: any, updateKey: string) => {
     data.user_id = userData.user_id;
     data.user_name = userData.user_name;
     data.email_id = userData.email_id;
-    data[updateKey] = userData[updateKey];
+    data.user_name = userData.user_name;
+    data.email_id = userData.email_id;
+    data.user_type_id = userData.user_type_id;
+    data.user_status_id = userData.user_status_id;
     isLoading.value = true;
     const response: any = await axios.patch('/user/update', data);
     if (response.status == HttpStatusCode.Ok) {
@@ -184,19 +187,20 @@ const onYesConfirmation = async () => {
   }
 }
 const handleTableCellClick = (field: any, item: any) => {
-  if (field.isEditable) {
-    editId.value = item.user_id;
-    editKey.value = field.key;
-    editValue.value = item[field.key];
-  }
+  // if (field.isEditable) {
+  editId.value = item.user_id;
+  editKey.value = field.key;
+  editValue.value = item[field.key];
+  // }
 }
-const cancelInlineEdit = (item: any, field: any) => {
-  item[field.key] = editValue;
+const cancelInlineEdit = () => {
+  // item[field.key] = editValue;
 
   editId.value = null;
   editKey.value = null;
   editValue.value = null;
-  getUserList();
+  console.log(editId.value)
+  // getUserList();
 }
 </script>
 <template>
@@ -222,41 +226,36 @@ const cancelInlineEdit = (item: any, field: any) => {
         </thead>
         <tbody class="custom-tbody-style">
           <tr v-for="item in filteredUserList" :key="item">
-            <td v-for="field in userFields" :key="field.key" @click="handleTableCellClick(field, item)"
-              :class="{ 'clickable-cell': field.isEditable }">
+            <td v-for="field in userFields" :key="field.key">
               <template v-if="field.key == 'user_name'">
-                <input v-if="editId == item.user_id && editKey == field.key" type="text" class="form-control"
-                  v-model="item[field.key]" placeholder="Enter Name" @keyup.enter="updateUser(item, field.key)"
-                  @blur="cancelInlineEdit(item, field.key)">
-                <div v-else>{{ item[field.key] }}</div>
+                <input v-if="editId == item.user_id" type="text" class="form-control form-control-sm"
+                  v-model="item[field.key]" placeholder="Enter Name" @keyup.enter="updateUser(item)">
+                <div v-else>
+                  <span v-if="item.active" class="text-success me-2" title="User Activated">
+                    <font-awesome-icon icon="fa-solid fa-user-check" />
+                  </span>
+                  <span v-else class="text-danger me-2" title="User Not Activated">
+                    <font-awesome-icon icon="fa-solid fa-user-xmark" />
+                  </span>
+                  {{ item[field.key] }}
+                </div>
               </template>
               <template v-else-if="field.key == 'email_id'">
-                <input v-if="editId == item.user_id && editKey == field.key" type="email" class="form-control"
-                  v-model="item[field.key]" placeholder="Enter Email Id" @keyup.enter="updateUser(item, field.key)"
-                  @blur="cancelInlineEdit(item, field.key)">
+                <input v-if="editId == item.user_id" type="email" class="form-control form-control-sm"
+                  v-model="item[field.key]" placeholder="Enter Email Id" @keyup.enter="updateUser(item)">
                 <div v-else>{{ item[field.key] }}</div>
               </template>
               <template v-else-if="field.key == 'user_type_id'">
-                <select v-if="editId == item.user_id && editKey == field.key" class="form-select form-control-sm"
-                  v-model="item[field.key]" @change="updateUser(item, field.key)"
-                  @blur="cancelInlineEdit(item, field.key)" :aria-label="field.label">
+                <select v-if="editId == item.user_id" class="form-select form-control-sm" v-model="item[field.key]"
+                  :aria-label="field.label">
                   <option :value="null">Select</option>
                   <option v-for="info in userTypeList" :key="info.id" :value="info.id">{{ info.userType }}</option>
                 </select>
                 <span v-else>{{ getUserTypeById(item[field.key]) }}</span>
               </template>
-              <template v-else-if="field.key == 'active'">
-                <div v-if="item[field.key]" class="text-success">
-                  <font-awesome-icon icon="fa-solid fa-user-check" />
-                </div>
-                <div v-else class="text-danger">
-                  <font-awesome-icon icon="fa-solid fa-user-xmark" />
-                </div>
-              </template>
               <template v-else-if="field.key == 'user_status_id'">
-                <select v-if="editId == item.user_id && editKey == field.key" class="form-select form-control-sm"
-                  v-model="item[field.key]" @change="updateUser(item, field.key)"
-                  @blur="cancelInlineEdit(item, field.key)" :aria-label="field.label">
+                <select v-if="editId == item.user_id" class="form-select form-control-sm" v-model="item[field.key]"
+                  :aria-label="field.label">
                   <option :value="null">Select</option>
                   <option v-for="info in ACCOUNT_STATUS" :key="info.id" :value="info.id">{{ info.status }}</option>
                 </select>
@@ -266,17 +265,33 @@ const cancelInlineEdit = (item: any, field: any) => {
                 {{ formatDate(item[field.key]) }}
               </template>
               <template v-else-if="field.key == 'actions'">
-                <div v-if="!item.active" class="icon-btn me-3" @click="resendActivationMail(item.user_id)"
-                  title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
-                  <font-awesome-icon icon="fa-solid fa-share-from-square" />
-                </div>
-                <div class="icon-btn me-3" @click="deleteUser(item.user_id)" title="Delete User" data-bs-toggle="modal"
-                  data-bs-target="#deleteUser">
-                  <font-awesome-icon icon="fa-solid fa-trash" />
-                </div>
+                <template v-if="editId == item.user_id">
+                  <span class="icon-btn mx-1" @click="updateUser(item)">
+                    <font-awesome-icon icon="fa-solid fa-check" />
+                  </span>
+                  <span class="icon-btn" @click="cancelInlineEdit()">
+                    <font-awesome-icon icon="fa-solid fa-xmark" />
+                  </span>
+                </template>
+                <template v-else>
+                  <div v-if="!item.active" class="icon-btn me-2" @click="resendActivationMail(item.user_id)"
+                    title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
+                    <font-awesome-icon icon="fa-solid fa-share-from-square" />
+                  </div>
+                  <div class="icon-btn me-2" @click="handleTableCellClick(field, item)" title="Edit User">
+                    <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                  </div>
+                  <div class="icon-btn me-2" @click="deleteUser(item.user_id)" title="Delete User" data-bs-toggle="modal"
+                    data-bs-target="#deleteUser">
+                    <font-awesome-icon icon="fa-solid fa-trash" />
+                  </div>
+                </template>
               </template>
               <template v-else>{{ item[field.key] }}</template>
             </td>
+          </tr>
+          <tr v-if="filteredUserList.length == 0" class="d-flex justify-content-center">
+            <td colspan="12" class="text-center"> No record found </td>
           </tr>
         </tbody>
       </table>

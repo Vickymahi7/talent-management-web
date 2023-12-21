@@ -26,7 +26,7 @@ const isModalLoading = ref(false);
 const showInviteUserModal = ref(false);
 const modalId = ref('');
 const searchText = ref('');
-const status_id = ref(null as null | number);
+const status_id = ref([] as number[]);
 
 const editId = ref(null as string | null);
 const editKey = ref(null as string | null);
@@ -224,7 +224,7 @@ const hideModal = (modalId: string) => {
 </script>
 <template>
   <div class="content-card content-header card-gap-mb">
-    <label>HR Profile Management</label>
+    <label>Profile Management</label>
   </div>
   <div v-loading="isLoading" class="content-body content-card">
     <div class="row filter-group py-2 align-items-center">
@@ -233,14 +233,14 @@ const hideModal = (modalId: string) => {
           placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
       </div>
       <div class="col">
-        <div class="form-check form-check-inline mb-0">
-          <input class="form-check-input" v-model="status_id" type="radio" name="profileStatusOptions"
+        <!-- <div class="form-check form-check-inline mb-0">``
+          <input class="form-check-input" v-model="status_id" type="checkbox" name="profileStatusOptions"
             id="inlineRadioStatusAll" :value="null" @change="getHrProfileList">
           <label class="form-check-label" for="inlineRadioStatusAll">All</label>
-        </div>
+        </div> -->
         <div v-for="status in PROFILE_STATUS" :key="status.id" class="form-check form-check-inline mb-0">
-          <input class="form-check-input" v-model="status_id" type="radio" name="profileStatusOptions"
-            :id="'inlineRadio' + status.id" :value="status.id" @change="getHrProfileList">
+          <input class="form-check-input" v-model="status_id" type="checkbox" :id="'inlineRadio' + status.id"
+            :value="status.id" @change="getHrProfileList">
           <label class="form-check-label" :for="'inlineRadio' + status.id">{{ status.status }}</label>
         </div>
         <!-- <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
@@ -306,13 +306,13 @@ const hideModal = (modalId: string) => {
                 {{ formatDate(hrProfile.last_updated_dt) }}
               </template>
               <template v-else-if="field.key == 'actions'">
-                <div class="icon-btn me-3">
+                <div class="icon-btn me-2">
                   <font-awesome-icon icon="fa-solid fa-paperclip" />
                 </div>
-                <div class="icon-btn me-3">
+                <div class="icon-btn me-2">
                   <font-awesome-icon icon="fa-solid fa-download" />
                 </div>
-                <div class="icon-btn me-3" @click.stop="deleteHrProfile(hrProfile.id!)" title="Delete Profile"
+                <div class="icon-btn me-2" @click.stop="deleteHrProfile(hrProfile.id!)" title="Delete Profile"
                   data-bs-toggle="modal" data-bs-target="#deleteHrProfile">
                   <font-awesome-icon icon="fa-solid fa-trash" />
                 </div>
@@ -321,6 +321,9 @@ const hideModal = (modalId: string) => {
                 {{ hrProfile[field.key] }}
               </template>
             </td>
+          </tr>
+          <tr v-if="hrProfileList.length == 0" class="d-flex justify-content-center">
+            <td colspan="12" class="text-center"> No record found </td>
           </tr>
         </tbody>
       </table>

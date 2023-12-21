@@ -235,8 +235,8 @@ export default {
                 {{ formatDate(tenant[field.key]) }}
               </template>
               <template v-else-if="field.key == 'actions'">
-                <div class="icon-btn me-3" @click="deleteTenant(tenant.tenant_id)" title="Delete Tenant"
-                  data-bs-toggle="modal" data-bs-target="#deleteTenant">
+                <div class="icon-btn" @click="deleteTenant(tenant.tenant_id)" title="Delete Tenant" data-bs-toggle="modal"
+                  data-bs-target="#deleteTenant">
                   <font-awesome-icon icon="fa-solid fa-trash" />
                 </div>
               </template>
@@ -245,6 +245,9 @@ export default {
               </template>
               <template v-else>{{ tenant[field.key] }}</template>
             </td>
+          </tr>
+          <tr v-if="filteredTenantList.length == 0" class="d-flex justify-content-center">
+            <td colspan="12" class="text-center"> No record found </td>
           </tr>
         </tbody>
       </table>

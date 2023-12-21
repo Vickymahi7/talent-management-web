@@ -137,6 +137,9 @@ export default defineComponent({
                 <div class="col">{{ user.mail }}</div>
               </div>
             </label>
+            <div v-if="users.length == 0" class="text-center">
+              No Users found
+            </div>
           </div>
         </div>
         <div class="modal-footer">

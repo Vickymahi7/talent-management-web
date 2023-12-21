@@ -142,11 +142,14 @@ export default {
             <td>{{ getProfileStatusById(hrProfile.status_id) }}</td>
             <td>{{ formatDate(hrProfile.last_updated_dt) }}</td>
             <td>
-              <div class="icon-btn me-3" data-bs-toggle="modal" data-bs-target="#resumePreviewModal"
+              <div class="icon-btn" data-bs-toggle="modal" data-bs-target="#resumePreviewModal"
                 @click="hrProfilePreviewData = hrProfile">
                 <font-awesome-icon icon="fa-solid fa-eye" />
               </div>
             </td>
+          </tr>
+          <tr v-if="hrProfileList.length == 0" class="d-flex justify-content-center">
+            <td colspan="12" class="text-center"> No record found </td>
           </tr>
         </tbody>
       </table>

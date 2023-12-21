@@ -16,7 +16,7 @@ const ADMIN_MENU = [
     name: "Manage",
     subMenu: [
       { id: 101, name: "User Management", routeName: "usermanagement" },
-      { id: 102, name: "Manage HR Profile", routeName: "hrprofilemanagement" },
+      { id: 102, name: "Manage Profile", routeName: "hrprofilemanagement" },
     ]
   },
   {
