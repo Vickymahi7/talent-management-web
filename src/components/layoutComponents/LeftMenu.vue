@@ -29,7 +29,10 @@ const USER_MENU = [
   {
     id: 1,
     name: "Manage",
-    subMenu: [{ id: 101, name: "Manage Profile", routeName: "userhrprofile" },]
+    subMenu: [
+      { id: 101, name: "Manage Profile", routeName: "hrprofilemanagement" },
+      { id: 102, name: "My Profile", routeName: "userhrprofile" },
+    ]
   },
 ];
 export default {

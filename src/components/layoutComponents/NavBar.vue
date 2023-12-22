@@ -2,8 +2,10 @@
 import { USER_TYPES } from '@/utils/constants';
 import { Moon, Sunny } from '@element-plus/icons-vue'
 import { computed, ref } from 'vue';
+import UserPrivilege from '@/components/modals/UserPrivilege.vue';
 
 const isDarkMode = ref(false);
+const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilege> | null);
 
 const userName = computed(() => {
   return localStorage.getItem("userName") ?? '';
@@ -21,6 +23,10 @@ const userType = computed(() => {
 const toggleMode = () => {
   // isDarkMode.value = !isDarkMode.value;
   document.body.classList.toggle('dark-mode', isDarkMode.value);
+}
+
+const showUserPrivileges = () => {
+  userPrivilegeRef.value?.showModal();
 }
 </script>
 <template>
@@ -42,7 +48,7 @@ const toggleMode = () => {
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#">
-            <div class="icon-btn">
+            <div class="icon-btn" @click="showUserPrivileges">
               <font-awesome-icon icon="fa-solid fa-cog" />
             </div>
           </a>
@@ -69,4 +75,5 @@ const toggleMode = () => {
       </ul>
     </div>
   </nav>
+  <UserPrivilege ref="userPrivilegeRef" />
 </template>

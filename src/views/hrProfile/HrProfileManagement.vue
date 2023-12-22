@@ -5,7 +5,7 @@ import { HttpStatusCode } from 'axios'
 import { UserTypeId } from '@/utils/enums';
 import { formatDate } from '@/utils/dateFormats'
 import { PROFILE_STATUS } from '@/utils/constants'
-import { getProfileStatusById, bsModalShow } from '@/utils/commonFunctions'
+import { getProfileStatusById } from '@/utils/commonFunctions'
 import type HrProfile from '@/types/HrProfile'
 import HrProfileComponent from "@/views/hrProfile/HrProfile.vue";
 import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
@@ -21,10 +21,11 @@ const instance = useMsal().instance;
 const toast = useToast();
 const router = useRouter();
 
+const addHrProfileModalRef = ref(null as InstanceType<typeof AddHrProfileModal> | null);
+
 const isLoading = ref(false);
 const isModalLoading = ref(false);
 const showInviteUserModal = ref(false);
-const modalId = ref('');
 const searchText = ref('');
 const status_id = ref([] as number[]);
 
@@ -205,6 +206,9 @@ const getGraphData = async () => {
     })
   }
 };
+const showAddProfileModal = () => {
+  addHrProfileModalRef.value?.showModal();
+}
 const showModal = (modalId: string) => {
   const modalEl = document.getElementById(modalId);
   if (!modalEl) return;
@@ -249,8 +253,7 @@ const hideModal = (modalId: string) => {
         </select> -->
       </div>
       <div class="col text-end">
-        <button class="btn btn-primary" type="button"
-          @click="bsModalShow('addHrProfileModal-profileManage'); modalId = 'addHrProfileModal-profileManage';">
+        <button class="btn btn-primary" type="button" @click="showAddProfileModal">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New Profile
         </button>
@@ -331,7 +334,7 @@ const hideModal = (modalId: string) => {
     <BPagination v-if="hrProfileList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
       size="sm" />
   </div>
-  <AddHrProfileModal id="addHrProfileModal-profileManage" @refreshParent="getHrProfileList" />
+  <AddHrProfileModal id="addHrProfileModal-profileManage" ref="addHrProfileModalRef" @refreshParent="getHrProfileList" />
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
   <InviteAdUsersModal v-if="showInviteUserModal" :accessToken="accessToken!" />
