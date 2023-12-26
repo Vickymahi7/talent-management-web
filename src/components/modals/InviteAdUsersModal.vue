@@ -32,12 +32,8 @@ export default defineComponent({
   },
   methods: {
     async getAdUserList() {
-      console.log(this.accessToken)
       // this.showModal('inviteAdUsersModal');
       if (this.accessToken && !this.isPageEnd) {
-        const el = document.getElementsByClassName('modal-body')[0];
-        console.log(el.scrollTop)
-
         this.isModalLoading = true;
         try {
           const graphData = await callMsGraph(this.accessToken, this.nextPageToken);
@@ -85,7 +81,6 @@ export default defineComponent({
       }
     },
     async inviteAdUsers() {
-      console.log(this.inviteUserList)
       if (this.inviteUserList.length > 10) {
         this.toast.error('Please select a maximum of 10 users');
         return;

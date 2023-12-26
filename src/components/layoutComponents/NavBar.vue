@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { USER_TYPES } from '@/utils/constants';
-import { Moon, Sunny } from '@element-plus/icons-vue'
-import { computed, ref } from 'vue';
 import UserPrivilege from '@/components/modals/UserPrivilege.vue';
+import { USER_TYPES } from '@/utils/constants';
+import { Moon, Sunny } from '@element-plus/icons-vue';
+import { computed, ref } from 'vue';
 
 const isDarkMode = ref(false);
 const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilege> | null);
@@ -26,7 +26,7 @@ const toggleMode = () => {
 }
 
 const showUserPrivileges = () => {
-  userPrivilegeRef.value?.showModal();
+  // userPrivilegeRef.value?.showModal();
 }
 </script>
 <template>
@@ -48,7 +48,7 @@ const showUserPrivileges = () => {
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#">
-            <div class="icon-btn" @click="showUserPrivileges">
+            <div class="icon-btn">
               <font-awesome-icon icon="fa-solid fa-cog" />
             </div>
           </a>

@@ -1,75 +1,66 @@
-<script lang="ts">
-import { UserTypeId } from '@/utils/enums';
-const SUPER_ADMIN_MENU = [
-  {
-    id: 1,
-    name: "Manage",
-    subMenu: [
-      { id: 101, name: "Tenant Management", routeName: "tenantmanagement" },
-      { id: 102, name: "User Management", routeName: "usermanagement" },
-    ]
-  },
-];
-const ADMIN_MENU = [
-  {
-    id: 1,
-    name: "Manage",
-    subMenu: [
-      { id: 101, name: "User Management", routeName: "usermanagement" },
-      { id: 102, name: "Manage Profile", routeName: "hrprofilemanagement" },
-    ]
-  },
-  {
-    id: 2,
-    name: "User Activity",
-    subMenu: [{ id: 201, name: "Talent Pool", routeName: "talentpool" },]
-  },
-];
-const USER_MENU = [
-  {
-    id: 1,
-    name: "Manage",
-    subMenu: [
-      { id: 101, name: "Manage Profile", routeName: "hrprofilemanagement" },
-      { id: 102, name: "My Profile", routeName: "userhrprofile" },
-    ]
-  },
-];
-export default {
-  data() {
-    return {
-      UserTypeId,
+<script lang="ts" setup>
+import axios from '@/plugins/axios';
+import { computed, onMounted, ref } from 'vue';
+import { useToast } from 'vue-toastification';
+const toast = useToast();
+const isLoading = ref(false);
+const userMenuList = ref([] as any);
+
+onMounted(() => {
+  getUserMenuPrivilegeList();
+})
+
+const userId = computed(() => {
+  const userId
+    = localStorage.getItem("userId");
+  return userId ? parseInt(userId) : null;
+});
+
+const mainMenuList = computed((): any => {
+  let arr = [];
+  if (activeUserMenuList.value.length > 0) {
+    arr = activeUserMenuList.value.reduce((result, currentObject) => {
+      var keyValue = currentObject['main_menu_id'];
+      result[keyValue] = result[keyValue] || [];
+      result[keyValue].push(currentObject);
+      return result;
+    }, {});
+  }
+  return arr;
+});
+
+const activeUserMenuList = computed(() => {
+  return userMenuList.value.filter(data => data.active);
+});
+
+const filteredUserMenuList = (mainMenuId: number) => {
+  return activeUserMenuList.value.filter(data => data.main_menu_id == mainMenuId);
+}
+
+const getUserMenuPrivilegeList = async () => {
+  try {
+    if (userId.value) {
+      isLoading.value = true;
+      const response: any = await axios.get('/usermenuprivilege/list/' + userId.value)
+      userMenuList.value = response.userMenuPrivilegeList;
     }
-  },
-  computed: {
-    userTypeId() {
-      const userTypeId
-        = localStorage.getItem("userTypeId");
-      return userTypeId ? parseInt(userTypeId) : null;
-    },
-    getUserTypeMenu() {
-      if (this.userTypeId == UserTypeId.SAD) {
-        return SUPER_ADMIN_MENU;
-      }
-      else if (this.userTypeId == UserTypeId.ADM) {
-        return ADMIN_MENU;
-      }
-      else {
-        return USER_MENU;
-      }
-    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
   }
 }
 </script>
 <template>
   <div class="left-menu content-card">
     <ul>
-      <li v-for="menu in getUserTypeMenu" :key="menu.id" class="mb-2">
-        <p class="main-menu">{{ menu.name }}</p>
+      <li v-for="menu in mainMenuList" :key="menu" class="mb-2">
+        <p class="main-menu">{{ menu[0].main_menu }}</p>
         <ul class="sub-menu">
-          <li v-for="subMenu in menu.subMenu" :key="subMenu.id">
-            <router-link :to="{ name: subMenu.routeName }" :class="{ 'active': $route.name == subMenu.routeName }">-
-              {{ subMenu.name }}</router-link>
+          <li v-for="subMenu in filteredUserMenuList(menu[0].main_menu_id)" :key="subMenu.id">
+            <router-link :to="{ name: subMenu.web_url }" :class="{ 'active': $route.name == subMenu.web_url }">-
+              {{ subMenu.menu }}</router-link>
           </li>
         </ul>
       </li>

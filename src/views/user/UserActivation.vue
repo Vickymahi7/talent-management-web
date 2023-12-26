@@ -1,7 +1,7 @@
 <script lang="ts">
-import axios from '@/plugins/axios'
+import axios from '@/plugins/axios';
 import useVuelidate from '@vuelidate/core';
-import { required, minLength, sameAs, helpers } from '@vuelidate/validators'
+import { helpers, minLength, required, sameAs } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
 import { useToast } from 'vue-toastification';
 export default {
@@ -51,7 +51,6 @@ export default {
         this.isLoading = true;
         const response: any = await axios.get('/user/activationdetail/' + this.token)
         this.user = response.user;
-        console.log(this.user)
         if (this.user) {
           this.showActivationForm = this.user.active ? false : true;
           this.isActiveUser = this.user.active ?? false;

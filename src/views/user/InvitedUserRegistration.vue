@@ -1,8 +1,8 @@
 <script lang="ts">
-import axios from '@/plugins/axios'
+import axios from '@/plugins/axios';
 import type { User } from '@/types/User';
 import useVuelidate from '@vuelidate/core';
-import { required, minLength, sameAs, helpers } from '@vuelidate/validators'
+import { helpers, minLength, required, sameAs } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
 import { useToast } from 'vue-toastification';
 export default {
@@ -61,7 +61,6 @@ export default {
         this.isLoading = true;
         const response: any = await axios.post('/user/inviteduser/decode', data)
         this.user = response.user;
-        console.log(this.user)
         if (this.user) {
           this.email_id = this.user.email_id ?? '';
           this.showActivationForm = this.user.active ? false : true;

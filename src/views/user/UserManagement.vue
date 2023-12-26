@@ -1,16 +1,18 @@
 <script lang="ts" setup>
-import { useVuelidate } from '@vuelidate/core'
-import { required, email, helpers } from '@vuelidate/validators'
+import UserPrivilege from '@/components/modals/UserPrivilege.vue'
 import axios from '@/plugins/axios'
-import { useToast } from 'vue-toastification'
-import { HttpStatusCode } from 'axios'
-import { USER_TYPES, ACCOUNT_STATUS } from '@/utils/constants'
-import { UserTypeId } from '@/utils/enums'
+import { bsModalHide, bsModalShow, getUserStatusById, getUserTypeById } from '@/utils/commonFunctions'
+import { ACCOUNT_STATUS, USER_TYPES } from '@/utils/constants'
 import { formatDate } from '@/utils/dateFormats'
-import { getUserStatusById, getUserTypeById, bsModalHide, bsModalShow } from '@/utils/commonFunctions'
+import { UserTypeId } from '@/utils/enums'
+import { useVuelidate } from '@vuelidate/core'
+import { email, helpers, required } from '@vuelidate/validators'
+import { HttpStatusCode } from 'axios'
 import { computed, onMounted, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 const toast = useToast();
 
+const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilege> | null);
 const isLoading = ref(false);
 const isModalLoading = ref(false);
 const editId = ref(null as number | null);
@@ -104,7 +106,7 @@ const addUser = async () => {
     v$.value.user.$touch();
     if (!v$.value.user.$invalid) {
       isModalLoading.value = true;
-      const response: any = await axios.post('/user/add', user);
+      const response: any = await axios.post('/user/add', user.value);
       if (response.status == HttpStatusCode.Created) {
         toast.success(response.message);
         getUserList();
@@ -199,8 +201,10 @@ const cancelInlineEdit = () => {
   editId.value = null;
   editKey.value = null;
   editValue.value = null;
-  console.log(editId.value)
   // getUserList();
+}
+const showUserPrivileges = (userId: number) => {
+  userPrivilegeRef.value?.showModal(userId);
 }
 </script>
 <template>
@@ -285,6 +289,9 @@ const cancelInlineEdit = () => {
                     data-bs-target="#deleteUser">
                     <font-awesome-icon icon="fa-solid fa-trash" />
                   </div>
+                  <div class="icon-btn me-2" @click="showUserPrivileges(item.user_id)" title="User Privileges">
+                    <font-awesome-icon icon="fa-solid fa-cog" />
+                  </div>
                 </template>
               </template>
               <template v-else>{{ item[field.key] }}</template>
@@ -358,6 +365,7 @@ const cancelInlineEdit = () => {
       </div>
     </div>
   </div>
+  <UserPrivilege ref="userPrivilegeRef" />
   <dialog-component id="deleteUser" :onYes="onYesUser" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete user?" />
   <dialog-component id="resendConfirmation" :onYes="onYesConfirmation" :returnParams="dialogParam"
