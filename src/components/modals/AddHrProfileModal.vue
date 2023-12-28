@@ -9,7 +9,7 @@ import useVuelidate from '@vuelidate/core';
 import { email, helpers, required } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
 import type { Modal } from 'bootstrap';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useToast } from 'vue-toastification';
 defineProps({
   id: { type: String, default: 'addHrProfileModal' },
@@ -24,17 +24,19 @@ const _showModal = () => {
 
 defineExpose({ showModal: _showModal });
 
-const validations = {
-  hrProfile: {
-    profile_title: {
-      required: helpers.withMessage('Profile Title is required', required),
-    },
-    email_id: {
-      required: helpers.withMessage('Email ID is required', required),
-      email: helpers.withMessage('Enter a valid Email ID', email),
-    },
+const validations = computed(() => {
+  return {
+    hrProfile: {
+      profile_title: {
+        required: helpers.withMessage('Profile Title is required', required),
+      },
+      email_id: {
+        required: helpers.withMessage('Email ID is required', required),
+        email: helpers.withMessage('Enter a valid Email ID', email),
+      },
+    }
   }
-}
+});
 
 const hrProfile = ref({
   id: '',

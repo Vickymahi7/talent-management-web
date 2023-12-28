@@ -269,6 +269,16 @@ a {
 //   }
 // }
 
+.label-text {
+  color: $text-color;
+  font-weight: $profile-font-bold;
+}
+
+h6 {
+  font-size: $profile-heading-size;
+  margin-bottom: 0.5em;
+}
+
 .profile-section {
   width: 100%;
   display: flex;
@@ -278,16 +288,6 @@ a {
   p {
     margin: 0;
     color: $text-color-light;
-  }
-
-  h6 {
-    font-size: $profile-heading-size;
-    margin-bottom: 0.5em;
-  }
-
-  .label-text {
-    color: $text-color;
-    font-weight: $profile-font-bold;
   }
 
   .primary-info {
@@ -468,6 +468,12 @@ a {
   width: 0px;
   height: 0px;
   overflow: hidden;
+}
+
+.profile-setting {
+  p {
+    margin: 0;
+  }
 }
 
 .custom-table-style {

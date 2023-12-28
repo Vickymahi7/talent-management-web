@@ -1,23 +1,23 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue'
-import { useVuelidate } from '@vuelidate/core'
-import { required, email, helpers } from '@vuelidate/validators'
-import { Modal } from 'bootstrap'
+import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue"
+import ResumePreviewModal from '@/components/modals/ResumePreviewModal.vue'
 import axios from '@/plugins/axios'
-import { useToast } from 'vue-toastification'
-import { HttpStatusCode } from 'axios'
-import { formatDate } from '@/utils/dateFormats'
+import type { Docs } from '@/types/Docs'
+import type { Education } from '@/types/Education'
+import type HrProfile from '@/types/HrProfile'
+import type { HrProfileChilderen } from '@/types/HrProfile'
+import type { Project } from '@/types/Project'
+import type { WorkExperience } from '@/types/WorkExperience'
 import { fileUploadBtnClick, getProfileStatusById } from '@/utils/commonFunctions'
 import { PROFILE_STATUS } from '@/utils/constants'
-import type HrProfile from '@/types/HrProfile'
-import type { WorkExperience } from '@/types/WorkExperience'
-import type { Project } from '@/types/Project'
-import type { Education } from '@/types/Education'
-import type { HrProfileChilderen } from '@/types/HrProfile'
-import type { Docs } from '@/types/Docs'
+import { formatDate } from '@/utils/dateFormats'
 import { UserTypeId } from '@/utils/enums'
-import ResumePreviewModal from '@/components/modals/ResumePreviewModal.vue'
-import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
+import { useVuelidate } from '@vuelidate/core'
+import { email, helpers, required } from '@vuelidate/validators'
+import { HttpStatusCode } from 'axios'
+import { Modal } from 'bootstrap'
+import { computed, onMounted, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 const props = defineProps({
   id: String
 });
@@ -47,14 +47,16 @@ const modalId = ref('');
 const deleteChildTitle = ref('');
 const profileCount = ref(0);
 
-const validations = {
-  hrProfile: {
-    email_id: {
-      required: helpers.withMessage('Email ID is required', required),
-      email: helpers.withMessage('Enter a valid Email ID', email),
-    },
+const validations = computed(() => {
+  return {
+    hrProfile: {
+      email_id: {
+        required: helpers.withMessage('Email ID is required', required),
+        email: helpers.withMessage('Enter a valid Email ID', email),
+      },
+    }
   }
-}
+});
 
 const hrProfileList = ref([] as HrProfile[]);
 

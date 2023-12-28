@@ -68,20 +68,22 @@ const filteredUserList = computed((): any => {
   return userList.value.slice(startIndex, endIndex);
 });
 
-const validations = {
-  user: {
-    user_name: {
-      required: helpers.withMessage('Display Name is required', required),
-    },
-    email_id: {
-      required: helpers.withMessage('Email ID is required', required),
-      email: helpers.withMessage('Enter a valid Email ID', email),
-    },
-    user_type_id: {
-      required: helpers.withMessage('User Type is required', required),
-    },
+const validations = computed(() => {
+  return {
+    user: {
+      user_name: {
+        required: helpers.withMessage('Display Name is required', required),
+      },
+      email_id: {
+        required: helpers.withMessage('Email ID is required', required),
+        email: helpers.withMessage('Enter a valid Email ID', email),
+      },
+      user_type_id: {
+        required: helpers.withMessage('User Type is required', required),
+      },
+    }
   }
-};
+});
 const v$ = useVuelidate(validations, { user });
 
 onMounted(() => {

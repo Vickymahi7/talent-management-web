@@ -12,6 +12,7 @@ declare module 'vue' {
     copy: typeof import('./src/components/modals/ResumePreviewModal copy.vue')['default']
     DialogComponent: typeof import('./src/components/modals/DialogComponent.vue')['default']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
+    ForgotPasswordModal: typeof import('./src/components/modals/ForgotPasswordModal.vue')['default']
     HrProfileAddEditModal: typeof import('./src/components/modals/HrProfileAddEditModal.vue')['default']
     HrProfileModal: typeof import('./src/components/modals/HrProfileModal.vue')['default']
     InviteAdUsersModal: typeof import('./src/components/modals/InviteAdUsersModal.vue')['default']
@@ -29,6 +30,7 @@ declare module 'vue' {
     Testingvue: typeof import('./src/components/modals/Testingvue.vue')['default']
     UserPrivilege: typeof import('./src/components/modals/UserPrivilege.vue')['default']
     UserPrivillege: typeof import('./src/components/modals/UserPrivillege.vue')['default']
+    UserProfile: typeof import('./src/components/modals/UserProfile.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

@@ -1,6 +1,6 @@
-import { createRouter, createWebHistory } from "vue-router";
-import { UserTypeId } from "@/utils/enums";
 import StandardLayout from "@/layouts/StandardLayout.vue";
+import { UserTypeId } from "@/utils/enums";
+import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
   {
@@ -37,6 +37,12 @@ const routes = [
     path: "/useractivation/:token",
     name: "useractivation",
     component: () => import("@/views/user/UserActivation.vue"),
+    props: true,
+  },
+  {
+    path: "/resetpassword/:token",
+    name: "resetpassword",
+    component: () => import("@/views/user/ResetPassword.vue"),
     props: true,
   },
 

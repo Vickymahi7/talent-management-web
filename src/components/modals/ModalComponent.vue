@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
 import { Modal } from "bootstrap";
+import { onMounted, ref } from "vue";
 defineProps({
   title: { type: String, default: "Modal", },
   cancelTitle: { type: String, default: "Close", },
   hideCancel: Boolean,
+  hideFooter: Boolean,
+  centered: Boolean,
+  size: { type: String, },
 });
 const modalEle = ref(null);
 const thisModalObj = ref(null as null | Modal);
@@ -20,7 +23,7 @@ defineExpose({ show: _show });
 
 <template>
   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="" aria-hidden="true" ref="modalEle">
-    <div class="modal-dialog">
+    <div class="modal-dialog" :class="{ [size!]: size, 'modal-dialog-centered': centered }">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="exampleModalLabel">{{ title }}</h5>
@@ -29,7 +32,7 @@ defineExpose({ show: _show });
         <div class="modal-body">
           <slot name="body" />
         </div>
-        <div class="modal-footer">
+        <div v-if="!hideFooter" class="modal-footer">
           <button v-if="!hideCancel" type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             {{ cancelTitle }}
           </button>

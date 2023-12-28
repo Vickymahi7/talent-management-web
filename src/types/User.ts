@@ -5,6 +5,7 @@ export interface User {
   user_name?: string;
   password?: string;
   confirm_password?: string;
+  existing_password?: string;
   email_id?: string;
   phone?: string;
   access_token?: string;

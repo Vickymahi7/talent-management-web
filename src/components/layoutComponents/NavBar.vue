@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import UserPrivilege from '@/components/modals/UserPrivilege.vue';
+import UserProfile from '@/components/modals/UserProfile.vue';
 import { USER_TYPES } from '@/utils/constants';
 import { Moon, Sunny } from '@element-plus/icons-vue';
 import { computed, ref } from 'vue';
 
 const isDarkMode = ref(false);
-const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilege> | null);
+const userProfileRef = ref(null as InstanceType<typeof UserProfile> | null);
 
 const userName = computed(() => {
   return localStorage.getItem("userName") ?? '';
@@ -25,8 +25,8 @@ const toggleMode = () => {
   document.body.classList.toggle('dark-mode', isDarkMode.value);
 }
 
-const showUserPrivileges = () => {
-  // userPrivilegeRef.value?.showModal();
+const showUserProfiles = () => {
+  userProfileRef.value?.showModal();
 }
 </script>
 <template>
@@ -46,7 +46,7 @@ const showUserPrivileges = () => {
               :inactive-action-icon="Sunny" />
           </a>
         </li>
-        <li class="nav-item">
+        <!-- <li class="nav-item">
           <a class="nav-link" href="#">
             <div class="icon-btn">
               <font-awesome-icon icon="fa-solid fa-cog" />
@@ -59,7 +59,7 @@ const showUserPrivileges = () => {
               <font-awesome-icon icon="fa-solid fa-user" />
             </div>
           </a>
-        </li>
+        </li> -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle  d-flex align-items-center" href="#" id="navbarDropdown" role="button"
             data-bs-toggle="dropdown" aria-expanded="false">
@@ -69,11 +69,19 @@ const showUserPrivileges = () => {
             </span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-            <li><a class="dropdown-item" href="#" @click.prevent="$router.push({ name: 'home' })">Logout</a></li>
+            <li>
+              <a class="dropdown-item" href="#" @click="showUserProfiles"><font-awesome-icon icon="fa-solid fa-user"
+                  class="me-2" />My
+                Profile</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" @click.prevent="$router.push({ name: 'home' })"><font-awesome-icon
+                  icon="fa-solid fa-right-from-bracket" class="me-2" />Logout</a>
+            </li>
           </ul>
         </li>
       </ul>
     </div>
   </nav>
-  <UserPrivilege ref="userPrivilegeRef" />
+  <UserProfile ref="userProfileRef" />
 </template>

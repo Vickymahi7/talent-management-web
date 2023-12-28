@@ -30,7 +30,7 @@ const mainMenuList = computed((): any => {
 });
 
 const activeUserMenuList = computed(() => {
-  return userMenuList.value.filter(data => data.active);
+  return userMenuList.value.filter(data => data.active == true);
 });
 
 const filteredUserMenuList = (mainMenuId: number) => {
