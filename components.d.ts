@@ -9,7 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AddHrProfileModal: typeof import('./src/components/modals/AddHrProfileModal.vue')['default']
     BPagination: typeof import('bootstrap-vue-next')['BPagination']
-    copy: typeof import('./src/components/modals/ResumePreviewModal copy.vue')['default']
+    copy: typeof import('./src/components/modals/UserProfileModal copy.vue')['default']
     DialogComponent: typeof import('./src/components/modals/DialogComponent.vue')['default']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     ForgotPasswordModal: typeof import('./src/components/modals/ForgotPasswordModal.vue')['default']
@@ -26,11 +26,14 @@ declare module 'vue' {
     ResumePreviewModal: typeof import('./src/components/modals/ResumePreviewModal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TenantProfileModal: typeof import('./src/components/modals/TenantProfileModal.vue')['default']
     Testing: typeof import('./src/components/modals/testing.vue')['default']
     Testingvue: typeof import('./src/components/modals/Testingvue.vue')['default']
     UserPrivilege: typeof import('./src/components/modals/UserPrivilege.vue')['default']
+    UserPrivilegeModal: typeof import('./src/components/modals/UserPrivilegeModal.vue')['default']
     UserPrivillege: typeof import('./src/components/modals/UserPrivillege.vue')['default']
     UserProfile: typeof import('./src/components/modals/UserProfile.vue')['default']
+    UserProfileModal: typeof import('./src/components/modals/UserProfileModal.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

@@ -20,7 +20,7 @@ export function useMsal(): MsalContext {
     internalInstance.appContext.config.globalProperties.$msal
   );
 
-  if (!instance || !accounts || !inProgress) {
+  if (!instance.value || !accounts.value || !inProgress.value) {
     throw "Please install the msalPlugin";
   }
 

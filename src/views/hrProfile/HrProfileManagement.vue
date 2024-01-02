@@ -179,7 +179,7 @@ const cancelInlineEdit = (item: any, field: any) => {
   getHrProfileList();
 }
 const loginPopup = async () => {
-  // await instance.loginPopup(loginRequest);
+  await instance.loginPopup(loginRequest);
   getGraphData()
 }
 const getGraphData = async () => {

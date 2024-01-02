@@ -1,21 +1,35 @@
 <script lang="ts" setup>
-import UserProfile from '@/components/modals/UserProfile.vue';
+import TenantProfileModal from '@/components/modals/TenantProfileModal.vue';
+import UserProfileModal from '@/components/modals/UserProfileModal.vue';
 import { USER_TYPES } from '@/utils/constants';
+import { UserTypeId } from '@/utils/enums';
 import { Moon, Sunny } from '@element-plus/icons-vue';
 import { computed, ref } from 'vue';
 
 const isDarkMode = ref(false);
-const userProfileRef = ref(null as InstanceType<typeof UserProfile> | null);
+const tenantProfileModalRef = ref(null as InstanceType<typeof TenantProfileModal> | null);
+const userProfileModalRef = ref(null as InstanceType<typeof UserProfileModal> | null);
 
 const userName = computed(() => {
   return localStorage.getItem("userName") ?? '';
 });
 
+const tenantLogo = computed(() => {
+  const _tenantLogo
+    = localStorage.getItem("tenantLogo");
+  return _tenantLogo ?? null;
+});
+
+const userTypeId = computed(() => {
+  const _userTypeId
+    = localStorage.getItem("userTypeId");
+  return _userTypeId ? parseInt(_userTypeId) : null;
+});
+
 const userType = computed(() => {
-  const userTypeId = parseInt(localStorage.getItem("userTypeId") ?? '');
   let result = '';
-  if (userTypeId) {
-    result = USER_TYPES.find(data => data.id === userTypeId)?.userType ?? '';
+  if (userTypeId.value) {
+    result = USER_TYPES.find(data => data.id === userTypeId.value)?.userType ?? '';
   }
   return result;
 });
@@ -25,14 +39,19 @@ const toggleMode = () => {
   document.body.classList.toggle('dark-mode', isDarkMode.value);
 }
 
-const showUserProfiles = () => {
-  userProfileRef.value?.showModal();
+const showUserProfileModal = () => {
+  userProfileModalRef.value?.showModal();
+}
+
+const showTenantProfileModal = () => {
+  tenantProfileModalRef.value?.showModal();
 }
 </script>
 <template>
   <nav class="navbar navbar-expand-lg">
     <a class="navbar-brand app-logo" href="#">
-      <img src="@/assets/img/logo.png" class="d-inline-block align-middle" alt="">
+      <img v-if="tenantLogo" :src="tenantLogo" class="d-inline-block align-middle" alt="">
+      <img v-else src="@/assets/img/logo.png" class="d-inline-block align-middle" alt="">
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,10 +88,13 @@ const showUserProfiles = () => {
             </span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+            <li v-if="userTypeId == UserTypeId.SAD || userTypeId == UserTypeId.ADM">
+              <a class="dropdown-item" href="#" @click="showTenantProfileModal"><font-awesome-icon
+                  icon="fa-solid fa-toolbox" class="me-2" />Tenant Profile</a>
+            </li>
             <li>
-              <a class="dropdown-item" href="#" @click="showUserProfiles"><font-awesome-icon icon="fa-solid fa-user"
-                  class="me-2" />My
-                Profile</a>
+              <a class="dropdown-item" href="#" @click="showUserProfileModal"><font-awesome-icon icon="fa-solid fa-user"
+                  class="me-2" />My Profile</a>
             </li>
             <li>
               <a class="dropdown-item" href="#" @click.prevent="$router.push({ name: 'home' })"><font-awesome-icon
@@ -83,5 +105,6 @@ const showUserProfiles = () => {
       </ul>
     </div>
   </nav>
-  <UserProfile ref="userProfileRef" />
+  <TenantProfileModal ref="tenantProfileModalRef" />
+  <UserProfileModal ref="userProfileModalRef" />
 </template>

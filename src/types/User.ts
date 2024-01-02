@@ -8,6 +8,7 @@ export interface User {
   existing_password?: string;
   email_id?: string;
   phone?: string;
+  photo_url?: string;
   access_token?: string;
   activation_token?: string;
   user_status_id?: number;

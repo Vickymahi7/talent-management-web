@@ -24,6 +24,8 @@ const clearLoginDetails = () => {
   localStorage.removeItem("userId")
   localStorage.removeItem("userTypeId")
   localStorage.removeItem("userName")
+  localStorage.removeItem("tenantLogo")
+  localStorage.removeItem("isPrimaryUser")
 }
 
 const loginUser = async () => {
@@ -35,7 +37,9 @@ const loginUser = async () => {
     localStorage.setItem("accessToken", response.accessToken)
     localStorage.setItem("userId", response.userId)
     localStorage.setItem("userTypeId", response.userTypeId)
+    localStorage.setItem("isPrimaryUser", response.isPrimaryUser)
     localStorage.setItem("userName", response.userName)
+    localStorage.setItem("tenantLogo", response.tenantLogo)
 
     if (response.userTypeId == UserTypeId.SAD) {
       router.push({ name: 'tenantmanagement' });

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import axios from "@/plugins/axios";
 import type { User } from "@/types/User";
+import { fileUploadBtnClick } from "@/utils/commonFunctions";
 import useVuelidate from "@vuelidate/core";
 import { email, helpers, minLength, requiredIf, sameAs } from "@vuelidate/validators";
 import { HttpStatusCode } from "axios";
@@ -25,6 +26,11 @@ const userId = computed(() => {
   return userId ? parseInt(userId) : null;
 });
 
+const getImageUrlWithTimestamp = computed(() => {
+  const imageUrl = user.value.photo_url;
+  const timestamp = new Date().getTime();
+  return `${imageUrl}?timestamp=${timestamp}`;
+})
 
 const validations = computed(() => {
   return {
@@ -120,6 +126,36 @@ const changeExistingPassword = async () => {
   }
 }
 
+
+const uploadProfilePhoto = async (event: any) => {
+  const files = event.target.files
+  try {
+    if (files.length > 0) {
+      let formData = new FormData();
+
+      formData.append('id', user.value.user_id!.toString());
+      formData.append('file', files[0]);
+
+      isLoading.value = true;
+      const response: any = await axios.post('/user/photoupload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.status == HttpStatusCode.Ok) {
+        toast.success(response.message);
+        getUserDetail();
+      }
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
+
 const _showModal = () => {
   userProfileModal.value?.show();
 
@@ -142,9 +178,18 @@ defineExpose({ showModal: _showModal });
         <div class="row gy-5">
           <div class="col-4">
             <div class="card shadow-sm p-3">
-              <div class="py-2">
-                <img class="d-block rounded-circle mx-auto" src="@/assets/img/user-icon.jpg" alt="" width="100"
+              <div class="p-2 mb-2 d-block position-relative">
+                <!-- <img class="d-block rounded-circle mx-auto" src="@/assets/img/user-icon.jpg" alt="" width="100"
+                height="100"> -->
+                <img v-if="user.photo_url" class="d-block rounded-circle mx-auto" :src="getImageUrlWithTimestamp" alt=""
+                  width="100" height="100" />
+                <img v-else class="d-block rounded-circle mx-auto" src="@/assets/img/user-icon.jpg" alt="" width="100"
                   height="100">
+                <span class="icon-btn upload-icon" style="left: 45%;" @click="fileUploadBtnClick('upload-input')">
+                  <font-awesome-icon icon="fa-solid fa-camera" />
+                  <input type="file" id="upload-input" class="icon-upload-input" @input="uploadProfilePhoto($event)"
+                    placeholder="Choose Photo">
+                </span>
               </div>
               <div class="row text-center">
                 <div class="col-12">
@@ -294,7 +339,7 @@ defineExpose({ showModal: _showModal });
                   </div>
                 </div>
                 <hr class="m-0">
-                <div class="row mt-2">
+                <div class="row mt-3">
                   <div class="col-12 text-end">
                     <button class="btn btn-primary me-2" @click.prevent="changeExistingPassword">Save</button>
                     <button class="btn btn-secondary" @click.prevent="elements.passwordEditMode = false">Cancel</button>

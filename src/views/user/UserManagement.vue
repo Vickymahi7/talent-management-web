@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import UserPrivilege from '@/components/modals/UserPrivilege.vue'
+import UserPrivilegeModal from '@/components/modals/UserPrivilegeModal.vue'
 import axios from '@/plugins/axios'
 import { bsModalHide, bsModalShow, getUserStatusById, getUserTypeById } from '@/utils/commonFunctions'
 import { ACCOUNT_STATUS, USER_TYPES } from '@/utils/constants'
@@ -12,7 +12,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
 const toast = useToast();
 
-const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilege> | null);
+const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilegeModal> | null);
 const isLoading = ref(false);
 const isModalLoading = ref(false);
 const editId = ref(null as number | null);
@@ -367,7 +367,7 @@ const showUserPrivileges = (userId: number) => {
       </div>
     </div>
   </div>
-  <UserPrivilege ref="userPrivilegeRef" />
+  <UserPrivilegeModal ref="userPrivilegeRef" />
   <dialog-component id="deleteUser" :onYes="onYesUser" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete user?" />
   <dialog-component id="resendConfirmation" :onYes="onYesConfirmation" :returnParams="dialogParam"

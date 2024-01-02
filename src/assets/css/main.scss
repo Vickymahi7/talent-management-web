@@ -88,6 +88,7 @@ a {
 
 .app-logo {
   height: 50px;
+  max-width: 250px;
   padding: 0;
 
   img {
@@ -343,25 +344,25 @@ h6 {
           border-radius: $profile-pic-radius;
         }
 
-        .upload-icon {
-          position: absolute;
-          top: unset;
-          bottom: -8px;
-          left: 40%;
-          width: 25px;
-          height: 25px;
-          margin-bottom: 0;
-          line-height: 24px;
-          background-color: $card-color;
-          border-radius: 100%;
-          font-size: 14px;
-          box-shadow: 0 4px 6px 2px rgba(0, 0, 0, 0.2);
-          cursor: pointer;
+        // .upload-icon {
+        //   position: absolute;
+        //   top: unset;
+        //   bottom: -8px;
+        //   left: 40%;
+        //   width: 25px;
+        //   height: 25px;
+        //   margin-bottom: 0;
+        //   line-height: 24px;
+        //   background-color: $card-color;
+        //   border-radius: 100%;
+        //   font-size: 14px;
+        //   box-shadow: 0 4px 6px 2px rgba(0, 0, 0, 0.2);
+        //   cursor: pointer;
 
-          &:hover {
-            background-color: #000;
-          }
-        }
+        //   &:hover {
+        //     background-color: #000;
+        //   }
+        // }
       }
 
       .title-block {
@@ -457,6 +458,26 @@ h6 {
         }
       }
     }
+  }
+}
+
+.upload-icon {
+  position: absolute;
+  top: unset;
+  bottom: -8px;
+  left: 40%;
+  width: 25px;
+  height: 25px;
+  margin-bottom: 0;
+  line-height: 24px;
+  background-color: $card-color;
+  border-radius: 100%;
+  font-size: 14px;
+  box-shadow: 0 4px 6px 2px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+
+  &:hover {
+    background-color: #000;
   }
 }
 
