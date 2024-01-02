@@ -252,7 +252,7 @@ defineExpose({ showModal: _showModal });
                   </div>
                 </div>
                 <hr class="m-0">
-                <div class="row mt-2">
+                <div class="row mt-3">
                   <div class="col-12 text-end">
                     <button class="btn btn-primary me-2" @click.prevent="updateUser">Save</button>
                     <button class="btn btn-secondary" @click.prevent="elements.editMode = false">Cancel</button>
