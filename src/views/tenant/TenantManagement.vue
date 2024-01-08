@@ -1,21 +1,19 @@
 <script lang="ts">
-import { useVuelidate } from '@vuelidate/core'
-import { required, email, helpers } from '@vuelidate/validators'
 import axios from '@/plugins/axios'
-import { useToast } from 'vue-toastification'
-import { HttpStatusCode } from 'axios'
 import { ACCOUNT_STATUS } from '@/utils/constants'
 import { formatDate } from '@/utils/dateFormats'
-import { getTenantStatusById, bsModalHide, bsModalShow } from '@/utils/commonFunctions'
+import { useCommonFunctions } from '@/utils/useCommonFunctions'
+import { useVuelidate } from '@vuelidate/core'
+import { email, helpers, required } from '@vuelidate/validators'
+import { HttpStatusCode } from 'axios'
+import { useToast } from 'vue-toastification'
 export default {
   data() {
     return {
       v$: useVuelidate(),
       toast: useToast(),
+      commonFunctions: useCommonFunctions(),
       formatDate: formatDate,
-      getTenantStatusById: getTenantStatusById,
-      bsModalHide: bsModalHide,
-      bsModalShow: bsModalShow,
 
       isLoading: false,
       isModalLoading: false,
@@ -109,7 +107,7 @@ export default {
           if (response.status == HttpStatusCode.Created) {
             this.toast.success(response.message);
             this.getTenantList();
-            this.bsModalHide(this.modalId);
+            this.commonFunctions.bsModalHide(this.modalId);
           }
         }
       } catch (error: any) {
@@ -190,7 +188,7 @@ export default {
     <div class="row py-2">
       <div class="col text-end">
         <button class="btn btn-primary mx-2" type="button"
-          @click="bsModalShow('tenantAddEditModal'); modalId = 'tenantAddEditModal'">
+          @click="commonFunctions.bsModalShow('tenantAddEditModal'); modalId = 'tenantAddEditModal'">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New Tenant
         </button>
@@ -229,7 +227,7 @@ export default {
                   <option :value="null">Select</option>
                   <option v-for="item in accountStatus" :key="item.id" :value="item.id">{{ item.status }}</option>
                 </select>
-                <span v-else>{{ getTenantStatusById(tenant[field.key]) }}</span>
+                <span v-else>{{ commonFunctions.getTenantStatusById(tenant[field.key]) }}</span>
               </template>
               <template v-else-if="field.key == 'last_updated_dt'">
                 {{ formatDate(tenant[field.key]) }}
@@ -321,4 +319,4 @@ export default {
   </div>
   <dialog-component id="deleteTenant" :onYes="onYesTenant" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete tenant?" />
-</template>
+</template>@/composables/useCommonFunctions

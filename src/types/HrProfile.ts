@@ -1,6 +1,7 @@
 import type { Docs } from "./Docs";
 import type { Education } from "./Education";
 import type { Project } from "./Project";
+import type { Skill } from "./Skill";
 import type { WorkExperience } from "./WorkExperience";
 
 export default interface HrProfile {
@@ -48,7 +49,7 @@ export default interface HrProfile {
   created_by_id?: string;
   created_dt?: Date | null;
   last_updated_dt?: Date | null;
-  skills?: string[];
+  skills?: Skill[];
   work_experience?: WorkExperience[];
   project?: Project[];
   education?: Education[];

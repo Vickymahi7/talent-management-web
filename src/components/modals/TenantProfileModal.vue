@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import axios from "@/plugins/axios";
 import type { Tenant } from "@/types/Tenant";
-import { fileUploadBtnClick } from "@/utils/commonFunctions";
 import { USER_TYPES } from "@/utils/constants";
+import { useCommonFunctions } from "@/utils/useCommonFunctions";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { HttpStatusCode } from "axios";
@@ -11,10 +11,12 @@ import { computed, ref } from "vue";
 import { useToast } from "vue-toastification";
 import ModalComponent from "./ModalComponent.vue";
 const toast = useToast();
+const commonFunctions = useCommonFunctions();
 const tenentProfileModalref = ref(null as null | Modal);
 
 const elements = ref({
   editMode: false,
+  profileSettingEditMode: false,
 });
 const isLoading = ref(false);
 const tenant = ref([] as Tenant);
@@ -50,15 +52,15 @@ const v$ = useVuelidate(validations, { tenant });
 const _showModal = () => {
   tenentProfileModalref.value?.show();
 
-  getTenantDetail();
+  getTenantSettings();
 }
 
 defineExpose({ showModal: _showModal });
 
-const getTenantDetail = async () => {
+const getTenantSettings = async () => {
   try {
     isLoading.value = true;
-    const response: any = await axios.get('/tenant/view/' + 0)
+    const response: any = await axios.get('/tenantsetting/view')
     tenant.value = response.tenant;
   } catch (error: any) {
     toast.error(error.message);
@@ -73,7 +75,11 @@ const updateTenant = async () => {
     const tenantData: Tenant = {}
     tenantData.tenant_id = tenant.value.tenant_id;
     tenantData.name = tenant.value.name;
+    tenantData.tenant_email_id = tenant.value.tenant_email_id;
+    tenantData.tenant_phone = tenant.value.tenant_phone;
     tenantData.location = tenant.value.location;
+    tenantData.is_official_contact_info = tenant.value.is_official_contact_info;
+    tenantData.is_skill_experience = tenant.value.is_skill_experience;
     v$.value.tenant.$touch();
     if (!v$.value.tenant.$invalid) {
       isLoading.value = true;
@@ -81,7 +87,8 @@ const updateTenant = async () => {
       if (response.status == HttpStatusCode.Ok) {
         toast.success(response.message);
         elements.value.editMode = false;
-        getTenantDetail();
+        elements.value.profileSettingEditMode = false;
+        getTenantSettings();
         // bsModalHide();
       }
     }
@@ -111,7 +118,7 @@ const uploadTenantLogo = async (event: any) => {
 
       if (response.status == HttpStatusCode.Ok) {
         toast.success(response.message);
-        getTenantDetail();
+        getTenantSettings();
       }
     }
   } catch (error: any) {
@@ -136,17 +143,17 @@ const uploadTenantLogo = async (event: any) => {
         </div>
         <div class="row gy-2">
           <div class="col-12">
-            <!-- <div class="card shadow-sm p-3"> -->
+            <!-- <div class="card shadow-lg border-0 p-3"> -->
             <div class="py-2 d-inline-block position-relative">
               <img v-if="tenant.logo_url" class="d-block rounded" :src="getImageUrlWithTimestamp" alt="" height="70" />
               <img v-else class="d-block rounded" src="@/assets/img/logo.png" alt="" height="70">
-              <span class="icon-btn upload-icon" @click="fileUploadBtnClick('upload-input')">
+              <span class="icon-btn upload-icon" @click="commonFunctions.fileUploadBtnClick('upload-input')">
                 <font-awesome-icon icon="fa-solid fa-camera" />
                 <input type="file" id="upload-input" class="icon-upload-input" @input="uploadTenantLogo($event)"
                   placeholder="Choose Photo">
               </span>
             </div>
-            <div class="card shadow-sm p-3 mt-2">
+            <div class="card shadow-lg border-0 p-3 mt-2">
               <template v-if="!elements.editMode">
                 <div class="row g-3 align-items-center">
                   <div class="col-sm-4">
@@ -168,28 +175,19 @@ const uploadTenantLogo = async (event: any) => {
                 <hr>
                 <div class="row g-3 align-items-center">
                   <div class="col-sm-4">
-                    <label for="firstName" class="label-text m-0">Primary User</label>
+                    <label for="firstName" class="label-text m-0">Official Email</label>
                   </div>
                   <div class="col-sm-8">
-                    <p>{{ tenant.user?.user_name }}</p>
+                    <p>{{ tenant.tenant_email_id }}</p>
                   </div>
                 </div>
                 <hr>
                 <div class="row g-3 align-items-center">
                   <div class="col-sm-4">
-                    <label for="firstName" class="label-text m-0">User Type</label>
+                    <label for="firstName" class="label-text m-0">Official Phone</label>
                   </div>
                   <div class="col-sm-8">
-                    <p>{{ userType }}</p>
-                  </div>
-                </div>
-                <hr>
-                <div class="row g-3 align-items-center">
-                  <div class="col-sm-4">
-                    <label for="firstName" class="label-text m-0">User Email</label>
-                  </div>
-                  <div class="col-sm-8">
-                    <p>{{ tenant.user?.email_id }}</p>
+                    <p>{{ tenant.tenant_phone }}</p>
                   </div>
                 </div>
               </template>
@@ -220,9 +218,9 @@ const uploadTenantLogo = async (event: any) => {
                 <div class="row g-3 align-items-center">
                   <div class="col-12">
                     <div class="form-floating">
-                      <input type="text" :value="tenant.user?.user_name" disabled class="form-control border-0"
-                        id="profile_userType" placeholder="">
-                      <label for="profile_userType">Primary User</label>
+                      <input type="text" v-model="tenant.tenant_email_id" class="form-control border-0"
+                        id="profile_tenant_email_id" placeholder="">
+                      <label for="profile_tenant_email_id">Official Email</label>
                     </div>
                   </div>
                 </div>
@@ -230,19 +228,9 @@ const uploadTenantLogo = async (event: any) => {
                 <div class="row g-3 align-items-center">
                   <div class="col-12">
                     <div class="form-floating">
-                      <input type="text" v-model="userType" disabled class="form-control border-0" id="profile_userType"
-                        placeholder="">
-                      <label for="profile_userType">User Type</label>
-                    </div>
-                  </div>
-                </div>
-                <hr class="m-0">
-                <div class="row g-3 align-items-center">
-                  <div class="col-12">
-                    <div class="form-floating">
-                      <input type="text" :value="tenant.user?.email_id" disabled class="form-control border-0"
-                        id="profile_userType" placeholder="">
-                      <label for="profile_userType">User Email</label>
+                      <input type="text" v-model="tenant.tenant_phone" class="form-control border-0"
+                        id="profile_tenant_phone" placeholder="">
+                      <label for="profile_tenant_phone">Official Phone</label>
                     </div>
                   </div>
                 </div>
@@ -255,6 +243,82 @@ const uploadTenantLogo = async (event: any) => {
                 </div>
               </form>
             </div>
+            <div class="card shadow-lg border-0 p-3 mt-2">
+              <div class="row g-3 align-items-center">
+                <div class="col-sm-4">
+                  <label for="firstName" class="label-text m-0">Primary User</label>
+                </div>
+                <div class="col-sm-8">
+                  <p>{{ tenant.user?.user_name }}</p>
+                </div>
+              </div>
+              <hr>
+              <div class="row g-3 align-items-center">
+                <div class="col-sm-4">
+                  <label for="firstName" class="label-text m-0">User Type</label>
+                </div>
+                <div class="col-sm-8">
+                  <p>{{ userType }}</p>
+                </div>
+              </div>
+              <hr>
+              <div class="row g-3 align-items-center">
+                <div class="col-sm-4">
+                  <label for="firstName" class="label-text m-0">User Email</label>
+                </div>
+                <div class="col-sm-8">
+                  <p>{{ tenant.user?.email_id }}</p>
+                </div>
+              </div>
+              <hr>
+              <div class="row g-3 align-items-center">
+                <div class="col-sm-4">
+                  <label for="firstName" class="label-text m-0">Phone</label>
+                </div>
+                <div class="col-sm-8">
+                  <p>{{ tenant.user?.phone }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="card shadow-lg border-0 p-3 mt-2">
+              <div class="row">
+                <div class="col">
+                  <h6 class="m-0">Profile Settings</h6>
+                </div>
+                <div v-if="!elements.profileSettingEditMode" class="col-4 text-end">
+                  <a href="#" @click.prevent="elements.profileSettingEditMode = true">
+                    <font-awesome-icon icon="fa-solid fa-pencil-alt" class="me-1" />Edit</a>
+                </div>
+              </div>
+              <!-- <hr class="m-0"> -->
+              <hr>
+              <div class="row g-3 align-items-center">
+                <div class="col-sm-12">
+                  <label class="form-check-label" for="isOfficialContactInfo">
+                    <input class="form-check-input checkbox-lg mt-0" v-model="tenant.is_official_contact_info"
+                      :disabled="!elements.profileSettingEditMode" type="checkbox" id="isOfficialContactInfo">
+                    Use Official Phone & Email ID for Profile Contact Info
+                  </label>
+                </div>
+                <div class="col-sm-12">
+                  <label class="form-check-label" for="isSkillExperience">
+                    <input class="form-check-input checkbox-lg mt-0" v-model="tenant.is_skill_experience"
+                      :disabled="!elements.profileSettingEditMode" type="checkbox" id="isSkillExperience">
+                    Save Skills with Experience
+                  </label>
+                </div>
+              </div>
+              <template v-if="elements.profileSettingEditMode">
+                <hr class="">
+                <div class="row">
+                  <div class="col-12 text-end">
+                    <button class="btn btn-primary me-2" @click.prevent="updateTenant">Save</button>
+                    <button class="btn btn-secondary"
+                      @click.prevent="elements.profileSettingEditMode = false">Cancel</button>
+                  </div>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
       </div>
@@ -264,4 +328,4 @@ const uploadTenantLogo = async (event: any) => {
       <button class="btn btn-primary">Save</button>
     </template> -->
   </ModalComponent>
-</template>
+</template>@/composables/useCommonFunctions

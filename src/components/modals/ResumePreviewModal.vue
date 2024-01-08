@@ -15,7 +15,9 @@ export default {
   },
   methods: {
     async print() {
-      await this.$htmlToPaper('printMe', {
+      console.log(this.$nextTick)
+      const vue = this as any;
+      await vue.$htmlToPaper('printMe', {
         styles: ['../../resTemplateStyle.css'],
         timeout: 10000,
         autoClose: true,
@@ -76,8 +78,8 @@ export default {
                       <li v-if="hrProfile.mobile">{{ hrProfile.mobile }}</li>
                       <li v-if="hrProfile.website">{{ hrProfile.website }}</li>
                       <li v-if="hrProfile.city">
-                      {{ hrProfile.city }}
-                      <span v-if="hrProfile.city && hrProfile.country">, </span>
+                        {{ hrProfile.city }}
+                        <span v-if="hrProfile.city && hrProfile.country">, </span>
                         <span v-if="hrProfile.country">{{ hrProfile.country }}</span>
                       </li>
                     </ul>
@@ -125,11 +127,11 @@ export default {
                         </div>
                         <p>{{ workExperience.description }}</p>
                       </div>
-                  </div>
-                  <div v-if="hrProfile.project" class="project-wrapper">
-                    <h2><span class="heading">Projects</span></h2>
-                    <div v-for="  project, index   in   hrProfile.project  " :key="index" class="project">
-                      <div class="project-title-wrapper">
+                    </div>
+                    <div v-if="hrProfile.project" class="project-wrapper">
+                      <h2><span class="heading">Projects</span></h2>
+                      <div v-for="  project, index   in   hrProfile.project  " :key="index" class="project">
+                        <div class="project-title-wrapper">
                           <span class="project-title me-2">{{ project.title }} </span>
                           <span v-if="project.start_date" class="muted-text">{{ formatDateMonthYear(project.start_date)
                           }}</span>

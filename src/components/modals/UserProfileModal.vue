@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import axios from "@/plugins/axios";
 import type { User } from "@/types/User";
-import { fileUploadBtnClick } from "@/utils/commonFunctions";
+import { useCommonFunctions } from "@/utils/useCommonFunctions";
 import useVuelidate from "@vuelidate/core";
 import { email, helpers, minLength, requiredIf, sameAs } from "@vuelidate/validators";
 import { HttpStatusCode } from "axios";
@@ -10,6 +10,7 @@ import { computed, ref } from "vue";
 import { useToast } from "vue-toastification";
 import ModalComponent from "./ModalComponent.vue";
 const toast = useToast();
+const commonFunctions = useCommonFunctions();
 
 const userProfileModal = ref(null as null | Modal);
 
@@ -185,9 +186,10 @@ defineExpose({ showModal: _showModal });
                   width="100" height="100" />
                 <img v-else class="d-block rounded-circle mx-auto" src="@/assets/img/user-icon.jpg" alt="" width="100"
                   height="100">
-                <span class="icon-btn upload-icon" style="left: 45%;" @click="fileUploadBtnClick('upload-input')">
+                <span class="icon-btn upload-icon" style="left: 45%;"
+                  @click="commonFunctions.fileUploadBtnClick('userProfileUpload')">
                   <font-awesome-icon icon="fa-solid fa-camera" />
-                  <input type="file" id="upload-input" class="icon-upload-input" @input="uploadProfilePhoto($event)"
+                  <input type="file" id="userProfileUpload" class="icon-upload-input" @input="uploadProfilePhoto($event)"
                     placeholder="Choose Photo">
                 </span>
               </div>
@@ -364,4 +366,4 @@ defineExpose({ showModal: _showModal });
       <button class="btn btn-primary">Save</button>
     </template> -->
   </ModalComponent>
-</template>
+</template>@/composables/useCommonFunctions

@@ -4,9 +4,13 @@ import UserProfileModal from '@/components/modals/UserProfileModal.vue';
 import { USER_TYPES } from '@/utils/constants';
 import { UserTypeId } from '@/utils/enums';
 import { Moon, Sunny } from '@element-plus/icons-vue';
+import { useDark, useToggle } from '@vueuse/core';
 import { computed, ref } from 'vue';
 
-const isDarkMode = ref(false);
+const dark = useDark({
+  selector: 'body',
+});
+const toggleDark = () => useToggle(dark.value);
 const tenantProfileModalRef = ref(null as InstanceType<typeof TenantProfileModal> | null);
 const userProfileModalRef = ref(null as InstanceType<typeof UserProfileModal> | null);
 
@@ -34,11 +38,6 @@ const userType = computed(() => {
   return result;
 });
 
-const toggleMode = () => {
-  // isDarkMode.value = !isDarkMode.value;
-  document.body.classList.toggle('dark-mode', isDarkMode.value);
-}
-
 const showUserProfileModal = () => {
   userProfileModalRef.value?.showModal();
 }
@@ -48,7 +47,7 @@ const showTenantProfileModal = () => {
 }
 </script>
 <template>
-  <nav class="navbar navbar-expand-lg">
+  <nav class="navbar navbar-expand-md">
     <a class="navbar-brand app-logo" href="#">
       <img v-if="tenantLogo" :src="tenantLogo" class="d-inline-block align-middle" alt="">
       <img v-else src="@/assets/img/logo.png" class="d-inline-block align-middle" alt="">
@@ -58,10 +57,10 @@ const showTenantProfileModal = () => {
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
-      <ul class="navbar-nav align-items-center">
+      <ul class="navbar-nav align-items-end">
         <li class="nav-item">
           <a class="nav-link" href="#">
-            <el-switch class="dark-mode-switch" v-model="isDarkMode" @change="toggleMode" :active-action-icon="Moon"
+            <el-switch class="dark-mode-switch" v-model="dark" @change="toggleDark()" :active-action-icon="Moon"
               :inactive-action-icon="Sunny" />
           </a>
         </li>

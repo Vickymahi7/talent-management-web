@@ -10,12 +10,6 @@ onMounted(() => {
   getUserMenuPrivilegeList();
 })
 
-const userId = computed(() => {
-  const userId
-    = localStorage.getItem("userId");
-  return userId ? parseInt(userId) : null;
-});
-
 const mainMenuList = computed((): any => {
   let arr = [];
   if (activeUserMenuList.value.length > 0) {
@@ -39,11 +33,9 @@ const filteredUserMenuList = (mainMenuId: number) => {
 
 const getUserMenuPrivilegeList = async () => {
   try {
-    if (userId.value) {
-      isLoading.value = true;
-      const response: any = await axios.get('/usermenuprivilege/list/' + userId.value)
-      userMenuList.value = response.userMenuPrivilegeList;
-    }
+    isLoading.value = true;
+    const response: any = await axios.get('/usermenuprivilege/list')
+    userMenuList.value = response.userMenuPrivilegeList;
   } catch (error: any) {
     toast.error(error.message);
   }

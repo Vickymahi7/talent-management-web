@@ -1,16 +1,17 @@
 <script lang="ts" setup>
 import UserPrivilegeModal from '@/components/modals/UserPrivilegeModal.vue'
 import axios from '@/plugins/axios'
-import { bsModalHide, bsModalShow, getUserStatusById, getUserTypeById } from '@/utils/commonFunctions'
 import { ACCOUNT_STATUS, USER_TYPES } from '@/utils/constants'
 import { formatDate } from '@/utils/dateFormats'
 import { UserTypeId } from '@/utils/enums'
+import { useCommonFunctions } from '@/utils/useCommonFunctions'
 import { useVuelidate } from '@vuelidate/core'
 import { email, helpers, required } from '@vuelidate/validators'
 import { HttpStatusCode } from 'axios'
 import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
 const toast = useToast();
+const commonFunctions = useCommonFunctions();
 
 const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilegeModal> | null);
 const isLoading = ref(false);
@@ -112,7 +113,7 @@ const addUser = async () => {
       if (response.status == HttpStatusCode.Created) {
         toast.success(response.message);
         getUserList();
-        bsModalHide(modalId.value);
+        commonFunctions.bsModalHide(modalId.value);
       }
     }
   } catch (error: any) {
@@ -217,7 +218,7 @@ const showUserPrivileges = (userId: number) => {
     <div class="row py-2">
       <div class="col text-end">
         <button class="btn btn-primary mx-2" type="button"
-          @click="bsModalShow('userAddEditModal'); modalId = 'userAddEditModal'">
+          @click="commonFunctions.bsModalShow('userAddEditModal'); modalId = 'userAddEditModal'">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New User
         </button>
@@ -257,7 +258,7 @@ const showUserPrivileges = (userId: number) => {
                   <option :value="null">Select</option>
                   <option v-for="info in userTypeList" :key="info.id" :value="info.id">{{ info.userType }}</option>
                 </select>
-                <span v-else>{{ getUserTypeById(item[field.key]) }}</span>
+                <span v-else>{{ commonFunctions.getUserTypeById(item[field.key]) }}</span>
               </template>
               <template v-else-if="field.key == 'user_status_id'">
                 <select v-if="editId == item.user_id" class="form-select form-control-sm" v-model="item[field.key]"
@@ -265,7 +266,7 @@ const showUserPrivileges = (userId: number) => {
                   <option :value="null">Select</option>
                   <option v-for="info in ACCOUNT_STATUS" :key="info.id" :value="info.id">{{ info.status }}</option>
                 </select>
-                <span v-else>{{ getUserStatusById(item[field.key]) }}</span>
+                <span v-else>{{ commonFunctions.getUserStatusById(item[field.key]) }}</span>
               </template>
               <template v-else-if="field.key == 'last_updated_dt'">
                 {{ formatDate(item[field.key]) }}
@@ -372,4 +373,4 @@ const showUserPrivileges = (userId: number) => {
     message="Are you sure to delete user?" />
   <dialog-component id="resendConfirmation" :onYes="onYesConfirmation" :returnParams="dialogParam"
     title="Mail Resend Confirmation" message="Are you sure to resend activation mail?" />
-</template>
+</template>@/composables/useCommonFunctions

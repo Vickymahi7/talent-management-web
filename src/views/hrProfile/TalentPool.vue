@@ -1,11 +1,12 @@
 <script lang="ts">
-import axios from '@/plugins/axios'
-import { useToast } from 'vue-toastification'
-import { formatDate } from '@/utils/dateFormats'
-import { PROFILE_STATUS } from '@/utils/constants'
-import { getProfileStatusById, bsModalHide, bsModalShow } from '@/utils/commonFunctions'
-import type HrProfile from '@/types/HrProfile'
 import ResumePreviewModal from '@/components/modals/ResumePreviewModal.vue'
+import axios from '@/plugins/axios'
+import type HrProfile from '@/types/HrProfile'
+import type { Skill } from '@/types/Skill'
+import { PROFILE_STATUS } from '@/utils/constants'
+import { formatDate } from '@/utils/dateFormats'
+import { useCommonFunctions } from '@/utils/useCommonFunctions'
+import { useToast } from 'vue-toastification'
 
 export default {
   components: {
@@ -14,11 +15,9 @@ export default {
   data() {
     return {
       toast: useToast(),
+      commonFunctions: useCommonFunctions(),
       formatDate: formatDate,
       profileStatus: PROFILE_STATUS,
-      getProfileStatusById: getProfileStatusById,
-      bsModalHide: bsModalHide,
-      bsModalShow: bsModalShow,
 
       isLoading: false,
       isModalLoading: false,
@@ -72,14 +71,14 @@ export default {
         this.isLoading = false;
       }
     },
-    skillsToolTip(skills?: string[]) {
+    skillsToolTip(skills?: Skill[]) {
       let tooltipText = "";
       if (skills && skills.length > 0) {
-        skills.forEach((skill, index) => {
+        skills.forEach((_skill, index) => {
           if (index != 0) {
             tooltipText += ", "
           }
-          tooltipText += skill;
+          tooltipText += _skill.skill;
         })
       }
       return tooltipText;
@@ -139,7 +138,7 @@ export default {
                 </span>
               </div>
             </td>
-            <td>{{ getProfileStatusById(hrProfile.status_id) }}</td>
+            <td>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</td>
             <td>{{ formatDate(hrProfile.last_updated_dt) }}</td>
             <td>
               <div class="icon-btn" data-bs-toggle="modal" data-bs-target="#resumePreviewModal"
@@ -158,4 +157,4 @@ export default {
       size="sm" />
   </div>
   <ResumePreviewModal :hrProfile="hrProfilePreviewData" />
-</template>
+</template>@/composables/useCommonFunctions

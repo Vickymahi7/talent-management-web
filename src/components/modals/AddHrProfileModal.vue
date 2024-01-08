@@ -4,17 +4,22 @@ import type { Docs } from '@/types/Docs';
 import type { Education } from '@/types/Education';
 import type HrProfile from '@/types/HrProfile';
 import type { Project } from '@/types/Project';
+import type { Skill } from '@/types/Skill';
+import type { Tenant } from '@/types/Tenant';
 import type { WorkExperience } from '@/types/WorkExperience';
+import { useCommonFunctions } from '@/utils/useCommonFunctions';
 import useVuelidate from '@vuelidate/core';
 import { email, helpers, required } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
 import type { Modal } from 'bootstrap';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useToast } from 'vue-toastification';
 defineProps({
   id: { type: String, default: 'addHrProfileModal' },
 });
 const emit = defineEmits(['refreshParent']);
+
+const commonFunctions = useCommonFunctions();
 
 const addHrProfileModalRef = ref(null as null | Modal);
 
@@ -37,7 +42,7 @@ const validations = computed(() => {
     }
   }
 });
-
+const tenant = ref({} as Tenant);
 const hrProfile = ref({
   id: '',
   hr_profile_id: '',
@@ -88,10 +93,32 @@ const hrProfile = ref({
   docs: [] as Docs[],
 } as HrProfile);
 
+const skillData = ref({} as Skill);
 const v$ = useVuelidate(validations, { hrProfile });
 const toast = useToast();
 
 const isModalLoading = ref(false);
+
+const showSkillExp = computed(() => {
+  return tenant.value.is_skill_experience;
+})
+
+onMounted(() => {
+  getTenantSettings();
+})
+
+const getTenantSettings = async () => {
+  try {
+    isModalLoading.value = true;
+    const response: any = await axios.get('/tenantsetting/view');
+    tenant.value = response.tenant as Tenant;
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isModalLoading.value = false;
+  }
+};
 
 const addHrProfile = async () => {
   try {
@@ -114,17 +141,29 @@ const addHrProfile = async () => {
   }
 }
 
-const addSkills = (event: any) => {
-  const skill = event.target.value.trim();
-  hrProfile.value.skills = hrProfile.value.skills ?? [];
-  if (!hrProfile.value.skills.includes(skill)) {
-    hrProfile.value.skills.push(skill);
-    event.target.value = '';
-  }
-}
+const addSkill = () => {
+  if (skillData.value.skill) {
+    const _skill: Skill = {
+      skill: skillData.value.skill,
+      experience_month: skillData.value.experience_month,
+      experience_year: skillData.value.experience_year,
+    };
+    hrProfile.value.skills = hrProfile.value.skills ?? [];
+    if (!hrProfile.value.skills.some((data) => data.skill?.toLocaleLowerCase() === _skill.skill?.toLocaleLowerCase())) {
+      hrProfile.value.skills.push(_skill);
 
-const removeSkill = (skill: string) => {
-  hrProfile.value.skills = hrProfile.value.skills?.filter(item => item != skill);
+      skillData.value = {};
+    }
+  }
+};
+
+const editSkill = (_skill: Skill) => {
+  skillData.value = _skill;
+  hrProfile.value.skills = hrProfile.value.skills!.filter(item => item.skill != _skill.skill);
+};
+
+const removeSkill = (_skill: Skill) => {
+  hrProfile.value.skills = hrProfile.value.skills?.filter(item => item.skill != _skill.skill);
 }
 </script>
 <template>
@@ -188,14 +227,50 @@ const removeSkill = (skill: string) => {
             </div>
           </div>
           <div class="row">
-            <label for="skills" class="col-sm-4 col-form-label">Skills</label>
+            <label for="skills" class="col-sm-4 col-form-label align-self-start">{{ showSkillExp ? 'Skill & Experience' :
+              'Skills' }}</label>
             <div class="col-sm-8">
-              <input type="text" class="form-control" @keyup.enter.prevent="addSkills" id="skills"
+              <!-- <input type="text" class="form-control" @keyup.enter.prevent="addSkill" id="skills"
                 placeholder="Enter Skills">
-              <div class="mt-2">
-                <span v-for="skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1">
-                  <span class="pe-1">{{ skill }}</span>
-                  <a href="#" class="d-inline-block " @click="removeSkill(skill)">
+               -->
+              <div class="row gx-1 gy-1">
+                <div class="col">
+                  <input type="text" v-model.trim="skillData.skill" @keyup.enter.prevent="addSkill" class="form-control"
+                    placeholder="Skill">
+                </div>
+                <div v-if="showSkillExp" class="col-8 d-flex">
+                  <input type="number" min="0" v-model.trim="skillData.experience_year" @keyup.enter.prevent="addSkill"
+                    class="form-control" placeholder="Year" aria-label="experience_year">
+                  <input type="number" min="0" v-model.trim="skillData.experience_month" @keyup.enter.prevent="addSkill"
+                    class="form-control" placeholder="Month" aria-label="experience_month">
+                  <!-- <button class="btn btn-primary ms-1" @click.prevent="addSkill">Add</button> -->
+                  <div class="align-self-center ms-1">
+                    <span class="icon-btn" @click="addSkill" title="Add Skill">
+                      <font-awesome-icon icon="fa-solid fa-check" />
+                    </span>
+                  </div>
+                </div>
+                <!-- <div v-if="showSkillExp" class="col d-flex">
+                  <div class="input-group">
+                    <input type="number" min="0" v-model.trim="skillData.experience_year" class="form-control"
+                      placeholder="Enter Year" aria-label="experience_year">
+                    <span class="input-group-text">years</span>
+                    <input type="number" min="0" v-model.trim="skillData.experience_month" class="form-control"
+                      placeholder="Enter Month" aria-label="experience_month">
+                    <span class="input-group-text">months</span>
+                  </div>
+                  <button class="btn btn-primary ms-1" @click.prevent="addSkill">Add</button>
+                </div> -->
+              </div>
+              <div v-if="hrProfile.skills && hrProfile.skills.length > 0" class="mt-2">
+                <span v-for="_skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1"
+                  @click="editSkill(_skill)" role="button">
+                  <span class="pe-1">{{ _skill.skill }}
+                    <span v-if="_skill.experience_year || _skill.experience_month">({{
+                      commonFunctions.getExperienceString(_skill.experience_year,
+                        _skill.experience_month) }})</span>
+                  </span>
+                  <a href="#" class="d-inline-block " @click="removeSkill(_skill)">
                     <font-awesome-icon icon="fa-solid fa-xmark" />
                   </a>
                 </span>

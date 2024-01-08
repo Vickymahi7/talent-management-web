@@ -7,21 +7,24 @@ import type { Education } from '@/types/Education'
 import type HrProfile from '@/types/HrProfile'
 import type { HrProfileChilderen } from '@/types/HrProfile'
 import type { Project } from '@/types/Project'
+import type { Skill } from "@/types/Skill"
+import type { Tenant } from "@/types/Tenant"
 import type { WorkExperience } from '@/types/WorkExperience'
-import { fileUploadBtnClick, getProfileStatusById } from '@/utils/commonFunctions'
 import { PROFILE_STATUS } from '@/utils/constants'
 import { formatDate } from '@/utils/dateFormats'
 import { UserTypeId } from '@/utils/enums'
+import { useCommonFunctions } from '@/utils/useCommonFunctions'
 import { useVuelidate } from '@vuelidate/core'
 import { email, helpers, required } from '@vuelidate/validators'
 import { HttpStatusCode } from 'axios'
 import { Modal } from 'bootstrap'
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
 const props = defineProps({
   id: String
 });
 const toast = useToast();
+const commonFunctions = useCommonFunctions();
 
 const elements = ref({
   titleEdit: false,
@@ -36,7 +39,7 @@ const elements = ref({
   modalEdit: false,
 });
 
-const profileTItleRef = ref<HTMLInputElement | null>(null);
+const profileTitleRef = ref<HTMLInputElement | null>(null);
 const isLoading = ref(false);
 const isModalLoading = ref(false);
 
@@ -47,21 +50,13 @@ const modalId = ref('');
 const deleteChildTitle = ref('');
 const profileCount = ref(0);
 
-const validations = computed(() => {
-  return {
-    hrProfile: {
-      email_id: {
-        required: helpers.withMessage('Email ID is required', required),
-        email: helpers.withMessage('Enter a valid Email ID', email),
-      },
-    }
-  }
-});
-
 const hrProfileList = ref([] as HrProfile[]);
 
 const hrProfile = ref({} as HrProfile);
+const tenant = ref({} as Tenant);
 const existingHrProfileData = ref({} as HrProfile);
+
+const skillData = ref({} as Skill);
 
 const workExperienceData = ref({
   company: '',
@@ -109,11 +104,42 @@ const dialogParam = ref({
   path: null as string | number | null,
 });
 
+const validations = computed(() => {
+  return {
+    hrProfile: {
+      email_id: {
+        required: helpers.withMessage('Email ID is required', required),
+        email: helpers.withMessage('Enter a valid Email ID', email),
+      },
+    }
+  }
+});
+
+const v$ = useVuelidate(validations, { hrProfile });
+
 const isEmptyProfile = computed(() => {
   return !(profileCount.value > 0) && !props.id;
 })
 
-const v$ = useVuelidate(validations, { hrProfile });
+const officialEmailId = computed(() => {
+  let _emailId = hrProfile.value.email_id;
+  if (tenant.value.is_official_contact_info) {
+    _emailId = tenant.value.tenant_email_id;
+  }
+  return _emailId;
+})
+
+const officialPhone = computed(() => {
+  let _phone = hrProfile.value.mobile;
+  if (tenant.value.is_official_contact_info) {
+    _phone = tenant.value.tenant_phone;
+  }
+  return _phone;
+})
+
+const showSkillExp = computed(() => {
+  return tenant.value.is_skill_experience;
+})
 
 const userTypeId = computed(() => {
   const typeId = localStorage.getItem("userTypeId");
@@ -152,6 +178,7 @@ const refreshPageData = async () => {
   else {
     getHrProfileList();
   }
+  getTenantSettings();
 };
 
 const getHrProfile = async () => {
@@ -159,6 +186,18 @@ const getHrProfile = async () => {
     isLoading.value = true;
     const response: any = await axios.get('/hrprofile/view/' + props.id);
     hrProfile.value = response.hrProfile as HrProfile;
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
+const getTenantSettings = async () => {
+  try {
+    isLoading.value = true;
+    const response: any = await axios.get('/tenantsetting/view');
+    tenant.value = response.tenant as Tenant;
   } catch (error: any) {
     toast.error(error.message);
   }
@@ -353,7 +392,7 @@ const updatePrimaryInfo = () => {
     experience_month: hrProfile.value.experience_month,
     experience_year: hrProfile.value.experience_year,
     status_id: hrProfile.value.status_id,
-    status: getProfileStatusById(hrProfile.value.status_id),
+    status: commonFunctions.getProfileStatusById(hrProfile.value.status_id),
     email_id: hrProfile.value.email_id,
     mobile: hrProfile.value.mobile,
     linkedin_id: hrProfile.value.linkedin_id,
@@ -364,6 +403,8 @@ const updatePrimaryInfo = () => {
 const updatePersonalInfo = () => {
   const data = {
 
+    email_id: hrProfile.value.email_id,
+    mobile: hrProfile.value.mobile,
     gender: hrProfile.value.gender,
     date_of_birth: hrProfile.value.date_of_birth,
     location: hrProfile.value.location,
@@ -378,10 +419,10 @@ const updatePersonalInfo = () => {
   updateHrProfile(data);
 };
 const updateHrProfileItem = (key: string) => {
-  const data = {}
-  data[key] = hrProfile[key],
+  const data = {};
+  data[key] = hrProfile.value[key];
 
-    updateHrProfile(data);
+  updateHrProfile(data);
 };
 const updateProfileChildItems = (itemData: any, itemKey: string) => {
   let itemVal = null;
@@ -398,17 +439,33 @@ const updateProfileChildItems = (itemData: any, itemKey: string) => {
 
   updateHrProfile(data);
 };
-const addSkills = (event: any) => {
-  const skill = event.target.value.trim();
-  hrProfile.value.skills = hrProfile.value.skills ?? [];
-  if (!hrProfile.value.skills.includes(skill)) {
-    hrProfile.value.skills.push(skill);
-    event.target.value = '';
+const addSkill = () => {
+  if (skillData.value.skill) {
+    const _skill: Skill = {
+      skill: skillData.value.skill,
+      experience_month: skillData.value.experience_month,
+      experience_year: skillData.value.experience_year,
+    };
+    hrProfile.value.skills = hrProfile.value.skills ?? [];
+    if (!hrProfile.value.skills.some((data) => data.skill?.toLocaleLowerCase() === _skill.skill?.toLocaleLowerCase())) {
+      hrProfile.value.skills.push(_skill);
+
+      updateHrProfileItem('skills');
+      skillData.value = {};
+    }
   }
 };
-const removeSkill = (skill: string) => {
-  hrProfile.value.skills = hrProfile.value.skills ? hrProfile.value.skills.filter(item => item != skill) : [];
+
+const editSkill = (_skill: Skill) => {
+  skillData.value = _skill;
+  hrProfile.value.skills = hrProfile.value.skills!.filter(item => item.skill != _skill.skill);
 };
+
+const removeSkill = (skill: Skill) => {
+  hrProfile.value.skills = hrProfile.value.skills ? hrProfile.value.skills.filter(item => item.skill != skill.skill) : [];
+  updateHrProfileItem('skills');
+};
+
 const showProfileChildItemEdit = (itemKey: string, itemData: HrProfileChilderen, modId: string) => {
   elements.value.tabItemEdit = true;
   elements.value.modalEdit = true;
@@ -535,12 +592,18 @@ const onYesHrProfileDoc = async () => {
     isLoading.value = false;
   }
 };
+
+const showProfileTitleEdit = () => {
+  elements.value.titleEdit = true;
+  nextTick(() => {
+    profileTitleRef.value?.focus();
+  })
+}
 </script>
 <template>
   <div v-if="!isEmptyProfile" class="d-flex card-gap-mb">
-    <div :class="{ 'visually-hidden-focusable': !elements.titleEdit }"
-      class="content-card content-header justify-content-start">
-      <input type="text" ref="profileTItleRef" class="form-control py-1 d-inline-block w-25"
+    <div v-show="elements.titleEdit" class="content-card content-header justify-content-start">
+      <input type="text" ref="profileTitleRef" class="form-control py-1 d-inline-block w-25"
         v-model="hrProfile.profile_title" placeholder="Profile Title">
       <div class="d-inline-flex">
         <span class="icon-btn mx-1" @click="updateTitleInfo">
@@ -554,7 +617,7 @@ const onYesHrProfileDoc = async () => {
     <div v-if="!elements.titleEdit" class="content-card content-header">
       <span>
         <label class="d-inline-block me-2">Profile - {{ hrProfile.profile_title }} </label>
-        <font-awesome-icon icon="fa-solid fa-pencil-alt" @click="elements.titleEdit = true; profileTItleRef!.focus();" />
+        <font-awesome-icon icon="fa-solid fa-pencil-alt" @click="showProfileTitleEdit" />
       </span>
       <div class="d-flex">
         <div v-if="profileCount > 1" class="dropdown">
@@ -620,10 +683,13 @@ const onYesHrProfileDoc = async () => {
             </span>
           </div>
           <div class="profile-picture-wrapper">
-            <img class="profile-picture" :src="getImageUrlWithTimestamp" alt="Profile Picture" width="150" height="150" />
-            <span class="icon-btn upload-icon" @click="fileUploadBtnClick('upload-input')">
+            <img v-if="hrProfile.photo_url" class="profile-picture" :src="getImageUrlWithTimestamp" alt="Profile Picture"
+              width="150" height="150" />
+            <img v-else class="profile-picture" src="@/assets/img/user-icon.jpg" alt="Profile Picture" width="150"
+              height="150" />
+            <span class="icon-btn upload-icon" @click="commonFunctions.fileUploadBtnClick('profileUploadInput')">
               <font-awesome-icon icon="fa-solid fa-camera" />
-              <input type="file" id="upload-input" class="icon-upload-input" @input="uploadProfilePhoto($event)"
+              <input type="file" id="profileUploadInput" class="icon-upload-input" @input="uploadProfilePhoto($event)"
                 placeholder="Choose Photo">
             </span>
           </div>
@@ -679,15 +745,27 @@ const onYesHrProfileDoc = async () => {
                   <p v-else>{{ hrProfile.ctc }}</p>
                 </div>
                 <div class="profile-item-container">
-                  <p class="label-text">Location</p>
+                  <p class="label-text">Preferred Location</p>
                   <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
                     v-model="hrProfile.location">
                   <p v-else>{{ hrProfile.location }}</p>
                 </div>
-                <div class="separator my-3"></div>
+                <div class="profile-item-container">
+                  <span>
+                    <span class="icon-btn me-2">
+                      <font-awesome-icon icon="fa-brands fa-linkedin" />
+                    </span>
+                  </span>
+                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.linkedin_id">
+                  <p v-else>
+                    {{ hrProfile.linkedin_id }}
+                  </p>
+                </div>
+                <!-- <div class="separator my-3"></div> -->
                 <div class="d-flex justify-content-between align-items-center">
                   <p class="label-text">
-                    <span class="icon-btn me-1">
+                    <span class="icon-btn me-2">
                       <font-awesome-icon icon="fa-solid fa-paperclip" />
                     </span>
                     <span v-if="hrProfile.resume_url">{{ hrProfile.first_name }} - Resume</span>
@@ -704,7 +782,8 @@ const onYesHrProfileDoc = async () => {
                         Remove
                       </a>
                     </template>
-                    <button v-else @click="fileUploadBtnClick('resume-input')" class="btn btn-primary br-0" type="button">
+                    <button v-else @click="commonFunctions.fileUploadBtnClick('resume-input')"
+                      class="btn btn-primary br-0" type="button">
                       Upload
                       <input type="file" id="resume-input" class="icon-upload-input" @input="uploadResume"
                         placeholder="Choose File">
@@ -721,23 +800,22 @@ const onYesHrProfileDoc = async () => {
                     <option v-for="status in PROFILE_STATUS" :key="status.id" :value="status.id">{{ status.status }}
                     </option>
                   </select>
-                  <p v-else>{{ getProfileStatusById(hrProfile.status_id) }}</p>
+                  <p v-else>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</p>
                 </div>
                 <div class="profile-item-container">
                   <p class="label-text">Last Updated</p>
                   <p>{{ formatDate(hrProfile.last_updated_dt) }}</p>
                 </div>
+                <h6 class="label-text my-2 w-100">{{ tenant.is_official_contact_info ? 'Official ' : '' }}Contact Info</h6>
                 <div class="profile-item-container">
                   <span>
                     <span class="icon-btn me-2">
                       <font-awesome-icon icon="fa-solid fa-envelope" />
                     </span>
                   </span>
-                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.email_id" />
-                  <p v-else>
-                    {{ hrProfile.email_id }}
-                  </p>
+                  <!-- <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.email_id" /> -->
+                  <p>{{ officialEmailId }}</p>
                 </div>
                 <div class="profile-item-container">
                   <span>
@@ -745,13 +823,11 @@ const onYesHrProfileDoc = async () => {
                       <font-awesome-icon icon="fa-solid fa-phone" />
                     </span>
                   </span>
-                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.mobile">
-                  <p v-else>
-                    {{ hrProfile.mobile }}
-                  </p>
+                  <!-- <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
+                    v-model="hrProfile.mobile"> -->
+                  <p>{{ officialPhone }}</p>
                 </div>
-                <div class="profile-item-container">
+                <!-- <div class="profile-item-container">
                   <span>
                     <span class="icon-btn me-2">
                       <font-awesome-icon icon="fa-brands fa-linkedin" />
@@ -762,7 +838,7 @@ const onYesHrProfileDoc = async () => {
                   <p v-else>
                     {{ hrProfile.linkedin_id }}
                   </p>
-                </div>
+                </div> -->
               </div>
             </div>
           </div>
@@ -794,33 +870,51 @@ const onYesHrProfileDoc = async () => {
           <div class="content-card  h-100 card-gap-mb">
             <h6 class="label-text">Skills
               <span v-if="elements.skillEdit" class="float-end">
-                <span class="icon-btn me-1" @click="updateHrProfileItem('skills')">
+                <span class="icon-btn me-1" @click="addSkill">
                   <font-awesome-icon icon="fa-solid fa-check" />
                 </span>
-                <span class="icon-btn" @click="elements.skillEdit = false">
+                <span class="icon-btn" @click="refreshPageData(); elements.skillEdit = false;">
                   <font-awesome-icon icon="fa-solid fa-xmark" />
                 </span>
               </span>
               <span v-else class="float-end">
-                <span class="icon-btn" @click="elements.skillEdit = true">
+                <span class="icon-btn" @click="elements.skillEdit = true; skillData = {}">
                   <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                 </span>
               </span>
             </h6>
-            <input v-if="elements.skillEdit" type="text" @keyup.enter.prevent="addSkills"
-              class="form-control form-control-sm mt-2 mb-1" placeholder="Press Enter to Add Skill">
+            <div v-if="elements.skillEdit" class="row gx-1 gy-1 mt-2 mb-1">
+              <div class="col">
+                <input type="text" v-model.trim="skillData.skill" @keyup.enter.prevent="addSkill"
+                  class="form-control form-control-sm" placeholder="Skill">
+              </div>
+              <div v-if="showSkillExp" class="col-8 d-flex">
+                <input type="number" min="0" v-model.trim="skillData.experience_year" @keyup.enter.prevent="addSkill"
+                  class="form-control form-control-sm" placeholder="Year" aria-label="experience_year">
+                <input type="number" min="0" v-model.trim="skillData.experience_month" @keyup.enter.prevent="addSkill"
+                  class="form-control form-control-sm" placeholder="Month" aria-label="experience_month">
+              </div>
+            </div>
             <p class="profile-short-content">
               <template v-if="elements.skillEdit">
-                <span v-for="skill, index in   hrProfile.skills" :key="index" class="badge badge-custom me-1">
-                  <span class="pe-1">{{ skill }}</span>
-                  <a href="#" class="d-inline-block " @click="removeSkill(skill)">
+                <span v-for="_skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1"
+                  @click="editSkill(_skill)" role="button">
+                  <span class="pe-1">{{ _skill.skill }}
+                    <span v-if="showSkillExp && (_skill.experience_year || _skill.experience_month)">({{
+                      commonFunctions.getExperienceString(_skill.experience_year,
+                        _skill.experience_month) }})</span>
+                  </span>
+                  <a href="#" class="d-inline-block " @click="removeSkill(_skill)">
                     <font-awesome-icon icon="fa-solid fa-xmark" />
                   </a>
                 </span>
               </template>
               <template v-else>
-                <span v-for="skill, index in   hrProfile.skills" :key="index" class="badge badge-custom me-1">{{ skill
-                }}</span>
+                <span v-for="_skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1">
+                  {{ _skill.skill }}
+                  <span v-if="showSkillExp && (_skill.experience_year || _skill.experience_month)">({{
+                    commonFunctions.getExperienceString(_skill.experience_year, _skill.experience_month) }})</span>
+                </span>
               </template>
             </p>
           </div>
@@ -1058,6 +1152,18 @@ const onYesHrProfileDoc = async () => {
               <div class="row">
                 <div class="col">
                   <h6 class="mb-2">Personal Info</h6>
+                  <div class="profile-item-container">
+                    <p class="label-text">Mobile</p>
+                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                      v-model="hrProfile.mobile">
+                    <p v-else>{{ hrProfile.mobile }}</p>
+                  </div>
+                  <div class="profile-item-container">
+                    <p class="label-text">Email ID</p>
+                    <input v-if="elements.personalInfoEdit" type="text" class="form-control form-control-sm"
+                      v-model="hrProfile.email_id">
+                    <p v-else>{{ hrProfile.email_id }}</p>
+                  </div>
                   <div class="profile-item-container">
                     <p class="label-text">Gender</p>
                     <select v-if="elements.personalInfoEdit" class="form-select form-control-sm"
@@ -1380,3 +1486,4 @@ const onYesHrProfileDoc = async () => {
   <dialog-component id="duplicateProfileConfirmation" :onYes="onYesDuplicateProfile" :returnParams="dialogParam"
     title="Create Duplicate Profile" message="Are you sure you want to create a copy of this profile?" />
 </template>
+@/composables/useCommonFunctions

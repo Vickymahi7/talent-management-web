@@ -1,24 +1,25 @@
 <script lang="ts" setup>
-import axios from '@/plugins/axios'
-import { useToast } from 'vue-toastification'
-import { HttpStatusCode } from 'axios'
-import { UserTypeId } from '@/utils/enums';
-import { formatDate } from '@/utils/dateFormats'
-import { PROFILE_STATUS } from '@/utils/constants'
-import { getProfileStatusById } from '@/utils/commonFunctions'
-import type HrProfile from '@/types/HrProfile'
-import HrProfileComponent from "@/views/hrProfile/HrProfile.vue";
 import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
+import axios from '@/plugins/axios';
+import type HrProfile from '@/types/HrProfile';
+import type { Skill } from "@/types/Skill";
+import { PROFILE_STATUS } from '@/utils/constants';
+import { formatDate } from '@/utils/dateFormats';
+import { UserTypeId } from '@/utils/enums';
+import { useCommonFunctions } from '@/utils/useCommonFunctions';
+import HrProfileComponent from "@/views/hrProfile/HrProfile.vue";
+import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser';
+import { HttpStatusCode } from 'axios';
+import { Modal } from 'bootstrap';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useToast } from 'vue-toastification';
 import { useMsal } from "../../composables/useMsal";
 import { loginRequest } from "../../utils/authConfig";
-import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser'
-import { Modal } from 'bootstrap'
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
 
 const instance = useMsal().instance;
 const toast = useToast();
+const commonFunctions = useCommonFunctions();
 const router = useRouter();
 
 const addHrProfileModalRef = ref(null as InstanceType<typeof AddHrProfileModal> | null);
@@ -141,14 +142,14 @@ const onYesProfile = async () => {
     isLoading.value = false;
   }
 }
-const skillsToolTip = (skills?: string[]) => {
+const skillsToolTip = (skills?: Skill[]) => {
   let tooltipText = "";
   if (skills && skills.length > 0) {
-    skills.forEach((skill, index) => {
+    skills.forEach((_skill, index) => {
       if (index != 0) {
         tooltipText += ", "
       }
-      tooltipText += skill;
+      tooltipText += _skill.skill;
     })
   }
   return tooltipText;
@@ -288,7 +289,7 @@ const hideModal = (modalId: string) => {
               </template>
               <template v-else-if="field.key == 'skills'">
                 <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfile.skills)">
-                  <span v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}<span
+                  <span v-for="_skill, index in hrProfile.skills" :key="index">{{ _skill.skill }}<span
                       v-if="hrProfile.skills && index < hrProfile.skills.length - 1">,
                     </span>
                   </span>
@@ -303,7 +304,7 @@ const hideModal = (modalId: string) => {
                   <option v-for="status in PROFILE_STATUS" :key="status.id" :value="status.id">{{ status.status }}
                   </option>
                 </select>
-                <span v-else>{{ getProfileStatusById(hrProfile.status_id) }}</span>
+                <span v-else>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</span>
               </template>
               <template v-else-if="field.key == 'last_updated_dt'">
                 {{ formatDate(hrProfile.last_updated_dt) }}

@@ -1,15 +1,9 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import { onMounted } from 'vue';
-
-onMounted(() => {
-  document.body.classList.add('default-theme');
-})
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import { RouterView } from 'vue-router';
 </script>
-
 <template>
-  <div bs-theme="dark">
+  <div>
     <component :is="$route.meta.layout || DefaultLayout">
       <RouterView></RouterView>
     </component>

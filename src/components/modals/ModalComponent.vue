@@ -9,20 +9,34 @@ defineProps({
   centered: Boolean,
   size: { type: String, },
 });
-const modalEle = ref(null);
+const emit = defineEmits(['show', 'shown', 'hide', 'hidden']);
+
+const modalElement = ref(null as HTMLElement | null);
 const thisModalObj = ref(null as null | Modal);
 
 onMounted(() => {
-  thisModalObj.value = new Modal(modalEle.value!);
+  thisModalObj.value = new Modal(modalElement.value!);
+  if (modalElement.value) {
+    modalElement.value.addEventListener('show.bs.modal', show);
+    modalElement.value.addEventListener('shown.bs.modal', shown);
+    modalElement.value.addEventListener('hide.bs.modal', hide);
+    modalElement.value.addEventListener('hidden.bs.modal', hidden);
+  }
 });
-function _show() {
+
+const show = (() => emit('show'));
+const shown = (() => emit('shown'));
+const hide = (() => emit('hide'));
+const hidden = (() => emit('hidden'));
+
+const _show = () => {
   thisModalObj.value?.show();
 }
 defineExpose({ show: _show });
 </script>
 
 <template>
-  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="" aria-hidden="true" ref="modalEle">
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="" aria-hidden="true" ref="modalElement">
     <div class="modal-dialog" :class="{ [size!]: size, 'modal-dialog-centered': centered }">
       <div class="modal-content">
         <div class="modal-header">
