@@ -1,81 +1,75 @@
-<script lang="ts">
+<script lang="ts" setup>
 import axios from '@/plugins/axios';
 import type { Education } from '@/types/Education';
 import type { Project } from '@/types/Project';
 import type { WorkExperience } from '@/types/WorkExperience';
+import { onMounted, ref } from 'vue';
 import { useToast } from 'vue-toastification';
 
-export default {
-  props: ['id'],
+const props = defineProps(['id']);
 
-  data() {
-    return {
-      toast: useToast(),
+const toast = useToast();
 
-      hrProfile: {
-        id: '',
-        hr_profile_id: '',
-        tenant_id: '',
-        hr_profile_type_id: '',
-        first_name: '',
-        last_name: '',
-        middle_name: '',
-        profile_title: '',
-        email_id: '',
-        alternate_email_id: '',
-        mobile: '',
-        alternate_mobile: '',
-        phone: '',
-        office_phone: '',
-        location: '',
-        ctc: '',
-        objective: '',
-        summary: '',
-        note: '',
-        gender: '',
-        date_of_birth: null,
-        resume_url: '',
-        photo_url: '',
-        buiding_number: '',
-        street_name: '',
-        city: '',
-        state: '',
-        country: '',
-        postal_code: '',
-        website: '',
-        facebook_id: '',
-        twitter_id: '',
-        linkedin_id: '',
-        skype_id: '',
-        status: '',
-        status_id: '',
-        user_id: '',
-        active: true,
-        created_by_id: '',
-        created_dt: '',
-        last_updated_dt: '',
-        skills: [] as string[],
-        work_experience: [] as WorkExperience[],
-        project: [] as Project[],
-        education: [] as Education[],
-        docs: [],
-      },
-    }
-  },
-  mounted() {
-    this.getHrProfile();
-  },
-  methods: {
-    async getHrProfile() {
-      try {
-        const response: any = await axios.get('/hrprofile/view/' + this.id);
-        this.hrProfile = response.hrProfile;
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-    },
+const hrProfile = ref({
+  id: '',
+  hr_profile_id: '',
+  tenant_id: '',
+  hr_profile_type_id: '',
+  first_name: '',
+  last_name: '',
+  middle_name: '',
+  profile_title: '',
+  email_id: '',
+  alternate_email_id: '',
+  mobile: '',
+  alternate_mobile: '',
+  phone: '',
+  office_phone: '',
+  location: '',
+  ctc: '',
+  objective: '',
+  summary: '',
+  note: '',
+  gender: '',
+  date_of_birth: null,
+  resume_url: '',
+  photo_url: '',
+  buiding_number: '',
+  street_name: '',
+  city: '',
+  state: '',
+  country: '',
+  postal_code: '',
+  website: '',
+  facebook_id: '',
+  twitter_id: '',
+  linkedin_id: '',
+  skype_id: '',
+  status: '',
+  status_id: '',
+  user_id: '',
+  active: true,
+  created_by_id: '',
+  created_dt: '',
+  last_updated_dt: '',
+  skills: [] as string[],
+  work_experience: [] as WorkExperience[],
+  project: [] as Project[],
+  education: [] as Education[],
+  docs: [],
+});
+
+onMounted(() => {
+  getHrProfile();
+});
+const getHrProfile = async () => {
+  try {
+    const response: any = await axios.get('/hrprofile/view/' + props.id);
+    hrProfile.value = response.hrProfile;
+  } catch (error: any) {
+    toast.error(error.message);
   }
-}
+};
 </script>
 <template>
   <div class="resume-template">

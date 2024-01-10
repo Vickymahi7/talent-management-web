@@ -1,111 +1,99 @@
-<script lang="ts">
+<script lang="ts" setup>
 import axios from '@/plugins/axios';
 import type { AdUser } from '@/types/AdUser';
 import { callMsGraph } from '@/utils/authConfig';
 import { HttpStatusCode } from 'axios';
-import { Modal } from 'bootstrap';
-import { defineComponent } from 'vue';
+import { onBeforeMount, onMounted, ref } from 'vue';
 import { useToast } from 'vue-toastification';
 
-export default defineComponent({
-  props: {
-    id: { type: String, default: 'inviteAdUsersModal' },
-    accessToken: { type: String },
-  },
-  data() {
-    return {
-      toast: useToast(),
+const props = defineProps({
+  id: { type: String, default: 'inviteAdUsersModal' },
+  accessToken: { type: String },
+});
+const toast = useToast();
 
-      isModalLoading: false,
-      isPageEnd: false,
+const scroller = ref(null as HTMLElement | null);
 
-      nextPageToken: '',
-      users: [] as AdUser[],
-      inviteUserList: [] as AdUser[],
+const isModalLoading = ref(false);
+const isPageEnd = ref(false);
+
+const nextPageToken = ref('');
+const users = ref([] as AdUser[]);
+const inviteUserList = ref([] as AdUser[]);
+
+onBeforeMount(() => {
+  getAdUserList();
+});
+
+onMounted(() => {
+  getNextUser();
+});
+
+const getAdUserList = async () => {
+  // this.showModal('inviteAdUsersModal');
+  if (props.accessToken && !isPageEnd.value) {
+    isModalLoading.value = true;
+    try {
+      const graphData = await callMsGraph(props.accessToken, nextPageToken.value);
+      if (graphData.value) {
+        nextPageToken.value = graphData['@odata.nextLink']
+        isPageEnd.value = graphData['@odata.nextLink'] ? false : true;
+        users.value = users.value.concat(graphData.value);
+      }
+    } catch (error) {
+      //error
+    } finally {
+      isModalLoading.value = false;
     }
-  },
-  beforeMount() {
-    this.getAdUserList();
-  },
-  mounted() {
-    this.getNextUser();
-  },
-  methods: {
-    async getAdUserList() {
-      // this.showModal('inviteAdUsersModal');
-      if (this.accessToken && !this.isPageEnd) {
-        this.isModalLoading = true;
-        try {
-          const graphData = await callMsGraph(this.accessToken, this.nextPageToken);
-          if (graphData.value) {
-            this.nextPageToken = graphData['@odata.nextLink']
-            this.isPageEnd = graphData['@odata.nextLink'] ? false : true;
-            this.users = this.users.concat(graphData.value);
-          }
-        } catch (error) {
-          //error
-        } finally {
-          this.isModalLoading = false;
-        }
-      }
-    },
-    getNextUser() {
-      window.onscroll = () => {
-        let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
-        if (bottomOfWindow) {
-          this.getAdUserList();
-        }
-      }
-    },
-    showModal(modalId: string) {
-      const modalEl = document.getElementById(modalId);
-      if (!modalEl) return;
-      const modal = Modal.getOrCreateInstance(modalEl!, {
-        keyboard: false
-      })
-      modal.show();
-    },
-    manageInviteList(adUser: AdUser) {
-      if (this.inviteUserList.some(data => data.mail == adUser.mail)) {
-        this.inviteUserList = this.inviteUserList.filter(({ mail }) => mail != adUser.mail);
-      }
-      else {
-        this.inviteUserList.push({ displayName: adUser.displayName, mail: adUser.mail });
-      }
-    },
-    handleScroll(ref: string, isNotLoading: boolean, action: string) {
-      // Trigger fetchData when scrolling near the bottom of the container
-      const scroller = this.$refs[ref] as HTMLElement;
-      if (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 20 && isNotLoading) {
-        this[action]();
-      }
-    },
-    async inviteAdUsers() {
-      if (this.inviteUserList.length > 10) {
-        this.toast.error('Please select a maximum of 10 users');
-        return;
-      }
-      try {
-        const data = {
-          users: this.inviteUserList,
-        }
-        this.isModalLoading = true;
-        const response: any = await axios.post('/user/aduserinvite', data);
-
-        if (response.status == HttpStatusCode.Ok) {
-          this.toast.success(response.message);
-          // this.getHrProfileList();
-          // this.bsModalHide(this.modalId);
-        }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isModalLoading = false;
-      }
-    },
   }
-})
+};
+const getNextUser = () => {
+  window.onscroll = () => {
+    let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+    if (bottomOfWindow) {
+      getAdUserList();
+    }
+  }
+};
+const manageInviteList = (adUser: AdUser) => {
+  if (inviteUserList.value.some(data => data.mail == adUser.mail)) {
+    inviteUserList.value = inviteUserList.value.filter(({ mail }) => mail != adUser.mail);
+  }
+  else {
+    inviteUserList.value.push({ displayName: adUser.displayName, mail: adUser.mail });
+  }
+};
+const handleScroll = (refName: string, isNotLoading: boolean, callback: Function) => {
+  // Trigger fetchData when scrolling near the bottom of the container
+  if (scroller.value && scroller.value.scrollTop + scroller.value.clientHeight >= scroller.value.scrollHeight - 20 && isNotLoading) {
+    callback();
+  }
+};
+const inviteAdUsers = async () => {
+  if (inviteUserList.value.length > 10) {
+    toast.error('Please select a maximum of 10 users');
+    return;
+  }
+  try {
+    const data = {
+      users: inviteUserList.value,
+    }
+    isModalLoading.value = true;
+    const response: any = await axios.post('/user/aduserinvite', data);
+
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      // this.getHrProfileList();
+      // this.bsModalHide(this.modalId);
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isModalLoading.value = false;
+  }
+};
+
 </script>
 <template>
   <div class="modal fade" :id="id" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
@@ -115,7 +103,7 @@ export default defineComponent({
           <h5 class="modal-title" id="modalLabel">Invite Active Directory Users</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body" @scroll="handleScroll('scroller', !isModalLoading, 'getAdUserList')" ref="scroller">
+        <div class="modal-body" @scroll="handleScroll('scroller', !isModalLoading, getAdUserList)" ref="scroller">
           <!-- <div class="text-end mb-3">
             <button type="button" class="btn btn-primary">
               Invite

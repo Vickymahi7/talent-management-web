@@ -24,7 +24,6 @@ import { useToast } from 'vue-toastification';
 const props = defineProps({
   id: String
 });
-const emit = defineEmits(['closeModal']);
 const toast = useToast();
 const commonFunctions = useCommonFunctions();
 
@@ -74,7 +73,6 @@ const hrProfileList = ref([] as HrProfile[]);
 
 const hrProfile = ref({} as HrProfile);
 const tenant = ref({} as Tenant);
-const existingHrProfileData = ref({} as HrProfile);
 
 const skillData = ref({} as Skill);
 
@@ -208,7 +206,7 @@ const getHrProfileList = async () => {
     isLoading.value = true;
     const response: any = await axios.get('/hrprofile/list');
     hrProfileList.value = response.hrProfileList as HrProfile[];
-    profileCount.value = response.numFound;
+    profileCount.value = response.total;
     if (profileCount.value == 0) {
       showAddProfileModal();
       hrProfile.value = {};

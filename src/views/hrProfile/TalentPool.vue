@@ -63,8 +63,8 @@ export default {
         this.isLoading = true;
         const response: any = await axios.get('/hrprofile/list', { params: queryParams });
         this.hrProfileList = response.hrProfileList;
-        this.totalRows = response.numFound;
-        this.currentPage = response.numFound > this.perPage ? this.currentPage : 1;
+        this.totalRows = response.total;
+        this.currentPage = response.total > this.perPage ? this.currentPage : 1;
       } catch (error: any) {
         this.toast.error(error.message);
       } finally {
