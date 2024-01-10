@@ -21,7 +21,6 @@ onMounted(() => {
 
 const clearLoginDetails = () => {
   localStorage.removeItem("accessToken")
-  localStorage.removeItem("userId")
   localStorage.removeItem("userTypeId")
   localStorage.removeItem("userName")
   localStorage.removeItem("tenantLogo")

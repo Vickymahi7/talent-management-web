@@ -4,7 +4,7 @@ import axios from '@/plugins/axios'
 import type HrProfile from '@/types/HrProfile'
 import type { Skill } from '@/types/Skill'
 import { PROFILE_STATUS } from '@/utils/constants'
-import { formatDate } from '@/utils/dateFormats'
+import { formatDateTime } from '@/utils/dateFormats'
 import { useCommonFunctions } from '@/utils/useCommonFunctions'
 import { useToast } from 'vue-toastification'
 
@@ -16,7 +16,7 @@ export default {
     return {
       toast: useToast(),
       commonFunctions: useCommonFunctions(),
-      formatDate: formatDate,
+      formatDateTime: formatDateTime,
       profileStatus: PROFILE_STATUS,
 
       isLoading: false,
@@ -139,7 +139,7 @@ export default {
               </div>
             </td>
             <td>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</td>
-            <td>{{ formatDate(hrProfile.last_updated_dt) }}</td>
+            <td>{{ formatDateTime(hrProfile.last_updated_dt) }}</td>
             <td>
               <div class="icon-btn" data-bs-toggle="modal" data-bs-target="#resumePreviewModal"
                 @click="hrProfilePreviewData = hrProfile">
@@ -157,4 +157,4 @@ export default {
       size="sm" />
   </div>
   <ResumePreviewModal :hrProfile="hrProfilePreviewData" />
-</template>@/composables/useCommonFunctions
+</template>

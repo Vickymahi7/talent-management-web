@@ -65,7 +65,7 @@ const hrProfile = ref({
   objective: '',
   note: '',
   gender: '',
-  date_of_birth: '',
+  date_of_birth: null,
   resume_url: '',
   photo_url: '',
   buiding_number: '',
@@ -165,9 +165,15 @@ const editSkill = (_skill: Skill) => {
 const removeSkill = (_skill: Skill) => {
   hrProfile.value.skills = hrProfile.value.skills?.filter(item => item.skill != _skill.skill);
 }
+
+const clearData = () => {
+  hrProfile.value = {};
+  skillData.value = {};
+  v$.value.hrProfile.$reset();
+}
 </script>
 <template>
-  <ModalComponent v-loading="isModalLoading" ref="addHrProfileModalRef" title="New Profile" hide-cancel>
+  <ModalComponent v-loading="isModalLoading" ref="addHrProfileModalRef" title="New Profile" @hide="clearData" hide-cancel>
     <template #body>
       <div class="container">
         <form class="form-inline">

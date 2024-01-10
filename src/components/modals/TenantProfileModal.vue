@@ -328,4 +328,4 @@ const uploadTenantLogo = async (event: any) => {
       <button class="btn btn-primary">Save</button>
     </template> -->
   </ModalComponent>
-</template>@/composables/useCommonFunctions
+</template>

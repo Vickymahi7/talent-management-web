@@ -2,7 +2,7 @@
 import UserPrivilegeModal from '@/components/modals/UserPrivilegeModal.vue'
 import axios from '@/plugins/axios'
 import { ACCOUNT_STATUS, USER_TYPES } from '@/utils/constants'
-import { formatDate } from '@/utils/dateFormats'
+import { formatDateTime } from '@/utils/dateFormats'
 import { UserTypeId } from '@/utils/enums'
 import { useCommonFunctions } from '@/utils/useCommonFunctions'
 import { useVuelidate } from '@vuelidate/core'
@@ -269,7 +269,7 @@ const showUserPrivileges = (userId: number) => {
                 <span v-else>{{ commonFunctions.getUserStatusById(item[field.key]) }}</span>
               </template>
               <template v-else-if="field.key == 'last_updated_dt'">
-                {{ formatDate(item[field.key]) }}
+                {{ formatDateTime(item[field.key]) }}
               </template>
               <template v-else-if="field.key == 'actions'">
                 <template v-if="editId == item.user_id">
@@ -373,4 +373,4 @@ const showUserPrivileges = (userId: number) => {
     message="Are you sure to delete user?" />
   <dialog-component id="resendConfirmation" :onYes="onYesConfirmation" :returnParams="dialogParam"
     title="Mail Resend Confirmation" message="Are you sure to resend activation mail?" />
-</template>@/composables/useCommonFunctions
+</template>

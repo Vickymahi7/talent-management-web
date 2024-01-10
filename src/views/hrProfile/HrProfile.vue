@@ -1,30 +1,48 @@
 <script lang="ts" setup>
-import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue"
-import ResumePreviewModal from '@/components/modals/ResumePreviewModal.vue'
-import axios from '@/plugins/axios'
-import type { Docs } from '@/types/Docs'
-import type { Education } from '@/types/Education'
-import type HrProfile from '@/types/HrProfile'
-import type { HrProfileChilderen } from '@/types/HrProfile'
-import type { Project } from '@/types/Project'
-import type { Skill } from "@/types/Skill"
-import type { Tenant } from "@/types/Tenant"
-import type { WorkExperience } from '@/types/WorkExperience'
-import { PROFILE_STATUS } from '@/utils/constants'
-import { formatDate } from '@/utils/dateFormats'
-import { UserTypeId } from '@/utils/enums'
-import { useCommonFunctions } from '@/utils/useCommonFunctions'
-import { useVuelidate } from '@vuelidate/core'
-import { email, helpers, required } from '@vuelidate/validators'
-import { HttpStatusCode } from 'axios'
-import { Modal } from 'bootstrap'
-import { computed, nextTick, onMounted, ref } from 'vue'
-import { useToast } from 'vue-toastification'
+import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
+import ResumePreviewModal from '@/components/modals/ResumePreviewModal.vue';
+import axios from '@/plugins/axios';
+import type { Docs } from '@/types/Docs';
+import type { Education } from '@/types/Education';
+import type HrProfile from '@/types/HrProfile';
+import type { HrProfileChilderen } from '@/types/HrProfile';
+import type { Project } from '@/types/Project';
+import type { Skill } from "@/types/Skill";
+import type { Tenant } from "@/types/Tenant";
+import type { WorkExperience } from '@/types/WorkExperience';
+import { PROFILE_STATUS } from '@/utils/constants';
+import { formatDate, formatDateTime } from '@/utils/dateFormats';
+import { UserTypeId } from '@/utils/enums';
+import { useCommonFunctions } from '@/utils/useCommonFunctions';
+import Editor from '@tinymce/tinymce-vue';
+import { useVuelidate } from '@vuelidate/core';
+import { email, helpers, required } from '@vuelidate/validators';
+import { HttpStatusCode } from 'axios';
+import { Modal } from 'bootstrap';
+import { computed, nextTick, onMounted, ref } from 'vue';
+import { useToast } from 'vue-toastification';
 const props = defineProps({
   id: String
 });
+const emit = defineEmits(['closeModal']);
 const toast = useToast();
 const commonFunctions = useCommonFunctions();
+
+const editorInitObject = {
+  selector: 'textarea',
+  menubar: false,
+  statusbar: false,
+  paste_as_text: true,
+  plugins: 'paste, lists',
+  toolbar: 'bold italic | bullist numlist',
+  setup: (editor) => {
+    editor.on('init', () => {
+      if (!editor.getContent()) {
+        editor.setContent('<ul><li></li></ul>');
+      }
+    });
+  },
+};
 
 const elements = ref({
   titleEdit: false,
@@ -40,6 +58,8 @@ const elements = ref({
 });
 
 const profileTitleRef = ref<HTMLInputElement | null>(null);
+const addHrProfileModalRef = ref(null as InstanceType<typeof AddHrProfileModal> | null);
+
 const isLoading = ref(false);
 const isModalLoading = ref(false);
 
@@ -58,33 +78,11 @@ const existingHrProfileData = ref({} as HrProfile);
 
 const skillData = ref({} as Skill);
 
-const workExperienceData = ref({
-  company: '',
-  position: '',
-  location: '',
-  start_date: '',
-  end_date: '',
-  description: '',
-} as WorkExperience);
+const workExperienceData = ref({} as WorkExperience);
 
-const educationData = ref({
-  degree: '',
-  major: '',
-  university: '',
-  location: '',
-  start_date: '',
-  end_date: '',
-} as Education);
+const educationData = ref({} as Education);
 
-const projectData = ref({
-  title: '',
-  start_date: '',
-  end_date: '',
-  client: '',
-  technology: '',
-  description: '',
-  location: '',
-} as Project);
+const projectData = ref({} as Project);
 
 const docsData = ref({
   id: '',
@@ -212,7 +210,7 @@ const getHrProfileList = async () => {
     hrProfileList.value = response.hrProfileList as HrProfile[];
     profileCount.value = response.numFound;
     if (profileCount.value == 0) {
-      showHrProfileAddModal('addHrProfileModal-hrProfile');
+      showAddProfileModal();
       hrProfile.value = {};
     } else {
       hrProfile.value = hrProfileList.value[0];
@@ -247,6 +245,12 @@ const updateHrProfile = async (data: any) => {
         elements.value.tabItemEdit = false;
         elements.value.modalEdit = false;
         clearDocData();
+        clearWorkExperienceData();
+        clearEducationData();
+        clearProjectData();
+        // workExperienceData.value = {} as WorkExperience;
+        // educationData.value = {} as Education;
+        // projectData.value = {} as Project;
         hideModal(modalId.value);
       }
     }
@@ -368,6 +372,31 @@ const editDoc = (document: Docs) => {
   docId.value = document.id;
   docsEditData.value = document;
 };
+const clearWorkExperienceData = () => {
+  workExperienceData.value.company = '';
+  workExperienceData.value.position = '';
+  workExperienceData.value.location = '';
+  workExperienceData.value.start_date = null;
+  workExperienceData.value.end_date = null;
+  workExperienceData.value.description = '';
+};
+const clearEducationData = () => {
+  educationData.value.degree = '';
+  educationData.value.major = '';
+  educationData.value.university = '';
+  educationData.value.location = '';
+  educationData.value.start_date = null;
+  educationData.value.end_date = null;
+};
+const clearProjectData = () => {
+  projectData.value.title = '';
+  projectData.value.start_date = null;
+  projectData.value.end_date = null;
+  projectData.value.client = '';
+  projectData.value.technology = '';
+  projectData.value.description = '';
+  projectData.value.location = '';
+};
 const clearDocData = () => {
   docId.value = '';
   elements.value.tabItemEdit = false;
@@ -426,7 +455,7 @@ const updateHrProfileItem = (key: string) => {
 };
 const updateProfileChildItems = (itemData: any, itemKey: string) => {
   let itemVal = null;
-  const profileData = hrProfile as any;
+  const profileData = hrProfile.value as any;
   if (elements.value.tabItemEdit) {
     itemVal = profileData[itemKey];
   }
@@ -481,10 +510,21 @@ const showProfileChildItemEdit = (itemKey: string, itemData: HrProfileChilderen,
   }
   showModal(modalId.value);
 };
-const showHrProfileAddModal = (modId: string) => {
-  existingHrProfileData.value = hrProfile.value;
-  showModal(modId);
+
+const showAddProfileModal = () => {
+  if (props.id) {
+    // emit('closeModal');
+    const modal = Modal.getOrCreateInstance('hrProfileModal', {
+      keyboard: false
+    })
+    modal.hide();
+  }
+
+  nextTick(() => {
+    addHrProfileModalRef.value?.showModal();
+  })
 }
+
 const showModal = (modId: string) => {
   const modalEl = document.getElementById(modId);
   if (!modalEl) return;
@@ -540,7 +580,7 @@ const onYesProfileChildItemDelete = () => {
   const key = dialogParam.value.key!;
   const data = dialogParam.value.data;
   // remove the object with its reference
-  const profileData: any = hrProfile;
+  const profileData: any = hrProfile.value;
   profileData[key] = profileData[key] ? profileData[key].filter((item: any) => item !== data) : [];
 
   updateHrProfile(profileData);
@@ -645,7 +685,7 @@ const showProfileTitleEdit = () => {
         </div>
       </div>
     </div>
-    <button class="btn btn-primary ms-2" type="button" @click="showHrProfileAddModal('addHrProfileModal-hrProfile')">
+    <button class="btn btn-primary ms-2" type="button" @click="showAddProfileModal();">
       <font-awesome-icon icon="fa-solid fa-plus-circle" class="me-2" />
       Add New Profile
     </button>
@@ -660,7 +700,7 @@ const showProfileTitleEdit = () => {
         <div class="mb-3">
           No Profile Found
         </div>
-        <button class="btn btn-primary ms-2" type="button" @click="showHrProfileAddModal('addHrProfileModal-hrProfile')">
+        <button class="btn btn-primary ms-2" type="button" @click="showAddProfileModal">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           Add New Profile
         </button>
@@ -804,9 +844,10 @@ const showProfileTitleEdit = () => {
                 </div>
                 <div class="profile-item-container">
                   <p class="label-text">Last Updated</p>
-                  <p>{{ formatDate(hrProfile.last_updated_dt) }}</p>
+                  <p>{{ formatDateTime(hrProfile.last_updated_dt) }}</p>
                 </div>
-                <h6 class="label-text my-2 w-100">{{ tenant.is_official_contact_info ? 'Official ' : '' }}Contact Info</h6>
+                <h6 class="label-text my-2 w-100">{{ tenant.is_official_contact_info ? 'Official ' : '' }}Contact Info
+                </h6>
                 <div class="profile-item-container">
                   <span>
                     <span class="icon-btn me-2">
@@ -1000,9 +1041,9 @@ const showProfileTitleEdit = () => {
                       <p class="label-text">{{ workExperience.company }}</p>
                       <p v-if="workExperience.position">{{ workExperience.position }}</p>
                       <p v-if="workExperience.start_date || workExperience.end_date || workExperience.location">
-                        {{ workExperience.start_date }}
+                        {{ formatDate(workExperience.start_date) }}
                         <span v-if="workExperience.start_date && workExperience.end_date"> - </span>
-                        {{ workExperience.end_date }}
+                        {{ formatDate(workExperience.end_date) }}
                         <span v-if="(workExperience.start_date || workExperience.end_date) && workExperience.location"> |
                         </span>
                         {{ workExperience.location }}
@@ -1010,7 +1051,7 @@ const showProfileTitleEdit = () => {
                       <div class="collapse" :id="`collapse-workExp-${index}`">
                         <!-- <div class="card card-body"> -->
                         <p class="label-text">Responsibilities</p>
-                        {{ workExperience.description }}
+                        <span v-html="workExperience.description"></span>
                         <!-- </div> -->
                       </div>
                       <p v-if="workExperience.description">
@@ -1038,7 +1079,7 @@ const showProfileTitleEdit = () => {
                 <div class="py-3">
                   <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
                     data-bs-target="#workExperienceAddEditModal"
-                    @click="modalId = 'workExperienceAddEditModal'; elements.modalEdit = true">
+                    @click="modalId = 'workExperienceAddEditModal'; elements.modalEdit = true;">
                     Add Work Experience
                   </button>
                 </div>
@@ -1056,9 +1097,9 @@ const showProfileTitleEdit = () => {
                       </p>
                       <p v-if="education.university">{{ education.university }}</p>
                       <p>
-                        {{ education.start_date }}
+                        {{ formatDate(education.start_date) }}
                         <span v-if="education.start_date && education.end_date"> - </span>
-                        <span v-if="education.end_date">{{ education.end_date }}</span>
+                        <span v-if="education.end_date">{{ formatDate(education.end_date) }}</span>
                         <span v-if="(education.start_date || education.end_date) && education.location"> | </span>
                         <span v-if="education.location">{{ education.location }}</span>
                       </p>
@@ -1094,9 +1135,9 @@ const showProfileTitleEdit = () => {
                       <p class="label-text">{{ project.title }}</p>
                       <p v-if="project.client">Client: {{ project.client }}</p>
                       <p v-if="project.start_date || project.end_date">
-                        <span v-if="project.start_date">{{ project.start_date }}</span>
+                        <span v-if="project.start_date">{{ formatDate(project.start_date) }}</span>
                         <span v-if="project.start_date && project.end_date"> - </span>
-                        <span v-if="project.end_date">{{ project.end_date }}</span>
+                        <span v-if="project.end_date">{{ formatDate(project.end_date) }}</span>
                       </p>
                       <p v-if="project.technology">Technologies: {{ project.technology }}</p>
                       <p v-if="project.description">
@@ -1179,7 +1220,7 @@ const showProfileTitleEdit = () => {
                     <p class="label-text">Date of Birth</p>
                     <input v-if="elements.personalInfoEdit" type="date" class="form-control form-control-sm"
                       v-model="hrProfile.date_of_birth">
-                    <p v-else>{{ hrProfile.date_of_birth }}</p>
+                    <p v-else>{{ formatDate(hrProfile.date_of_birth) }}</p>
                   </div>
                 </div>
                 <div class="col">
@@ -1303,6 +1344,71 @@ const showProfileTitleEdit = () => {
           <div class="container">
             <form class="form-inline">
               <div class="row">
+                <div class="col-12">
+                  <div class="form-floating mb-1">
+                    <input type="text" v-model="workExperienceData.company"
+                      class="form-control border-top-0 border-end-0 border-start-0" id="company" placeholder="">
+                    <label for="company">Company</label>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="form-floating mb-1">
+                    <input type="text" v-model="workExperienceData.location"
+                      class="form-control border-top-0 border-end-0 border-start-0" id="location" placeholder="">
+                    <label for="location">Location</label>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="form-floating mb-1">
+                    <input type="text" v-model="workExperienceData.position"
+                      class="form-control border-top-0 border-end-0 border-start-0" id="position" placeholder="">
+                    <label for="position">Position</label>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="form-floating mb-1">
+                    <input type="date" v-model="workExperienceData.start_date"
+                      class="form-control border-top-0 border-end-0 border-start-0" id="start_date" placeholder="">
+                    <label for="start_date">Start Date</label>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="form-floating mb-1">
+                    <input type="date" v-model="workExperienceData.end_date"
+                      class="form-control border-top-0 border-end-0 border-start-0" id="end_date" placeholder="">
+                    <label for="end_date">End Date</label>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-group mt-2">
+                    <label for="description">Responsibilities</label>
+                    <editor v-model="workExperienceData.description"
+                      class="form-control border-top-0 border-end-0 border-start-0" id="description"
+                      api-key="cef8afeordxmk3br8qxqww6h6sxtwvvu4hnmxsmc55740o0d" :init="editorInitObject" />
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" @click="updateProfileChildItems(workExperienceData, 'work_experience')"
+            class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- <div class="modal fade" id="workExperienceAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div v-loading="isModalLoading" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalLabel">{{ elements.tabItemEdit ? 'Edit' : 'Add' }} Work Experience</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <form class="form-inline">
+              <div class="row">
                 <label for="company" class="col-sm-4 col-form-label">Company</label>
                 <div class="col-sm-8">
                   <input type="text" class="form-control" v-model="workExperienceData.company" id="company"
@@ -1336,10 +1442,9 @@ const showProfileTitleEdit = () => {
                 </div>
               </div>
               <div class="row">
-                <label for="description" class="col-sm-4 col-form-label">Responsibilities</label>
+                <label for="description" class="col-sm-4 col-form-label align-self-start">Responsibilities</label>
                 <div class="col-sm-8">
-                  <textarea class="form-control" v-model="workExperienceData.description" rows="5" id="description"
-                    placeholder="Enter Responsibilities"></textarea>
+                  <editor api-key="cef8afeordxmk3br8qxqww6h6sxtwvvu4hnmxsmc55740o0d" :init="editorInitObject" />
                 </div>
               </div>
             </form>
@@ -1351,7 +1456,7 @@ const showProfileTitleEdit = () => {
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
   <div class="modal fade" id="educationAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div v-loading="isModalLoading" class="modal-content">
@@ -1473,8 +1578,7 @@ const showProfileTitleEdit = () => {
     </div>
   </div>
   <ResumePreviewModal :hrProfile="hrProfile" />
-  <AddHrProfileModal id="addHrProfileModal-hrProfile" :hrProfile="existingHrProfileData"
-    @refreshParent="refreshPageData" />
+  <AddHrProfileModal id="addHrProfileModal-hrProfile" ref="addHrProfileModalRef" @refreshParent="getHrProfileList" />
   <dialog-component id="removeProfileChildItem" :onYes="onYesProfileChildItemDelete" :returnParams="dialogParam"
     title="Delete Confirmation" :message="`Are you sure to delete ${deleteChildTitle} info?`" />
   <dialog-component id="deleteHrProfileResume" :onYes="onYesHrProfileResume" :returnParams="dialogParam"

@@ -28,7 +28,7 @@ export default interface HrProfile {
   summary?: string;
   note?: string;
   gender?: string;
-  date_of_birth?: string;
+  date_of_birth?: Date | null;
   resume_url?: string;
   photo_url?: string;
   buiding_number?: string;

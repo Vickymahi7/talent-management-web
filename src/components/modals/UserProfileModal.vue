@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import axios from "@/plugins/axios";
 import type { User } from "@/types/User";
+import { USER_TYPES } from "@/utils/constants";
 import { useCommonFunctions } from "@/utils/useCommonFunctions";
 import useVuelidate from "@vuelidate/core";
 import { email, helpers, minLength, requiredIf, sameAs } from "@vuelidate/validators";
@@ -21,17 +22,19 @@ const elements = ref({
 const isLoading = ref(false);
 const user = ref([] as User);
 
-const userId = computed(() => {
-  const userId
-    = localStorage.getItem("userId");
-  return userId ? parseInt(userId) : null;
-});
-
 const getImageUrlWithTimestamp = computed(() => {
   const imageUrl = user.value.photo_url;
   const timestamp = new Date().getTime();
   return `${imageUrl}?timestamp=${timestamp}`;
 })
+
+const userType = computed(() => {
+  let result = '';
+  if (user.value.user_type_id) {
+    result = USER_TYPES.find(data => data.id == user.value.user_type_id)?.userType ?? '';
+  }
+  return result;
+});
 
 const validations = computed(() => {
   return {
@@ -63,7 +66,7 @@ const v$ = useVuelidate(validations, { user });
 const getUserDetail = async () => {
   try {
     isLoading.value = true;
-    const response: any = await axios.get('/user/view/' + userId.value)
+    const response: any = await axios.get('/user/userprofile')
     user.value = response.user;
   } catch (error: any) {
     toast.error(error.message);
@@ -198,7 +201,7 @@ defineExpose({ showModal: _showModal });
                   <h6>{{ user.user_name }}</h6>
                 </div>
                 <div class="col-12">
-                  <p><font-awesome-icon icon="fa-solid fa-user" class="me-2" />Power User</p>
+                  <p><font-awesome-icon icon="fa-solid fa-user" class="me-2" />{{ userType }}</p>
                 </div>
                 <!-- <div class="col-12">
                   <p><font-awesome-icon icon="fa-solid fa-envelope" class="me-2" />vickyz@text.com</p>
@@ -366,4 +369,4 @@ defineExpose({ showModal: _showModal });
       <button class="btn btn-primary">Save</button>
     </template> -->
   </ModalComponent>
-</template>@/composables/useCommonFunctions
+</template>

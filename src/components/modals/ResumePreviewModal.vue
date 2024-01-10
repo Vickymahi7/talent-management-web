@@ -15,7 +15,6 @@ export default {
   },
   methods: {
     async print() {
-      console.log(this.$nextTick)
       const vue = this as any;
       await vue.$htmlToPaper('printMe', {
         styles: ['../../resTemplateStyle.css'],

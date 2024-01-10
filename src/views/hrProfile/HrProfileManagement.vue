@@ -4,7 +4,7 @@ import axios from '@/plugins/axios';
 import type HrProfile from '@/types/HrProfile';
 import type { Skill } from "@/types/Skill";
 import { PROFILE_STATUS } from '@/utils/constants';
-import { formatDate } from '@/utils/dateFormats';
+import { formatDateTime } from '@/utils/dateFormats';
 import { UserTypeId } from '@/utils/enums';
 import { useCommonFunctions } from '@/utils/useCommonFunctions';
 import HrProfileComponent from "@/views/hrProfile/HrProfile.vue";
@@ -307,7 +307,7 @@ const hideModal = (modalId: string) => {
                 <span v-else>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</span>
               </template>
               <template v-else-if="field.key == 'last_updated_dt'">
-                {{ formatDate(hrProfile.last_updated_dt) }}
+                {{ formatDateTime(hrProfile.last_updated_dt) }}
               </template>
               <template v-else-if="field.key == 'actions'">
                 <div class="icon-btn me-2">
@@ -347,7 +347,7 @@ const hideModal = (modalId: string) => {
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div> -->
         <div class="modal-body profile-modal">
-          <HrProfileComponent :id="hrProfileId" :key="hrProfileId" />
+          <HrProfileComponent :id="hrProfileId" :key="hrProfileId" @close-modal="hideModal('hrProfileModal')" />
         </div>
         <div class="modal-footer">
           <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button>

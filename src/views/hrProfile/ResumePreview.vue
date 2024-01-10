@@ -33,7 +33,7 @@ export default {
         summary: '',
         note: '',
         gender: '',
-        date_of_birth: '',
+        date_of_birth: null,
         resume_url: '',
         photo_url: '',
         buiding_number: '',

@@ -1,7 +1,7 @@
 <script lang="ts">
 import axios from '@/plugins/axios'
 import { ACCOUNT_STATUS } from '@/utils/constants'
-import { formatDate } from '@/utils/dateFormats'
+import { formatDateTime } from '@/utils/dateFormats'
 import { useCommonFunctions } from '@/utils/useCommonFunctions'
 import { useVuelidate } from '@vuelidate/core'
 import { email, helpers, required } from '@vuelidate/validators'
@@ -13,7 +13,7 @@ export default {
       v$: useVuelidate(),
       toast: useToast(),
       commonFunctions: useCommonFunctions(),
-      formatDate: formatDate,
+      formatDateTime: formatDateTime,
 
       isLoading: false,
       isModalLoading: false,
@@ -230,7 +230,7 @@ export default {
                 <span v-else>{{ commonFunctions.getTenantStatusById(tenant[field.key]) }}</span>
               </template>
               <template v-else-if="field.key == 'last_updated_dt'">
-                {{ formatDate(tenant[field.key]) }}
+                {{ formatDateTime(tenant[field.key]) }}
               </template>
               <template v-else-if="field.key == 'actions'">
                 <div class="icon-btn" @click="deleteTenant(tenant.tenant_id)" title="Delete Tenant" data-bs-toggle="modal"
@@ -319,4 +319,4 @@ export default {
   </div>
   <dialog-component id="deleteTenant" :onYes="onYesTenant" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete tenant?" />
-</template>@/composables/useCommonFunctions
+</template>
