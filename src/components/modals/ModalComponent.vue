@@ -31,8 +31,11 @@ const hidden = (() => emit('hidden'));
 
 const _show = () => {
   thisModalObj.value?.show();
-}
-defineExpose({ show: _show });
+};
+const _hide = () => {
+  thisModalObj.value?.hide();
+};
+defineExpose({ show: _show, hide: _hide });
 </script>
 
 <template>

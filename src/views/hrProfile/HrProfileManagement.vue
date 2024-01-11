@@ -31,10 +31,6 @@ const showInviteUserModal = ref(false);
 const searchText = ref('');
 const status_id = ref([] as number[]);
 
-const editId = ref(null as string | null);
-const editKey = ref(null as string | null);
-const editValue = ref(null as string | null);
-
 const accessToken = ref(null as string | null);
 const hrProfileId = ref('');
 
@@ -101,31 +97,6 @@ const getHrProfileList = async () => {
     isLoading.value = false;
   }
 }
-const updateHrProfile = async (hrProfileData: any, updateKey: string, updateVal: any) => {
-  const data: any = {};
-  data.id = hrProfileData.id;
-  data.hr_profile_id = hrProfileData.hr_profile_id;
-  data.user_id = hrProfileData.user_id;
-  data.email_id = hrProfileData.email_id;
-  data[updateKey] = updateVal;
-
-  try {
-    isLoading.value = true;
-    const response: any = await axios.patch('/hrprofile/update', data);
-    if (response.status == HttpStatusCode.Ok) {
-      toast.success(response.message);
-      getUpdatedHrProfileList();
-      editId.value = null;
-      editKey.value = null;
-      editValue.value = null;
-    }
-  } catch (error: any) {
-    toast.error(error.message);
-  }
-  finally {
-    isLoading.value = false;
-  }
-}
 const deleteHrProfile = (id: string) => {
   dialogParam.value.id = id;
 }
@@ -166,22 +137,7 @@ const handleTableRowClick = (modalId: string, _hrProfileId: string) => {
     showModal(modalId);
   }
 }
-const handleTableCellClick = (field: any, item: any, event: Event) => {
-  if (field.isEditable) {
-    event.stopPropagation();
-    editId.value = item.id;
-    editKey.value = field.key;
-    editValue.value = item[field.key];
-  }
-}
-const cancelInlineEdit = (item: any, field: any) => {
-  item[field.key] = editValue;
 
-  editId.value = null;
-  editKey.value = null;
-  editValue.value = null;
-  getUpdatedHrProfileList();
-}
 const adLoginPopup = async () => {
   await instance.loginPopup(loginRequest);
   getGraphData()
@@ -290,10 +246,7 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
         <tbody class="custom-tbody-style">
           <tr v-for="(hrProfile, index) in hrProfileList" :key="hrProfile.id"
             @click="handleTableRowClick('hrProfileModal', hrProfile.id!)">
-            <!-- @click="$router.push({ name: 'hrprofile', params: { id: hrProfile.id } })"> -->
-            <td v-for="field in hrProfileFields" :key="field.key" @click="handleTableCellClick(field, hrProfile, $event)"
-              :class="{ 'clickable-cell': field.isEditable }">
-              <!-- @click.stop=" -->
+            <td v-for="field in hrProfileFields" :key="field.key">
               <template v-if="field.key == 'select'">
                 <input class="form-check-input" type="checkbox">
               </template>
@@ -312,15 +265,7 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
                 </div>
               </template>
               <template v-else-if="field.key == 'status_id'">
-
-                <select v-if="editId == hrProfile.id && editKey == field.key" class="form-select form-control-sm"
-                  v-model="hrProfile[field.key]" @change="updateHrProfile(hrProfile, field.key, hrProfile[field.key])"
-                  @blur="cancelInlineEdit(hrProfile, field.key)" :aria-label="field.label">
-                  <option :value="null">Select</option>
-                  <option v-for="status in PROFILE_STATUS" :key="status.id" :value="status.id">{{ status.status }}
-                  </option>
-                </select>
-                <span v-else>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</span>
+                {{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}
               </template>
               <template v-else-if="field.key == 'last_updated_dt'">
                 {{ formatDateTime(hrProfile.last_updated_dt) }}
@@ -348,8 +293,6 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
         </tbody>
       </table>
     </div>
-    <!-- <BPagination v-if="hrProfileList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
-      size="sm" /> -->
   </div>
   <AddHrProfileModal id="addHrProfileModal-profileManage" ref="addHrProfileModalRef"
     @refreshParent="getUpdatedHrProfileList" />

@@ -1,13 +1,16 @@
 import type { User } from "./User";
 
 export interface Tenant {
-  tenant_id?: number;
-  user_id?: number;
+  tenant_id?: number | null;
+  user_id?: number | null;
   name?: string;
   tenant_email_id?: string;
   tenant_phone?: string;
-  tenant_type_id?: number;
-  tenant_status_id?: number;
+  user_name?: string;
+  email_id?: string;
+  phone?: string;
+  tenant_type_id?: number | null;
+  tenant_status_id?: number | null;
   description?: string;
   location?: string;
   logo_url?: string;
@@ -15,7 +18,7 @@ export interface Tenant {
   is_skill_experience?: boolean;
   user?: User;
   active?: boolean;
-  created_by_id?: number;
-  created_dt?: Date;
-  last_updated_dt?: Date;
+  created_by_id?: number | null;
+  created_dt?: Date | null;
+  last_updated_dt?: Date | null;
 }

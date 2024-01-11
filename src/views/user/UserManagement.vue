@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import UserPrivilegeModal from '@/components/modals/UserPrivilegeModal.vue'
 import axios from '@/plugins/axios'
+import type { User } from '@/types/User'
 import { ACCOUNT_STATUS, USER_TYPES } from '@/utils/constants'
 import { formatDateTime } from '@/utils/dateFormats'
 import { UserTypeId } from '@/utils/enums'
@@ -14,11 +15,14 @@ const toast = useToast();
 const commonFunctions = useCommonFunctions();
 
 const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilegeModal> | null);
+const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
+
+const isPageEnd = ref(false);
+const perPage = ref(10);
+const lastRecordKey = ref(null);
 const isLoading = ref(false);
 const isModalLoading = ref(false);
 const editId = ref(null as number | null);
-const editKey = ref(null as string | null);
-const editValue = ref(null as string | null);
 
 const modalId = ref('');
 const user = ref({
@@ -30,7 +34,7 @@ const user = ref({
   user_status_id: null,
 });
 
-const userList = ref([]);
+const userList = ref([] as User[]);
 const userFields = ref([
   { key: 'user_id', label: 'ID' },
   { key: 'user_name', label: 'Display Name', isEditable: true },
@@ -46,9 +50,6 @@ const dialogParam = ref({
   id: 0,
 });
 
-const totalRows = ref(1);
-const currentPage = ref(1);
-const perPage = ref(10);
 
 const userTypeId = computed(() => {
   const userTypeId
@@ -62,11 +63,6 @@ const userTypeList = computed(() => {
   else {
     return USER_TYPES.filter(data => data.id != UserTypeId.SAD);
   }
-});
-const filteredUserList = computed((): any => {
-  const startIndex = (currentPage.value - 1) * perPage.value;
-  const endIndex = startIndex + perPage.value;
-  return userList.value.slice(startIndex, endIndex);
 });
 
 const validations = computed(() => {
@@ -91,12 +87,28 @@ onMounted(() => {
   getUserList();
 });
 
+const getUpdatedUserList = () => {
+  lastRecordKey.value = null;
+  isPageEnd.value = false;
+  userList.value = [];
+  getUserList();
+};
 const getUserList = async () => {
   try {
+    const queryParams = {
+      lastRecordKey: lastRecordKey.value,
+      perPage: perPage.value,
+    };
     isLoading.value = true;
-    const response: any = await axios.get('/user/list')
-    userList.value = response.userList;
-    totalRows.value = userList.value.length;
+    const response: any = await axios.get('/user/list', { params: queryParams })
+    lastRecordKey.value = response.lastRecordKey;
+    if (lastRecordKey.value) {
+      userList.value = userList.value.concat(response.userList);
+    }
+    else {
+      isPageEnd.value = true;
+    }
+    // userList.value = response.userList;
   } catch (error: any) {
     toast.error(error.message);
   }
@@ -112,7 +124,7 @@ const addUser = async () => {
       const response: any = await axios.post('/user/add', user.value);
       if (response.status == HttpStatusCode.Created) {
         toast.success(response.message);
-        getUserList();
+        getUpdatedUserList();
         commonFunctions.bsModalHide(modalId.value);
       }
     }
@@ -139,10 +151,8 @@ const updateUser = async (userData: any) => {
     const response: any = await axios.patch('/user/update', data);
     if (response.status == HttpStatusCode.Ok) {
       toast.success(response.message);
-      getUserList();
+      getUpdatedUserList();
       editId.value = null;
-      editKey.value = null;
-      editValue.value = null;
       // bsModalHide();
     }
     // }
@@ -162,7 +172,7 @@ const onYesUser = async () => {
     const response: any = await axios.delete('/user/delete/' + dialogParam.value.id)
     if (response.status == HttpStatusCode.Ok) {
       toast.success(response.message);
-      getUserList();
+      getUpdatedUserList();
     }
 
   } catch (error: any) {
@@ -181,7 +191,7 @@ const onYesConfirmation = async () => {
     const response: any = await axios.post('/user/resendactivation/' + dialogParam.value.id)
     if (response.status == HttpStatusCode.Ok) {
       toast.success(response.message);
-      getUserList();
+      getUpdatedUserList();
     }
 
   } catch (error: any) {
@@ -191,30 +201,30 @@ const onYesConfirmation = async () => {
     isLoading.value = false;
   }
 }
-const handleTableCellClick = (field: any, item: any) => {
-  // if (field.isEditable) {
+const handleTableCellClick = (item: any) => {
   editId.value = item.user_id;
-  editKey.value = field.key;
-  editValue.value = item[field.key];
-  // }
 }
 const cancelInlineEdit = () => {
-  // item[field.key] = editValue;
-
   editId.value = null;
-  editKey.value = null;
-  editValue.value = null;
-  // getUserList();
+  getUpdatedUserList();
 }
 const showUserPrivileges = (userId: number) => {
   userPrivilegeRef.value?.showModal(userId);
 }
+
+const handleScroll = (refName: string, isNotLoading: boolean, callback: Function) => {
+  // Trigger fetchData when scrolling near the bottom of the container
+  if (scrollerRef.value && scrollerRef.value.scrollTop + scrollerRef.value.clientHeight >= scrollerRef.value.scrollHeight - 20 && isNotLoading && !isPageEnd.value) {
+    callback();
+  }
+};
 </script>
 <template>
   <div class="content-card content-header card-gap-mb">
     <label>Manage User</label>
   </div>
-  <div v-loading="isLoading" class="content-body content-card">
+  <div v-loading="isLoading" class="content-body content-card"
+    @scroll="handleScroll('scrollerRef', !isLoading, getUserList)" ref="scrollerRef">
     <div class="row py-2">
       <div class="col text-end">
         <button class="btn btn-primary mx-2" type="button"
@@ -232,7 +242,7 @@ const showUserPrivileges = (userId: number) => {
           </tr>
         </thead>
         <tbody class="custom-tbody-style">
-          <tr v-for="item in filteredUserList" :key="item">
+          <tr v-for="item in userList" :key="item.user_id">
             <td v-for="field in userFields" :key="field.key">
               <template v-if="field.key == 'user_name'">
                 <input v-if="editId == item.user_id" type="text" class="form-control form-control-sm"
@@ -281,18 +291,18 @@ const showUserPrivileges = (userId: number) => {
                   </span>
                 </template>
                 <template v-else>
-                  <div v-if="!item.active" class="icon-btn me-2" @click="resendActivationMail(item.user_id)"
+                  <div v-if="!item.active" class="icon-btn me-2" @click="resendActivationMail(item.user_id!)"
                     title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
                     <font-awesome-icon icon="fa-solid fa-share-from-square" />
                   </div>
-                  <div class="icon-btn me-2" @click="handleTableCellClick(field, item)" title="Edit User">
+                  <div class="icon-btn me-2" @click="handleTableCellClick(item)" title="Edit User">
                     <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                   </div>
-                  <div class="icon-btn me-2" @click="deleteUser(item.user_id)" title="Delete User" data-bs-toggle="modal"
+                  <div class="icon-btn me-2" @click="deleteUser(item.user_id!)" title="Delete User" data-bs-toggle="modal"
                     data-bs-target="#deleteUser">
                     <font-awesome-icon icon="fa-solid fa-trash" />
                   </div>
-                  <div class="icon-btn me-2" @click="showUserPrivileges(item.user_id)" title="User Privileges">
+                  <div class="icon-btn me-2" @click="showUserPrivileges(item.user_id!)" title="User Privileges">
                     <font-awesome-icon icon="fa-solid fa-cog" />
                   </div>
                 </template>
@@ -300,14 +310,12 @@ const showUserPrivileges = (userId: number) => {
               <template v-else>{{ item[field.key] }}</template>
             </td>
           </tr>
-          <tr v-if="filteredUserList.length == 0">
+          <tr v-if="userList.length == 0">
             <td colspan="12" class="text-center"> No record found </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <BPagination v-if="userList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
-      size="sm" />
   </div>
   <div class="modal fade" id="userAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog">

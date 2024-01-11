@@ -1,190 +1,181 @@
-<script lang="ts">
+<script lang="ts" setup>
 import axios from '@/plugins/axios'
+import type { Tenant } from '@/types/Tenant'
 import { ACCOUNT_STATUS } from '@/utils/constants'
 import { formatDateTime } from '@/utils/dateFormats'
 import { useCommonFunctions } from '@/utils/useCommonFunctions'
 import { useVuelidate } from '@vuelidate/core'
 import { email, helpers, required } from '@vuelidate/validators'
 import { HttpStatusCode } from 'axios'
+import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
-export default {
-  data() {
-    return {
-      v$: useVuelidate(),
-      toast: useToast(),
-      commonFunctions: useCommonFunctions(),
-      formatDateTime: formatDateTime,
 
-      isLoading: false,
-      isModalLoading: false,
+const toast = useToast();
+const commonFunctions = useCommonFunctions();
 
-      editId: null as number | null,
-      editKey: null as string | null,
-      editValue: null as string | null,
+const isLoading = ref(false);
+const isModalLoading = ref(false);
 
-      modalId: '',
-      tenant: {
-        tenant_id: '',
-        name: '',
-        user_id: '',
-        user_name: '',
-        email_id: '',
-        phone: '',
-        tenant_type_id: '',
-        tenant_status_id: '',
-        description: '',
-        location: '',
+const editId = ref(null as number | null);
+const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
+
+const isPageEnd = ref(false);
+const perPage = ref(10);
+const lastRecordKey = ref(null);
+const modalId = ref('');
+const tenant = ref({} as Tenant);
+
+const tenantList = ref([] as Tenant[]);
+const tenantFields = [
+  { key: 'tenant_id', label: 'ID', },
+  { key: 'name', label: 'Tenant', isEditable: true },
+  { key: 'user_name', label: 'Primary User Name' },
+  { key: 'email_id', label: 'Primary User Email' },
+  { key: 'active', label: 'Active', },
+  { key: 'tenant_status_id', label: 'Status', isEditable: true },
+  { key: 'last_updated_dt', label: 'Last Updated' },
+  { key: 'actions', label: 'Action', },
+];
+
+const dialogParam = ref({
+  id: 0,
+})
+
+const validations = computed(() => {
+  return {
+    tenant: {
+      name: {
+        required: helpers.withMessage('Tenant Name required', required),
       },
-
-      accountStatus: ACCOUNT_STATUS,
-      tenantList: [],
-      tenantFields: [
-        { key: 'tenant_id', label: 'ID', },
-        { key: 'name', label: 'Tenant', isEditable: true },
-        { key: 'user_name', label: 'Primary User Name' },
-        { key: 'email_id', label: 'Primary User Email' },
-        { key: 'active', label: 'Active', },
-        { key: 'tenant_status_id', label: 'Status', isEditable: true },
-        { key: 'last_updated_dt', label: 'Last Updated' },
-        { key: 'actions', label: 'Action', },
-      ],
-
-      dialogParam: {
-        id: 0,
+      user_name: {
+        required: helpers.withMessage('Primary User Name is required', required),
       },
-
-      totalRows: 1,
-      currentPage: 1,
-      perPage: 10,
+      email_id: {
+        required: helpers.withMessage('Email ID is required', required),
+        email: helpers.withMessage('Enter a valid Email ID', email),
+      },
     }
-  },
-  computed: {
-    filteredTenantList(): any {
-      const startIndex = (this.currentPage - 1) * this.perPage;
-      const endIndex = startIndex + this.perPage;
-      return this.tenantList.slice(startIndex, endIndex);
-    },
-  },
-  validations() {
-    return {
-      tenant: {
-        name: {
-          required: helpers.withMessage('Tenant Name required', required),
-        },
-        user_name: {
-          required: helpers.withMessage('Primary User Name is required', required),
-        },
-        email_id: {
-          required: helpers.withMessage('Email ID is required', required),
-          email: helpers.withMessage('Enter a valid Email ID', email),
-        },
-      }
-    }
-  },
-  mounted() {
-    this.getTenantList();
-  },
-  methods: {
-    async getTenantList() {
-      try {
-        this.isLoading = true;
-        const response: any = await axios.get('/tenant/list')
-        this.tenantList = response.tenantList;
-        this.totalRows = this.tenantList.length;
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-    async addTenant() {
-      try {
-        this.v$.tenant.$touch();
-        if (!this.v$.tenant.$invalid) {
-          this.isModalLoading = true;
-          const response: any = await axios.post('/tenant/add', this.tenant);
-          if (response.status == HttpStatusCode.Created) {
-            this.toast.success(response.message);
-            this.getTenantList();
-            this.commonFunctions.bsModalHide(this.modalId);
-          }
-        }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isModalLoading = false;
-      }
-    },
-    async updateTenant(tenantData: any, updateKey: string, updateVal: string) {
-      try {
-        // this.v$.tenant.$touch();
-        // if (!this.v$.tenant.$invalid) {
-        const data: any = {}
-        data.tenant_id = tenantData.tenant_id;
-        data.name = tenantData.name;
-        data.user_id = tenantData.user_id.toString();
-        data[updateKey] = updateVal;
-        this.isLoading = true;
-        const response: any = await axios.patch('/tenant/update', data);
-        if (response.status == HttpStatusCode.Ok) {
-          this.toast.success(response.message);
-          this.getTenantList();
-          this.editId = null;
-          this.editKey = null;
-          this.editValue = null;
-        }
-        // }
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false
-      }
-    },
-    handleTableCellClick(field: any, item: any) {
-      if (field.isEditable) {
-        this.editId = item.tenant_id;
-        this.editKey = field.key;
-        this.editValue = item[field.key];
-      }
-    },
-    cancelInlineEdit(item: any, field: any) {
-      item[field.key] = this.editValue;
-
-      this.editId = null;
-      this.editKey = null;
-      this.editValue = null;
-      this.getTenantList();
-    },
-    deleteTenant: function (id: number) {
-      this.dialogParam.id = id;
-    },
-    async onYesTenant() {
-      try {
-        this.isLoading = true;
-        const response: any = await axios.delete('/tenant/delete/' + this.dialogParam.id)
-        if (response.status == HttpStatusCode.Ok) {
-          this.toast.success(response.message);
-          this.getTenantList();
-        }
-
-      } catch (error: any) {
-        this.toast.error(error.message);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
   }
+});
+const v$ = useVuelidate(validations, { tenant });
+
+onMounted(() => {
+  getTenantList();
+});
+
+const getUpdatedTenantList = () => {
+  lastRecordKey.value = null;
+  isPageEnd.value = false;
+  tenantList.value = [];
+  getTenantList();
+};
+
+const getTenantList = async () => {
+  try {
+    const queryParams = {
+      lastRecordKey: lastRecordKey.value,
+      perPage: perPage.value,
+    };
+    isLoading.value = true;
+    const response: any = await axios.get('/tenant/list', { params: queryParams })
+    lastRecordKey.value = response.lastRecordKey;
+    if (lastRecordKey.value) {
+      tenantList.value = tenantList.value.concat(response.tenantList);
+    }
+    else {
+      isPageEnd.value = true;
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
+const addTenant = async () => {
+  try {
+    v$.value.tenant.$touch();
+    if (!v$.value.tenant.$invalid) {
+      isModalLoading.value = true;
+      const response: any = await axios.post('/tenant/add', tenant.value);
+      if (response.status == HttpStatusCode.Created) {
+        toast.success(response.message);
+        getUpdatedTenantList();
+        commonFunctions.bsModalHide(modalId.value);
+      }
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isModalLoading.value = false;
+  }
+};
+const updateTenant = async (tenantData: Tenant) => {
+  try {
+    // v$.value.tenant.$touch();
+    // if (!v$.value.tenant.$invalid) {
+    const data: any = {}
+    data.tenant_id = tenantData.tenant_id;
+    data.name = tenantData.name;
+    data.user_id = tenantData.user_id;
+    data.name = tenantData.name;
+    data.tenant_status_id = tenantData.tenant_status_id;
+    isLoading.value = true;
+    const response: any = await axios.patch('/tenant/update', data);
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getUpdatedTenantList();
+      editId.value = null;
+    }
+    // }
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false
+  }
+};
+const cancelInlineEdit = () => {
+  editId.value = null;
+  getUpdatedTenantList();
+};
+const handleTableCellClick = (item: Tenant) => {
+  editId.value = item.tenant_id!;
 }
+const deleteTenant = (id: number) => {
+  dialogParam.value.id = id;
+};
+const onYesTenant = async () => {
+  try {
+    isLoading.value = true;
+    const response: any = await axios.delete('/tenant/delete/' + dialogParam.value.id)
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getUpdatedTenantList();
+    }
+
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
+
+const handleScroll = (refName: string, isNotLoading: boolean, callback: Function) => {
+  // Trigger fetchData when scrolling near the bottom of the container
+  if (scrollerRef.value && scrollerRef.value.scrollTop + scrollerRef.value.clientHeight >= scrollerRef.value.scrollHeight - 20 && isNotLoading && !isPageEnd.value) {
+    callback();
+  }
+};
 </script>
 <template>
   <div class="content-card content-header card-gap-mb">
     <label>Manage Tenant</label>
   </div>
-  <div v-loading="isLoading" class="content-body content-card">
+  <div v-loading="isLoading" class="content-body content-card"
+    @scroll="handleScroll('scrollerRef', !isLoading, getTenantList)" ref="scrollerRef">
     <div class="row py-2">
       <div class="col text-end">
         <button class="btn btn-primary mx-2" type="button"
@@ -202,18 +193,15 @@ export default {
           </tr>
         </thead>
         <tbody class="custom-tbody-style">
-          <tr v-for="tenant in filteredTenantList" :key="tenant">
-            <td v-for="field in tenantFields" :key="field.key" @click="handleTableCellClick(field, tenant)"
-              :class="{ 'clickable-cell': field.isEditable }">
+          <tr v-for="tenant in tenantList" :key="tenant.tenant_id!">
+            <td v-for="field in tenantFields" :key="field.key">
               <template v-if="field.key == 'name'">
-                <input v-if="editId == tenant.tenant_id && editKey == field.key" type="text" class="form-control"
-                  v-model="tenant[field.key]" placeholder="Enter Name"
-                  @keyup.enter="updateTenant(tenant, field.key, tenant[field.key])"
-                  @blur="cancelInlineEdit(tenant, field.key)">
+                <input v-if="editId == tenant.tenant_id" type="text" class="form-control form-control-sm"
+                  v-model="tenant[field.key]" placeholder="Enter Name" @keyup.enter="updateTenant(tenant)">
                 <div v-else>{{ tenant[field.key] }}</div>
               </template>
               <template v-else-if="field.key == 'active'">
-                <div v-if="tenant.user[field.key]" class="text-success">
+                <div v-if="tenant.user && tenant.user[field.key]" class="text-success">
                   <font-awesome-icon icon="fa-solid fa-user-check" />
                 </div>
                 <div v-else class="text-danger">
@@ -221,11 +209,10 @@ export default {
                 </div>
               </template>
               <template v-else-if="field.key == 'tenant_status_id'">
-                <select v-if="editId == tenant.tenant_id && editKey == field.key" class="form-select form-control-sm"
-                  v-model="tenant[field.key]" @change="updateTenant(tenant, field.key, tenant[field.key])"
-                  @blur="cancelInlineEdit(tenant, field.key)" :aria-label="field.label">
+                <select v-if="editId == tenant.tenant_id" class="form-select form-control-sm" v-model="tenant[field.key]"
+                  @change="updateTenant(tenant)" :aria-label="field.label">
                   <option :value="null">Select</option>
-                  <option v-for="item in accountStatus" :key="item.id" :value="item.id">{{ item.status }}</option>
+                  <option v-for="item in ACCOUNT_STATUS" :key="item.id" :value="item.id">{{ item.status }}</option>
                 </select>
                 <span v-else>{{ commonFunctions.getTenantStatusById(tenant[field.key]) }}</span>
               </template>
@@ -233,25 +220,36 @@ export default {
                 {{ formatDateTime(tenant[field.key]) }}
               </template>
               <template v-else-if="field.key == 'actions'">
-                <div class="icon-btn" @click="deleteTenant(tenant.tenant_id)" title="Delete Tenant" data-bs-toggle="modal"
-                  data-bs-target="#deleteTenant">
-                  <font-awesome-icon icon="fa-solid fa-trash" />
-                </div>
+                <template v-if="editId == tenant.tenant_id">
+                  <span class="icon-btn mx-1" @click="updateTenant(tenant)">
+                    <font-awesome-icon icon="fa-solid fa-check" />
+                  </span>
+                  <span class="icon-btn" @click="cancelInlineEdit()">
+                    <font-awesome-icon icon="fa-solid fa-xmark" />
+                  </span>
+                </template>
+                <template v-else>
+                  <div class="icon-btn me-2" @click="handleTableCellClick(tenant)" title="Edit User">
+                    <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                  </div>
+                  <div class="icon-btn" @click="deleteTenant(tenant.tenant_id!)" title="Delete Tenant"
+                    data-bs-toggle="modal" data-bs-target="#deleteTenant">
+                    <font-awesome-icon icon="fa-solid fa-trash" />
+                  </div>
+                </template>
               </template>
               <template v-else-if="field.key == 'user_name' || field.key == 'email_id'">
-                {{ tenant.user[field.key] }}
+                {{ tenant.user![field.key] }}
               </template>
               <template v-else>{{ tenant[field.key] }}</template>
             </td>
           </tr>
-          <tr v-if="filteredTenantList.length == 0">
+          <tr v-if="tenantList.length == 0">
             <td colspan="12" class="text-center"> No record found </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <BPagination v-if="tenantList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
-      size="sm" />
   </div>
   <div class="modal fade" id="tenantAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog">

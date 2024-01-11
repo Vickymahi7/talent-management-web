@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" setup>
 import ResumePreviewModal from '@/components/modals/ResumePreviewModal.vue'
 import axios from '@/plugins/axios'
 import type HrProfile from '@/types/HrProfile'
@@ -6,145 +6,162 @@ import type { Skill } from '@/types/Skill'
 import { PROFILE_STATUS } from '@/utils/constants'
 import { formatDateTime } from '@/utils/dateFormats'
 import { useCommonFunctions } from '@/utils/useCommonFunctions'
+import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
+const toast = useToast();
+const commonFunctions = useCommonFunctions();
 
-export default {
-  components: {
-    ResumePreviewModal,
-  },
-  data() {
-    return {
-      toast: useToast(),
-      commonFunctions: useCommonFunctions(),
-      formatDateTime: formatDateTime,
-      profileStatus: PROFILE_STATUS,
+const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
+const isLoading = ref(false);
+const searchText = ref('');
+const status_id = ref([] as number[]);
 
-      isLoading: false,
-      isModalLoading: false,
-      hrProfileEdit: false,
-      modalId: '',
-      searchText: '',
-      status_id: null as null | number,
+const hrProfilePreviewData = ref(null as null | HrProfile);
+const hrProfileList = ref([] as HrProfile[]);
 
-      hrProfilePreviewData: null as null | HrProfile,
-      hrProfileList: [] as HrProfile[],
+const totalRows = ref(1);
+const currentPage = ref(1);
+const perPage = ref(10);
 
-      totalRows: 1,
-      currentPage: 1,
-      perPage: 10,
+const hrProfileFields = [
+  { key: 'index', label: 'SN' },
+  { key: 'profile_title', label: 'Profile Title' },
+  { key: 'first_name', label: 'Resource Name' },
+  { key: 'email_id', label: 'Email ID' },
+  { key: 'skills', label: 'Skills' },
+  { key: 'status_id', label: 'Profile Status', isEditable: true },
+  { key: 'last_updated_dt', label: 'Last Updated' },
+  { key: 'actions', label: 'Action' },
+];
 
-      dialogParam: {
-        id: null as string | number | null,
-      },
-    }
-  },
-  computed: {
-    pageStart() {
-      return (this.currentPage - 1) * this.perPage;
-    }
-  },
-  watch: {
-    currentPage() {
-      this.getHrProfileList();
-    },
-  },
-  mounted() {
-    this.getHrProfileList();
-  },
-  methods: {
-    async getHrProfileList() {
-      try {
-        const queryParams = {
-          searchText: this.searchText,
-          status_id: this.status_id,
-          rows: this.perPage,
-          start: this.pageStart,
-        };
-        this.isLoading = true;
-        const response: any = await axios.get('/hrprofile/list', { params: queryParams });
-        this.hrProfileList = response.hrProfileList;
-        this.totalRows = response.total;
-        this.currentPage = response.total > this.perPage ? this.currentPage : 1;
-      } catch (error: any) {
-        this.toast.error(error.message);
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    skillsToolTip(skills?: Skill[]) {
-      let tooltipText = "";
-      if (skills && skills.length > 0) {
-        skills.forEach((_skill, index) => {
-          if (index != 0) {
-            tooltipText += ", "
-          }
-          tooltipText += _skill.skill;
-        })
-      }
-      return tooltipText;
-    }
+const pageStart = computed(() => {
+  return (currentPage.value - 1) * perPage.value;
+});
+
+// watch: {
+//   currentPage() {
+//     this.getHrProfileList();
+//   },
+// };
+onMounted(() => {
+  getUpdatedHrProfileList();
+});
+
+const getUpdatedHrProfileList = () => {
+  totalRows.value = 1;
+  currentPage.value = 1;
+  hrProfileList.value = [];
+  getHrProfileList();
+};
+
+const getHrProfileList = async () => {
+  try {
+    const queryParams = {
+      searchText: searchText.value,
+      status_id: status_id.value,
+      rows: perPage.value,
+      start: pageStart.value,
+    };
+    isLoading.value = true;
+    const response: any = await axios.get('/hrprofile/list', { params: queryParams });
+    hrProfileList.value = hrProfileList.value.concat(response.hrProfileList);
+    totalRows.value = response.total;
+    currentPage.value = response.total > perPage.value ? currentPage.value : 1;
+  } catch (error: any) {
+    toast.error(error.message);
+  } finally {
+    isLoading.value = false;
   }
+};
+
+const skillsToolTip = (skills?: Skill[]) => {
+  let tooltipText = "";
+  if (skills && skills.length > 0) {
+    skills.forEach((_skill, index) => {
+      if (index != 0) {
+        tooltipText += ", "
+      }
+      tooltipText += _skill.skill;
+    })
+  }
+  return tooltipText;
 }
+
+const handleScroll = (refName: string, isNotLoading: boolean, callback: Function) => {
+  // Trigger fetchData when scrolling near the bottom of the container
+  if (scrollerRef.value && scrollerRef.value.scrollTop + scrollerRef.value.clientHeight >= scrollerRef.value.scrollHeight - 20 && isNotLoading && hrProfileList.value.length < totalRows.value) {
+    currentPage.value++;
+    callback();
+  }
+};
 </script>
 <template>
   <div class="content-card content-header card-gap-mb">
     <label>Talent Pool</label>
   </div>
-  <div v-loading="isLoading" class="content-body content-card">
-    <div class="row filter-group py-2">
+  <div v-loading="isLoading" class="content-body content-card"
+    @scroll="handleScroll('scrollerRef', !isLoading, getHrProfileList)" ref="scrollerRef">
+    <div class="row filter-group py-2 align-items-center">
       <div class="col-3">
-        <input type="text" v-model="searchText" class="form-control" @keyup.enter="getHrProfileList"
+        <input type="text" v-model="searchText" class="form-control" @keyup.enter="getUpdatedHrProfileList"
           placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
       </div>
-      <div class="col-2">
-        <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
+      <div class="col">
+        <!-- <div class="form-check form-check-inline mb-0">``
+          <input class="form-check-input" v-model="status_id" type="checkbox" name="profileStatusOptions"
+            id="inlineRadioStatusAll" :value="null" @change="getHrProfileList">
+          <label class="form-check-label" for="inlineRadioStatusAll">All</label>
+        </div> -->
+        <div v-for="status in PROFILE_STATUS" :key="status.id" class="form-check form-check-inline mb-0">
+          <input class="form-check-input" v-model="status_id" type="checkbox" :id="'inlineRadio' + status.id"
+            :value="status.id" @change="getUpdatedHrProfileList">
+          <label class="form-check-label" :for="'inlineRadio' + status.id">{{ status.status }}</label>
+        </div>
+        <!-- <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
           <option :value="null">Profile Status</option>
           <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
-        </select>
+        </select> -->
       </div>
     </div>
     <div class="table-responsive">
       <table class="table table-borderless custom-table-style">
         <thead class="table-primary">
           <tr>
-            <th scope="col">
-              <input class="form-check-input" type="checkbox">
-            </th>
-            <th scope="col">ID</th>
-            <th scope="col">Profile Title</th>
-            <th scope="col">Resource Name</th>
-            <th scope="col">Email ID</th>
-            <th scope="col">Skills</th>
-            <th scope="col">Profile Status</th>
-            <th scope="col">Last Updated</th>
-            <th scope="col">Action</th>
+            <th scope="col" v-for="field in hrProfileFields" :key="field.key">{{ field.label }}</th>
           </tr>
         </thead>
         <tbody class="custom-tbody-style">
           <tr v-for="(hrProfile, index) in hrProfileList" :key="hrProfile.id">
-            <!-- @click="$router.push({ name: 'hrprofile', params: { id: hrProfile.id } })" -->
-            <td>
-              <input class="form-check-input" type="checkbox">
-            </td>
-            <td>{{ index + 1 }}</td>
-            <td>{{ hrProfile.profile_title }}</td>
-            <td>{{ hrProfile.first_name }} {{ hrProfile.last_name }}</td>
-            <td>{{ hrProfile.email_id }}</td>
-            <td>
-              <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfile.skills)">
-                <span v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}<span
-                    v-if="hrProfile.skills && index < hrProfile.skills.length - 1">,
+            <td v-for="field in hrProfileFields" :key="field.key">
+              <template v-if="field.key == 'index'">
+                {{ index + 1 }}
+              </template>
+              <template v-else-if="field.key == 'first_name'">
+                {{ hrProfile.first_name }} {{ hrProfile.last_name }}
+              </template>
+              <template v-else-if="field.key == 'skills'">
+                <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfile.skills)">
+                  <span v-for="_skill, index in hrProfile.skills" :key="index">{{ _skill.skill }}<span
+                      v-if="hrProfile.skills && index < hrProfile.skills.length - 1">,
+                    </span>
                   </span>
-                </span>
-              </div>
-            </td>
-            <td>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</td>
-            <td>{{ formatDateTime(hrProfile.last_updated_dt) }}</td>
-            <td>
-              <div class="icon-btn" data-bs-toggle="modal" data-bs-target="#resumePreviewModal"
-                @click="hrProfilePreviewData = hrProfile">
-                <font-awesome-icon icon="fa-solid fa-eye" />
-              </div>
+                </div>
+              </template>
+              <template v-else-if="field.key == 'status_id'">
+                <span>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</span>
+              </template>
+              <template v-else-if="field.key == 'last_updated_dt'">
+                {{ formatDateTime(hrProfile.last_updated_dt) }}
+              </template>
+              <template v-else-if="field.key == 'actions'">
+                <div class="icon-btn" data-bs-toggle="modal" data-bs-target="#resumePreviewModal"
+                  @click="hrProfilePreviewData = hrProfile">
+                  <font-awesome-icon icon="fa-solid fa-eye" />
+                </div>
+              </template>
+              <template v-else>
+                {{ hrProfile[field.key] }}
+              </template>
             </td>
           </tr>
           <tr v-if="hrProfileList.length == 0">
@@ -153,8 +170,6 @@ export default {
         </tbody>
       </table>
     </div>
-    <BPagination v-if="hrProfileList.length > 0" v-model="currentPage" pills :total-rows="totalRows" :per-page="perPage"
-      size="sm" />
   </div>
   <ResumePreviewModal :hrProfile="hrProfilePreviewData" />
 </template>

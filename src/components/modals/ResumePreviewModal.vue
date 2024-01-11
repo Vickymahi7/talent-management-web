@@ -124,7 +124,7 @@ export default {
                             <span v-if="workExperience.end_date">{{ formatDateMonthYear(workExperience.end_date) }}</span>
                           </span>
                         </div>
-                        <p>{{ workExperience.description }}</p>
+                        <p v-html="workExperience.description"></p>
                       </div>
                     </div>
                     <div v-if="hrProfile.project" class="project-wrapper">

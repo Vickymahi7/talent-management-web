@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AddHrProfileModal: typeof import('./src/components/modals/AddHrProfileModal.vue')['default']
-    BPagination: typeof import('bootstrap-vue-next')['BPagination']
     DialogComponent: typeof import('./src/components/modals/DialogComponent.vue')['default']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     ForgotPasswordModal: typeof import('./src/components/modals/ForgotPasswordModal.vue')['default']

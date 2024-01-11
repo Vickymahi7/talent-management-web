@@ -26,6 +26,9 @@ const addHrProfileModalRef = ref(null as null | Modal);
 const _showModal = () => {
   addHrProfileModalRef.value?.show();
 }
+const _hideModal = () => {
+  addHrProfileModalRef.value?.hide();
+}
 
 defineExpose({ showModal: _showModal });
 
@@ -130,7 +133,7 @@ const addHrProfile = async () => {
       if (response.status == HttpStatusCode.Created) {
         toast.success(response.message);
         emit('refreshParent');
-        // bsModalHide(modalId);  // close modal
+        _hideModal();
       }
     }
   } catch (error: any) {

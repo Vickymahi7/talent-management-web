@@ -31,7 +31,7 @@ export function useCommonFunctions() {
     inputEl?.click();
   };
 
-  const getTenantStatusById = (statusId: number | null) => {
+  const getTenantStatusById = (statusId?: number | null) => {
     if (statusId) {
       return ACCOUNT_STATUS.find((data) => data.id == statusId)?.status ?? "";
     } else {
@@ -45,7 +45,7 @@ export function useCommonFunctions() {
     } else return "";
   };
 
-  const getUserStatusById = (statusId: number | null) => {
+  const getUserStatusById = (statusId?: number | null) => {
     if (statusId) {
       return ACCOUNT_STATUS.find((data) => data.id == statusId)?.status ?? "";
     } else {
@@ -53,7 +53,7 @@ export function useCommonFunctions() {
     }
   };
 
-  const getUserTypeById = (typeId: number | null) => {
+  const getUserTypeById = (typeId?: number | null) => {
     if (typeId) {
       return USER_TYPES.find((data) => data.id == typeId)?.userType ?? "";
     } else {
