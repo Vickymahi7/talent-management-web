@@ -30,8 +30,8 @@ const tenantList = ref([] as Tenant[]);
 const tenantFields = [
   { key: 'tenant_id', label: 'ID', },
   { key: 'name', label: 'Tenant', isEditable: true },
-  { key: 'user_name', label: 'Primary User Name' },
-  { key: 'email_id', label: 'Primary User Email' },
+  { key: 'user_name', label: 'Display Name' },
+  { key: 'email_id', label: 'Login Email' },
   { key: 'active', label: 'Active', },
   { key: 'tenant_status_id', label: 'Status', isEditable: true },
   { key: 'last_updated_dt', label: 'Last Updated' },
@@ -46,18 +46,18 @@ const validations = computed(() => {
   return {
     tenant: {
       name: {
-        required: helpers.withMessage('Tenant Name required', required),
+        required: helpers.withMessage('Tenant Name is required', required),
       },
       user_name: {
-        required: helpers.withMessage('User Name is required', required),
+        required: helpers.withMessage('Display Name is required', required),
       },
-      tenant_email_id: {
-        required: helpers.withMessage('Tenant Email ID is required', required),
-        email: helpers.withMessage('Enter a valid Tenant Email ID', email),
-      },
-      tenant_phone: {
-        required: helpers.withMessage('Tenant Phone Number is required', required),
-      },
+      // tenant_email_id: {
+      //   required: helpers.withMessage('Tenant Email ID is required', required),
+      //   email: helpers.withMessage('Enter a valid Tenant Email ID', email),
+      // },
+      // tenant_phone: {
+      //   required: helpers.withMessage('Tenant Phone Number is required', required),
+      // },
       email_id: {
         required: helpers.withMessage('Email ID is required', required),
         email: helpers.withMessage('Enter a valid Email ID', email),
@@ -110,7 +110,10 @@ const addTenant = async () => {
     if (!v$.value.tenant.$invalid) {
       isModalLoading.value = true;
       const response: any = await axios.post('/tenant/add', tenant.value);
-      if (response.status == HttpStatusCode.Created) {
+      if (response.status == HttpStatusCode.Conflict) {
+        toast.info(response.message);
+      }
+      else if (response.status == HttpStatusCode.Created) {
         toast.success(response.message);
         getUpdatedTenantList();
         _hideModal();
@@ -290,6 +293,32 @@ const _hideModal = () => {
             </div>
           </div>
           <div class="row">
+            <label for="user_name" class="col-sm-4 col-form-label">Display Name</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" v-model="tenant.user_name" id="user_name"
+                :class="{ 'is-invalid': v$.tenant.user_name.$error }" placeholder="Enter Display Name">
+              <div class="invalid-feedback" v-for="error of v$.tenant.user_name.$errors" :key="error.$uid">
+                {{ error.$message }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <label for="email_id" class="col-sm-4 col-form-label">Email ID</label>
+            <div class="col-sm-8">
+              <input type="email" class="form-control" v-model="tenant.email_id" id="email_id"
+                :class="{ 'is-invalid': v$.tenant.email_id.$error }" placeholder="Enter Login Email ID">
+              <div class="invalid-feedback" v-for="error of v$.tenant.email_id.$errors" :key="error.$uid">
+                {{ error.$message }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <label for="phone" class="col-sm-4 col-form-label">Phone</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" v-model="tenant.phone" id="phone" placeholder="Enter Phone Number">
+            </div>
+          </div>
+          <!-- <div class="row">
             <label for="name" class="col-sm-4 col-form-label">Email ID</label>
             <div class="col-sm-8">
               <input type="text" class="form-control" v-model="tenant.tenant_email_id" id="tenant_email_id"
@@ -308,7 +337,7 @@ const _hideModal = () => {
                 {{ error.$message }}
               </div>
             </div>
-          </div>
+          </div> -->
           <div class="row">
             <label for="location" class="col-sm-4 col-form-label">Location</label>
             <div class="col-sm-8">
@@ -316,34 +345,8 @@ const _hideModal = () => {
                 placeholder="Enter Location">
             </div>
           </div>
-          <h6 class="mt-4">Primary User Info</h6>
-          <hr class="mt-0">
-          <div class="row">
-            <label for="user_name" class="col-sm-4 col-form-label">Display Name</label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control" v-model="tenant.user_name" id="user_name"
-                :class="{ 'is-invalid': v$.tenant.user_name.$error }" placeholder="Enter Display Name">
-              <div class="invalid-feedback" v-for="error of v$.tenant.user_name.$errors" :key="error.$uid">
-                {{ error.$message }}
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <label for="email_id" class="col-sm-4 col-form-label">Email</label>
-            <div class="col-sm-8">
-              <input type="email" class="form-control" v-model="tenant.email_id" id="email_id"
-                :class="{ 'is-invalid': v$.tenant.email_id.$error }" placeholder="Enter Email ID">
-              <div class="invalid-feedback" v-for="error of v$.tenant.email_id.$errors" :key="error.$uid">
-                {{ error.$message }}
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <label for="phone" class="col-sm-4 col-form-label">Phone</label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control" v-model="tenant.phone" id="phone" placeholder="Enter Phone Number">
-            </div>
-          </div>
+          <!-- <h6 class="mt-4">Primary User Info</h6>
+          <hr class="mt-0"> -->
         </form>
       </div>
     </template>

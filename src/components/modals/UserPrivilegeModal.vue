@@ -96,8 +96,5 @@ defineExpose({ showModal: _showModal });
         </table>
       </div>
     </template>
-    <template #footer>
-      <button class="btn btn-primary">Save</button>
-    </template>
   </ModalComponent>
 </template>

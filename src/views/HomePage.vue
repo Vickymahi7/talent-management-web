@@ -79,13 +79,13 @@ const showForgotPasswordModal = () => {
                   placeholder="Enter Password">
               </div>
             </div>
-            <div class="col-6">
+            <!-- <div class="col-6">
               <label class="form-check-label" for="defaultCheck1">
                 <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
                 Remember Me
               </label>
-            </div>
-            <div class="col-6 text-end">
+            </div> -->
+            <div class="col-12">
               <a href="#" @click="showForgotPasswordModal">Forgot Password ?</a>
             </div>
           </div>

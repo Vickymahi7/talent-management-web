@@ -36,7 +36,7 @@ export default {
             `Password must have a minimum length of ${$params.min} characters`, minLength(6)),
         },
         confirm_password: {
-          required: helpers.withMessage('Please confirm your password', required),
+          required: helpers.withMessage('Confirm your password', required),
           sameAsPassword: helpers.withMessage('Passwords does not match', sameAs(this.user.password)),
         }
       }
@@ -107,7 +107,7 @@ export default {
               <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" v-model="user.password" class="form-control"
-                  :class="{ 'is-invalid': v$.user.password.$error }" id="password">
+                  :class="{ 'is-invalid': v$.user.password.$error }" id="password" placeholder="Enter New Password">
                 <div class="invalid-feedback" v-for="error of v$.user.password.$errors" :key="error.$uid">
                   {{ error.$message }}
                 </div>
@@ -117,7 +117,8 @@ export default {
               <div class="form-group">
                 <label for="confirmPassword">Confirm Password</label>
                 <input type="password" v-model="user.confirm_password" class="form-control"
-                  :class="{ 'is-invalid': v$.user.confirm_password.$error }" id="confirmPassword">
+                  :class="{ 'is-invalid': v$.user.confirm_password.$error }" id="confirmPassword"
+                  placeholder="Enter Confirm Password">
                 <div class="invalid-feedback" v-for="error of v$.user.confirm_password.$errors" :key="error.$uid">
                   {{ error.$message }}
                 </div>

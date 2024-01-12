@@ -4,9 +4,12 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 defineProps({
   title: { type: String, default: "Modal", },
   cancelTitle: { type: String, default: "Close", },
+  contentClass: String,
+  hideHeader: Boolean,
   hideCancel: Boolean,
   hideFooter: Boolean,
   centered: Boolean,
+  fullscreen: Boolean,
   size: { type: String, },
 });
 const emit = defineEmits(['show', 'shown', 'hide', 'hidden']);
@@ -43,9 +46,10 @@ defineExpose({ show: _show, hide: _hide });
 
 <template>
   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="" aria-hidden="true" ref="modalElement">
-    <div class="modal-dialog" :class="{ [size!]: size, 'modal-dialog-centered': centered }">
-      <div class="modal-content">
-        <div class="modal-header">
+    <div class="modal-dialog"
+      :class="{ [size!]: size, 'modal-fullscreen': fullscreen, 'modal-dialog-centered': centered }">
+      <div class="modal-content" :class="contentClass ? contentClass : ''">
+        <div v-if="!hideHeader" class="modal-header">
           <h5 class="modal-title" id="exampleModalLabel">{{ title }}</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>

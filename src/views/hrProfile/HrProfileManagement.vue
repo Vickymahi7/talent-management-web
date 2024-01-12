@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
+import ModalComponent from "@/components/modals/ModalComponent.vue";
 import axios from '@/plugins/axios';
 import type HrProfile from '@/types/HrProfile';
 import type { Skill } from "@/types/Skill";
@@ -24,9 +25,11 @@ const router = useRouter();
 
 const addHrProfileModalRef = ref(null as InstanceType<typeof AddHrProfileModal> | null);
 const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
+const hrProfileModalRef = ref(null as InstanceType<typeof ModalComponent> | null);
 
 const isLoading = ref(false);
 const isModalLoading = ref(false);
+const hrProfileModalFlag = ref(false);
 const showInviteUserModal = ref(false);
 const searchText = ref('');
 const status_id = ref([] as number[]);
@@ -158,7 +161,8 @@ const handleTableRowClick = (modalId: string, _hrProfileId: string) => {
   }
   else {
     hrProfileId.value = _hrProfileId;
-    showModal(modalId);
+    // showModal(modalId);
+    showBsPopup();
   }
 }
 
@@ -215,6 +219,17 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
     callback();
   }
 };
+
+function showBsPopup() {
+  hrProfileModalFlag.value = true;
+  nextTick(() => {
+    if (hrProfileModalRef.value) {
+      hrProfileModalRef.value.show();
+      // const myModal = Modal.getOrCreateInstance(hrProfileModalRef.value)
+      // myModal.show();
+    }
+  })
+}
 </script>
 <template>
   <div class="content-card content-header card-gap-mb">
@@ -325,22 +340,12 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
   <InviteAdUsersModal v-if="showInviteUserModal" :accessToken="accessToken!" />
-  <div class="modal fade" id="hrProfileModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
-      <div v-loading="isModalLoading" class="modal-content">
-        <!-- <div class="modal-header">
-          <h5 class="modal-title" id="modalLabel">Profile</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div> -->
-        <div class="modal-body profile-modal">
-          <HrProfileComponent :id="hrProfileId" :key="hrProfileId" />
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <ModalComponent v-if="hrProfileModalFlag" v-loading="isModalLoading" ref="hrProfileModalRef" id="hrProfileModal"
+    title="New Profile" content-class="profile-modal" fullscreen hide-header>
+    <template #body>
+      <HrProfileComponent :id="hrProfileId" :key="hrProfileId" />
+    </template>
+  </ModalComponent>
   <ResumePreviewModal id="profileResumePreviewModal" :hrProfile="hrProfile" />
   <dialog-component id="duplicateProfileConfirm" :onYes="onYesDuplicateProfile" title="Create Duplicate Profile"
     message="Are you sure you want to create a copy of this profile?" />

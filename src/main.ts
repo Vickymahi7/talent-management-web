@@ -30,6 +30,7 @@ import {
   faUserXmark,
   faXmark,
   faToolbox,
+  faCaretRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import ElementPlus from "element-plus";
@@ -68,7 +69,8 @@ library.add(
   faEllipsisVertical,
   faCopy,
   faRightFromBracket,
-  faToolbox
+  faToolbox,
+  faCaretRight
 );
 const accounts = msalInstance.getAllAccounts();
 if (accounts.length > 0) {

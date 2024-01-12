@@ -28,140 +28,128 @@ export default {
 }
 </script>
 <template>
-  <div class="modal fade" v-bind:id="id" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h6 class="modal-title" id="exampleModalLongTitle">Resume Preview</h6>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  <ModalComponent :id="id" title="Resume Preview" hide-footer hide-cancel centered size="modal-xl">
+    <template #body>
+      <template v-if="hrProfile">
+        <div class="resume-template-header text-end mb-2 mx-auto">
+          <a href="#" @click="print"><font-awesome-icon class="mx-2" icon="fa-solid fa-download" /></a>
+          <button class="btn btn-primary ms-2" type="button">
+            <font-awesome-icon class="me-2" icon="fa-solid fa-envelope" />
+            Send Resume
+          </button>
         </div>
-        <div class="modal-body">
-          <template v-if="hrProfile">
-            <div class="resume-template-header text-end mb-2 mx-auto">
-              <a href="#" @click="print"><font-awesome-icon class="mx-2" icon="fa-solid fa-download" /></a>
-              <button class="btn btn-primary ms-2" type="button">
-                <font-awesome-icon class="me-2" icon="fa-solid fa-envelope" />
-                Send Resume
-              </button>
-            </div>
-            <div id="printMe" class="resume-template mx-auto">
-              <div class="resume-wrapper">
-                <header>
-                  <div class="picture-resume-wrapper">
-                    <div class="picture-resume">
-                      <span>
-                        <img v-if="hrProfile.photo_url" :src="hrProfile.photo_url" alt="" />
-                        <img v-else src="@/assets/img/user-icon.jpg" alt="" />
-                      </span>
+        <div id="printMe" class="resume-template mx-auto">
+          <div class="resume-wrapper">
+            <header>
+              <div class="picture-resume-wrapper">
+                <div class="picture-resume">
+                  <span>
+                    <img v-if="hrProfile.photo_url" :src="hrProfile.photo_url" alt="" />
+                    <img v-else src="@/assets/img/user-icon.jpg" alt="" />
+                  </span>
+                </div>
+              </div>
+              <div class="name-wrapper">
+                <h1>{{ hrProfile.first_name }} {{ hrProfile.last_name }}</h1>
+                <p v-if="hrProfile.profile_title" class="profile-title">{{ hrProfile.profile_title }}</p>
+                <p v-if="hrProfile.objective" class="about">
+                  {{ hrProfile.objective }}
+                </p>
+              </div>
+            </header>
+            <main class="resume-body">
+              <section class="left-section">
+                <template v-if="hrProfile.summary">
+                  <h2><span class="heading">Summary</span></h2>
+                  <p class="bold">
+                    {{ hrProfile.summary }}
+                  </p>
+                </template>
+                <h2><span class="heading">Contact</span></h2>
+                <ul class="list-content contact-info">
+                  <li v-if="hrProfile.email_id">{{ hrProfile.email_id }}</li>
+                  <li v-if="hrProfile.mobile">{{ hrProfile.mobile }}</li>
+                  <li v-if="hrProfile.website">{{ hrProfile.website }}</li>
+                  <li v-if="hrProfile.city">
+                    {{ hrProfile.city }}
+                    <span v-if="hrProfile.city && hrProfile.country">, </span>
+                    <span v-if="hrProfile.country">{{ hrProfile.country }}</span>
+                  </li>
+                </ul>
+                <template v-if="hrProfile.education">
+                  <h2><span class="heading">Education</span></h2>
+                  <div class="education-info">
+                    <div v-for="  education, index in hrProfile.education" :key="index" class="education-detail">
+                      <h6 v-if="education.degree || education.major">
+                        <span v-if="education.degree">{{ education.degree }}</span>
+                        <span v-if="education.degree && education.major">, </span>
+                        <span v-if="education.major">{{ education.major }}</span>
+                      </h6>
+                      <p v-if="education.university || education.location" class="bold">
+                        <span v-if="education.university">{{ education.university }}</span>
+                        <span v-if="education.location">{{ education.location }}</span>
+                      </p>
+                      <p v-if="education.end_date">{{ formatDateMonthYear(education.end_date) }}</p>
                     </div>
                   </div>
-                  <div class="name-wrapper">
-                    <h1>{{ hrProfile.first_name }} {{ hrProfile.last_name }}</h1>
-                    <p v-if="hrProfile.profile_title" class="profile-title">{{ hrProfile.profile_title }}</p>
-                    <p v-if="hrProfile.objective" class="about">
-                      {{ hrProfile.objective }}
-                    </p>
+                </template>
+                <template v-if="hrProfile.skills">
+                  <h2><span class="heading">Technical Skills</span></h2>
+                  <div class="badge-list">
+                    <span class="badge-item" v-for="skill, index in hrProfile.skills" :key="index">{{ skill
+                    }}</span>
                   </div>
-                </header>
-                <main class="resume-body">
-                  <section class="left-section">
-                    <template v-if="hrProfile.summary">
-                      <h2><span class="heading">Summary</span></h2>
-                      <p class="bold">
-                        {{ hrProfile.summary }}
-                      </p>
-                    </template>
-                    <h2><span class="heading">Contact</span></h2>
-                    <ul class="list-content contact-info">
-                      <li v-if="hrProfile.email_id">{{ hrProfile.email_id }}</li>
-                      <li v-if="hrProfile.mobile">{{ hrProfile.mobile }}</li>
-                      <li v-if="hrProfile.website">{{ hrProfile.website }}</li>
-                      <li v-if="hrProfile.city">
-                        {{ hrProfile.city }}
-                        <span v-if="hrProfile.city && hrProfile.country">, </span>
-                        <span v-if="hrProfile.country">{{ hrProfile.country }}</span>
-                      </li>
-                    </ul>
-                    <template v-if="hrProfile.education">
-                      <h2><span class="heading">Education</span></h2>
-                      <div class="education-info">
-                        <div v-for="  education, index in hrProfile.education" :key="index" class="education-detail">
-                          <h6 v-if="education.degree || education.major">
-                            <span v-if="education.degree">{{ education.degree }}</span>
-                            <span v-if="education.degree && education.major">, </span>
-                            <span v-if="education.major">{{ education.major }}</span>
-                          </h6>
-                          <p v-if="education.university || education.location" class="bold">
-                            <span v-if="education.university">{{ education.university }}</span>
-                            <span v-if="education.location">{{ education.location }}</span>
-                          </p>
-                          <p v-if="education.end_date">{{ formatDateMonthYear(education.end_date) }}</p>
-                        </div>
-                      </div>
-                    </template>
-                    <template v-if="hrProfile.skills">
-                      <h2><span class="heading">Technical Skills</span></h2>
-                      <div class="badge-list">
-                        <span class="badge-item" v-for="skill, index in hrProfile.skills" :key="index">{{ skill }}</span>
-                      </div>
-                      <!-- <ul class="list-content">
+                  <!-- <ul class="list-content">
                                                                                   <li v-for="  skill, index   in   hrProfile.skills  " :key="index">{{ skill }}</li>
                                                                                 </ul> -->
-                    </template>
-                  </section>
-                  <section class="right-section">
-                    <div v-if="hrProfile.work_experience" class="experience-wrapper">
-                      <h2><span class="heading">Experience</span></h2>
-                      <div v-for="  workExperience, index   in   hrProfile.work_experience  " :key="index"
-                        class="experience">
-                        <h3>{{ workExperience.position }}</h3>
-                        <div class="experience-company-wrapper">
-                          <span class="experience-company me-2">{{ workExperience.company }} </span>
-                          <span class="muted-text">
-                            <span v-if="workExperience.start_date">{{ formatDateMonthYear(workExperience.start_date)
-                            }}</span>
-                            <span v-if="workExperience.start_date && workExperience.end_date"> - </span>
-                            <span v-if="workExperience.end_date">{{ formatDateMonthYear(workExperience.end_date) }}</span>
-                          </span>
-                        </div>
-                        <p v-html="workExperience.description"></p>
+                </template>
+              </section>
+              <section class="right-section">
+                <div v-if="hrProfile.work_experience" class="experience-wrapper">
+                  <h2><span class="heading">Experience</span></h2>
+                  <div v-for="  workExperience, index   in   hrProfile.work_experience  " :key="index" class="experience">
+                    <h3>{{ workExperience.position }}</h3>
+                    <div class="experience-company-wrapper">
+                      <span class="experience-company me-2">{{ workExperience.company }} </span>
+                      <span class="muted-text">
+                        <span v-if="workExperience.start_date">{{ formatDateMonthYear(workExperience.start_date)
+                        }}</span>
+                        <span v-if="workExperience.start_date && workExperience.end_date"> - </span>
+                        <span v-if="workExperience.end_date">{{ formatDateMonthYear(workExperience.end_date)
+                        }}</span>
+                      </span>
+                    </div>
+                    <p v-html="workExperience.description"></p>
+                  </div>
+                </div>
+                <div v-if="hrProfile.project" class="project-wrapper">
+                  <h2><span class="heading">Projects</span></h2>
+                  <div v-for="  project, index   in   hrProfile.project  " :key="index" class="project">
+                    <div class="project-title-wrapper">
+                      <span class="project-title me-2">{{ project.title }} </span>
+                      <span v-if="project.start_date" class="muted-text">{{
+                        formatDateMonthYear(project.start_date)
+                      }}</span>
+                      <!-- <div class="project-role">Team Leader - </div> -->
+                      <div v-if="project.client" class="project-role">Client - {{ project.client }}</div>
+                      <div v-if="project.technology" class="project-technologies">
+                        <span>Technologies - </span>
+                        <span>{{ project.technology }}</span>
                       </div>
                     </div>
-                    <div v-if="hrProfile.project" class="project-wrapper">
-                      <h2><span class="heading">Projects</span></h2>
-                      <div v-for="  project, index   in   hrProfile.project  " :key="index" class="project">
-                        <div class="project-title-wrapper">
-                          <span class="project-title me-2">{{ project.title }} </span>
-                          <span v-if="project.start_date" class="muted-text">{{ formatDateMonthYear(project.start_date)
-                          }}</span>
-                          <!-- <div class="project-role">Team Leader - </div> -->
-                          <div v-if="project.client" class="project-role">Client - {{ project.client }}</div>
-                          <div v-if="project.technology" class="project-technologies">
-                            <span>Technologies - </span>
-                            <span>{{ project.technology }}</span>
-                          </div>
-                        </div>
-                        <p v-if="project.description">{{ project.description }}</p>
-                      </div>
-                    </div>
-                  </section>
-                </main>
-              </div>
-            </div>
-          </template>
-          <template>
-            <p>No data</p>
-          </template>
+                    <p v-if="project.description">{{ project.description }}</p>
+                  </div>
+                </div>
+              </section>
+            </main>
+          </div>
         </div>
-        <!-- <div v-if="showFooter" class="modal-footer">
-                        <button v-if="noButton" type="button" class="btn btn-secondary" @click="noClick"
-                          data-bs-dismiss="modal">No</button>
-                        <button v-if="yesButton" type="button" class="btn btn-primary" @click="yesClick"
-                          data-bs-dismiss="modal">Yes</button>
-                      </div> -->
-      </div>
-    </div>
-  </div>
+      </template>
+      <template>
+        <p>No data</p>
+      </template>
+    </template>
+  </ModalComponent>
 </template>
 
 <style lang="scss" scoped>

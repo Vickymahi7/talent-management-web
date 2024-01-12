@@ -9,6 +9,8 @@ $border-color-focus-light: $body-color-light;
 $header-text-color-light: darken($body-bg-theme-light, 45%);
 $link-color-light: $body-color-light;
 $link-hover-color-light: lighten($link-color-light, 40%);
+$menu-color-light: lighten($body-color-light, 10%);
+$menu-hover-color-light: lighten($body-color-light, 50%);
 $primary-btn-bg-light: $black;
 $primary-btn-color-light: $white;
 
@@ -23,6 +25,8 @@ $border-color-focus-dark: $body-color-dark;
 $header-text-color-dark: #fff; // lighten for dark mode
 $link-color-dark: $body-color-dark;
 $link-hover-color-dark: darken($link-color-dark, 40%);
+$menu-color-dark: darken($body-color-dark, 40%);
+$menu-hover-color-dark: $body-color-dark;
 $primary-btn-bg-dark: $black;
 $primary-btn-color-dark: $white;
 

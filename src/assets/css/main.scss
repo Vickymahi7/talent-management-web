@@ -4,11 +4,11 @@ $table-bg-scale: 0%;
 @import "node_modules/bootstrap/scss/functions";
 @import "node_modules/bootstrap/scss/variables";
 
-:root {
-  --bs-primary-bg: #{$black};
-  --bs-primary-color: #{$white};
-  --table-hover-bg: #e3e3e3;
-}
+// :root {
+//   --bs-primary-bg: #{$black};
+//   --bs-primary-color: #{$white};
+//   --table-hover-bg: #e3e3e3;
+// }
 
 @import "node_modules/bootstrap/scss/bootstrap";
 @import "./base.scss";
@@ -26,21 +26,25 @@ body {
   transition: color 0.5s, background-color 0.5s;
 }
 
-[data-bs-theme="light"] {
+:root {
   --bs-body-color: #{$body-color-light};
-  // --bs-body-color-rgb: #{to-rgb($white)};
+  --bs-body-color-rgb: #{to-rgb($body-color-light)};
   --bs-body-bg: #{$body-bg-light};
   --text-color: #{$text-color-light};
   --body-bg-theme: #{$body-bg-theme-light};
   --bs-body-card: #{$card-bg-light};
   --bs-border-color: #{$border-color-light};
   --form-focus-border-color: #{$border-color-focus-light};
-  // --bs-body-bg-rgb: #{to-rgb($blue)};
+  --bs-body-bg-rgb: #{to-rgb($body-bg-light)};
   // --bs-tertiary-bg: #{$blue-600};
   --header-text-color: #{$header-text-color-light};
   --bs-link-color: #{$link-color-light};
   --bs-link-hover-color: #{$link-hover-color-light};
+  --menu-color: #{$menu-color-light};
+  --menu-hover-color: #{$menu-hover-color-light};
   --bs-primary-bg: #{$primary-btn-bg-light};
+  --bs-primary-rgb: #{to-rgb($primary-btn-bg-light)};
+  --bs-badge-color: #{$body-color-light};
   --bs-primary-color: #{$primary-btn-color-light};
   --table-bg2: #{lighten($body-bg-theme-light, 3%)};
   --table-hover-bg: #{darken($body-bg-theme-light, 10%)};
@@ -78,19 +82,21 @@ body {
 
 [data-bs-theme="dark"] {
   --bs-body-color: #{$body-color-dark};
-  // --bs-body-color-rgb: #{to-rgb($white)};
+  --bs-body-color-rgb: #{to-rgb($body-color-dark)};
   --bs-body-bg: #{$body-bg-dark};
   --text-color: #{$text-color-dark};
   --body-bg-theme: #{$body-bg-theme-dark};
   --bs-body-card: #{$card-bg-dark};
   --bs-border-color: #{$border-color-dark};
   --form-focus-border-color: #{$border-color-focus-dark};
-  // --bs-body-bg-rgb: #{to-rgb($blue)};
-  // --bs-tertiary-bg: #{$blue-600};
+  --bs-body-bg-rgb: #{to-rgb($body-bg-dark)};
   --header-text-color: #{$header-text-color-dark};
   --bs-link-color: #{$link-color-dark};
   --bs-link-hover-color: #{$link-hover-color-dark};
+  --menu-color: #{$menu-color-dark};
+  --menu-hover-color: #{$menu-hover-color-dark};
   --bs-primary-bg: #{$primary-btn-bg-dark};
+  --bs-primary-rgb: #{to-rgb($primary-btn-bg-dark)};
   --bs-primary-color: #{$primary-btn-color-dark};
   --table-bg2: #{lighten($body-bg-theme-dark, 3%)};
   --table-hover-bg: #{darken($body-bg-theme-dark, 10%)};
@@ -223,10 +229,12 @@ a {
     padding: 1.5em;
 
     .main-menu {
-      margin-bottom: 0;
+      padding-bottom: 0.2em;
+      margin: 0;
       font-size: 0.9rem;
       color: var(--text-color);
       font-weight: 500;
+      border-bottom: 1px solid var(--bs-border-color);
     }
 
     ul {
@@ -235,21 +243,33 @@ a {
 
     li {
       list-style: none;
+      // border-bottom: 1px solid var(--bs-border-color);
     }
 
     a {
       display: block;
-      color: var(--bs-link-color);
-      padding: 0.2em 0;
+      color: var(--menu-color);
+      padding: 0.5em 0.2em;
 
       &.active,
       &:hover {
-        color: var(--bs-link-hover-color);
+        color: var(--menu-hover-color);
+      }
+
+      &.active {
+        font-weight: bold;
       }
     }
 
     .sub-menu {
-      padding-left: 5px;
+      li {
+        border-bottom: 1px solid var(--bs-border-color);
+
+        * {
+          padding-right: 5px;
+          padding-left: 5px;
+        }
+      }
     }
   }
 }

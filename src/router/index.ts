@@ -1,3 +1,4 @@
+import { useRouteCheck } from "@/composables/useRouteCheck";
 import StandardLayout from "@/layouts/StandardLayout.vue";
 import { UserTypeId } from "@/utils/enums";
 import { createRouter, createWebHistory } from "vue-router";
@@ -85,13 +86,6 @@ const routes = [
       accessedBy: [UserTypeId.ADM, UserTypeId.USR],
     },
   },
-  // {
-  //   path: "/resumepreview/:id",
-  //   name: "resumepreview",
-  //   component: () => import("@/views/hrProfile/ResumePreview.vue"),
-  //   props: true,
-  //   meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
-  // },
 ];
 
 const router = createRouter({
@@ -99,18 +93,24 @@ const router = createRouter({
   routes: routes,
 });
 
-router.beforeEach((to, from, next) => {
+const routeCheck = useRouteCheck();
+
+router.beforeEach(async (to, from, next) => {
   const homePage = to.name === "home";
   const userTypeId = localStorage.getItem("userTypeId")
     ? parseInt(localStorage.getItem("userTypeId")!)
     : null;
 
   const meta: any = to.meta;
+  console.log(meta.accessedBy);
+  console.log(to.name);
   if (!homePage && meta.accessedBy) {
-    if (meta.accessedBy.includes(userTypeId)) {
-      next();
-    } else {
+    const canAccess = await routeCheck.canUserAccess(to.name);
+    console.log("hasAccess: ", canAccess);
+    if (!canAccess) {
       next("/");
+    } else {
+      next();
     }
   } else {
     next();

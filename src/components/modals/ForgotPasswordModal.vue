@@ -89,7 +89,7 @@ defineExpose({ showModal: _showModal });
 </script>
 
 <template>
-  <ModalComponent v-loading="isLoading" title="Forgot Password ?" ref="forgotPasswordModal">
+  <ModalComponent v-loading="isLoading" title="Forgot Password ?" ref="forgotPasswordModal" hide-cancel>
     <template #body>
       <div class="container">
         <div class="row">
