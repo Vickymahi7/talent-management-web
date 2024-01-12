@@ -24,7 +24,7 @@ const routes = [
     component: () => import("@/views/user/UserManagement.vue"),
     meta: {
       layout: StandardLayout,
-      accessedBy: [UserTypeId.SAD, UserTypeId.ADM],
+      accessedBy: [UserTypeId.SAD, UserTypeId.ADM, UserTypeId.USR],
     },
   },
   {
@@ -54,7 +54,7 @@ const routes = [
     props: true,
     meta: {
       layout: StandardLayout,
-      accessedBy: [UserTypeId.ADM],
+      accessedBy: [UserTypeId.ADM, UserTypeId.USR],
     },
   },
   {
@@ -64,7 +64,7 @@ const routes = [
     props: true,
     meta: {
       layout: StandardLayout,
-      accessedBy: [UserTypeId.USR],
+      accessedBy: [UserTypeId.SAD, UserTypeId.ADM, UserTypeId.USR],
     },
   },
   {
@@ -73,22 +73,25 @@ const routes = [
     component: () => import("@/views/hrProfile/HrProfileManagement.vue"),
     meta: {
       layout: StandardLayout,
-      accessedBy: [UserTypeId.ADM],
+      accessedBy: [UserTypeId.ADM, UserTypeId.USR],
     },
   },
   {
     path: "/talentpool",
     name: "talentpool",
     component: () => import("@/views/hrProfile/TalentPool.vue"),
-    meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
+    meta: {
+      layout: StandardLayout,
+      accessedBy: [UserTypeId.ADM, UserTypeId.USR],
+    },
   },
-  {
-    path: "/resumepreview/:id",
-    name: "resumepreview",
-    component: () => import("@/views/hrProfile/ResumePreview.vue"),
-    props: true,
-    meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
-  },
+  // {
+  //   path: "/resumepreview/:id",
+  //   name: "resumepreview",
+  //   component: () => import("@/views/hrProfile/ResumePreview.vue"),
+  //   props: true,
+  //   meta: { layout: StandardLayout, accessedBy: [UserTypeId.ADM] },
+  // },
 ];
 
 const router = createRouter({

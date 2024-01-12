@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Modal } from "bootstrap";
-import { onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 defineProps({
   title: { type: String, default: "Modal", },
   cancelTitle: { type: String, default: "Close", },
@@ -22,6 +22,9 @@ onMounted(() => {
     modalElement.value.addEventListener('hide.bs.modal', hide);
     modalElement.value.addEventListener('hidden.bs.modal', hidden);
   }
+});
+onBeforeUnmount(() => {
+  _hide();
 });
 
 const show = (() => emit('show'));

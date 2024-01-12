@@ -11,7 +11,7 @@ import HrProfileComponent from "@/views/hrProfile/HrProfile.vue";
 import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser';
 import { HttpStatusCode } from 'axios';
 import { Modal } from 'bootstrap';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useMsal } from "../../composables/useMsal";
@@ -34,6 +34,7 @@ const status_id = ref([] as number[]);
 const accessToken = ref(null as string | null);
 const hrProfileId = ref('');
 
+const hrProfile = ref({} as HrProfile);
 const hrProfileList = ref([] as HrProfile[]);
 const hrProfileFields = [
   { key: 'select', label: '' },
@@ -68,9 +69,9 @@ onMounted(() => {
   getUpdatedHrProfileList();
 });
 
-onBeforeUnmount(() => {
-  hideModal('hrProfileModal');
-});
+// onBeforeUnmount(() => {
+//   hideModal('hrProfileModal');
+// });
 
 const getUpdatedHrProfileList = () => {
   totalRows.value = 1;
@@ -114,6 +115,29 @@ const onYesProfile = async () => {
   }
   finally {
     isLoading.value = false;
+  }
+}
+const duplicateProfile = (_hrProfile: HrProfile) => {
+  hrProfile.value = _hrProfile;
+};
+const onYesDuplicateProfile = async () => {
+  let existingProfileTitle = hrProfile.value.profile_title;
+  try {
+    hrProfile.value.profile_title = commonFunctions.duplicateProfileTitle(hrProfile.value.profile_title);
+
+    isModalLoading.value = true;
+    const response: any = await axios.post('/hrprofile/add', hrProfile.value);
+
+    if (response.status == HttpStatusCode.Created) {
+      toast.success(response.message);
+      getUpdatedHrProfileList();
+    }
+  } catch (error: any) {
+    toast.error(error.message);
+    hrProfile.value.profile_title = existingProfileTitle;
+  }
+  finally {
+    isModalLoading.value = false;
   }
 }
 const skillsToolTip = (skills?: Skill[]) => {
@@ -166,6 +190,12 @@ const getGraphData = async () => {
     })
   }
 };
+const showResumePreview = (_hrProfile: HrProfile) => {
+  hrProfile.value = _hrProfile;
+  nextTick(() => {
+    showModal('profileResumePreviewModal');
+  })
+}
 const showAddProfileModal = () => {
   addHrProfileModalRef.value?.showModal();
 }
@@ -176,14 +206,6 @@ const showModal = (modalId: string) => {
     keyboard: false
   })
   modal.show();
-}
-const hideModal = (modalId: string) => {
-  const modalEl = document.getElementById(modalId);
-  if (!modalEl) return;
-  const modal = Modal.getOrCreateInstance(modalEl!, {
-    keyboard: false
-  })
-  modal.hide();
 }
 
 const handleScroll = (refName: string, isNotLoading: boolean, callback: Function) => {
@@ -244,8 +266,8 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
           </tr>
         </thead>
         <tbody class="custom-tbody-style">
-          <tr v-for="(hrProfile, index) in hrProfileList" :key="hrProfile.id"
-            @click="handleTableRowClick('hrProfileModal', hrProfile.id!)">
+          <tr v-for="(hrProfileData, index) in hrProfileList" :key="hrProfileData.id"
+            @click="handleTableRowClick('hrProfileModal', hrProfileData.id!)">
             <td v-for="field in hrProfileFields" :key="field.key">
               <template v-if="field.key == 'select'">
                 <input class="form-check-input" type="checkbox">
@@ -254,36 +276,40 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
                 {{ index + 1 }}
               </template>
               <template v-else-if="field.key == 'first_name'">
-                {{ hrProfile.first_name }} {{ hrProfile.last_name }}
+                {{ hrProfileData.first_name }} {{ hrProfileData.last_name }}
               </template>
               <template v-else-if="field.key == 'skills'">
-                <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfile.skills)">
-                  <span v-for="_skill, index in hrProfile.skills" :key="index">{{ _skill.skill }}<span
-                      v-if="hrProfile.skills && index < hrProfile.skills.length - 1">,
+                <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfileData.skills)">
+                  <span v-for="_skill, index in hrProfileData.skills" :key="index">{{ _skill.skill }}<span
+                      v-if="hrProfileData.skills && index < hrProfileData.skills.length - 1">,
                     </span>
                   </span>
                 </div>
               </template>
               <template v-else-if="field.key == 'status_id'">
-                {{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}
+                {{ commonFunctions.getProfileStatusById(hrProfileData.status_id) }}
               </template>
               <template v-else-if="field.key == 'last_updated_dt'">
-                {{ formatDateTime(hrProfile.last_updated_dt) }}
+                {{ formatDateTime(hrProfileData.last_updated_dt) }}
               </template>
               <template v-else-if="field.key == 'actions'">
+                <div class="icon-btn me-2" @click.stop="duplicateProfile(hrProfileData)" title="Duplicate Profile"
+                  data-bs-toggle="modal" data-bs-target="#duplicateProfileConfirm">
+                  <font-awesome-icon icon="fa-regular fa-copy" />
+                </div>
                 <div class="icon-btn me-2">
                   <font-awesome-icon icon="fa-solid fa-paperclip" />
                 </div>
-                <div class="icon-btn me-2">
+                <div class="icon-btn me-2" title="Preview & Download" @click.stop="showResumePreview(hrProfileData)">
                   <font-awesome-icon icon="fa-solid fa-download" />
                 </div>
-                <div class="icon-btn me-2" @click.stop="deleteHrProfile(hrProfile.id!)" title="Delete Profile"
+                <div class="icon-btn me-2" @click.stop="deleteHrProfile(hrProfileData.id!)" title="Delete Profile"
                   data-bs-toggle="modal" data-bs-target="#deleteHrProfile">
                   <font-awesome-icon icon="fa-solid fa-trash" />
                 </div>
               </template>
               <template v-else>
-                {{ hrProfile[field.key] }}
+                {{ hrProfileData[field.key] }}
               </template>
             </td>
           </tr>
@@ -307,7 +333,7 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div> -->
         <div class="modal-body profile-modal">
-          <HrProfileComponent :id="hrProfileId" :key="hrProfileId" @close-modal="hideModal('hrProfileModal')" />
+          <HrProfileComponent :id="hrProfileId" :key="hrProfileId" />
         </div>
         <div class="modal-footer">
           <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button>
@@ -315,4 +341,7 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
       </div>
     </div>
   </div>
+  <ResumePreviewModal id="profileResumePreviewModal" :hrProfile="hrProfile" />
+  <dialog-component id="duplicateProfileConfirm" :onYes="onYesDuplicateProfile" title="Create Duplicate Profile"
+    message="Are you sure you want to create a copy of this profile?" />
 </template>

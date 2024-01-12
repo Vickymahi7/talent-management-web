@@ -148,21 +148,6 @@ const getImageUrlWithTimestamp = computed(() => {
   return `${imageUrl}?timestamp=${timestamp}`;
 })
 
-const duplicateProfileTitle = computed(() => {
-  let baseTitle = hrProfile.value.profile_title || '';
-  let copyPattern = /\s-\sCopy(\(\d+\))?$/;
-
-  if (copyPattern.test(baseTitle)) {
-    let match = baseTitle.match(/\(\d+\)$/);
-    let copyCount = match ? parseInt(match[0].replace(/\D/g, ''), 10) + 1 : 1;
-
-    baseTitle = baseTitle.replace(copyPattern, ` - Copy(${copyCount})`);
-  } else {
-    baseTitle += ' - Copy';
-  }
-  return baseTitle;
-});
-
 onMounted(() => {
   refreshPageData();
 })
@@ -263,7 +248,7 @@ const updateHrProfile = async (data: any) => {
 const onYesDuplicateProfile = async () => {
   let existingProfileTitle = hrProfile.value.profile_title;
   try {
-    hrProfile.value.profile_title = duplicateProfileTitle.value;
+    hrProfile.value.profile_title = commonFunctions.duplicateProfileTitle(hrProfile.value.profile_title);
 
     isModalLoading.value = true;
     const response: any = await axios.post('/hrprofile/add', hrProfile.value);
@@ -1585,7 +1570,7 @@ const showProfileTitleEdit = () => {
     title="Delete Confirmation" :message="`Are you sure to delete Document`" />
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
-  <dialog-component id="duplicateProfileConfirmation" :onYes="onYesDuplicateProfile" :returnParams="dialogParam"
-    title="Create Duplicate Profile" message="Are you sure you want to create a copy of this profile?" />
+  <dialog-component id="duplicateProfileConfirmation" :onYes="onYesDuplicateProfile" title="Create Duplicate Profile"
+    message="Are you sure you want to create a copy of this profile?" />
 </template>
 @/composables/useCommonFunctions

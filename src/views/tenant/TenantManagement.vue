@@ -7,6 +7,7 @@ import { useCommonFunctions } from '@/utils/useCommonFunctions'
 import { useVuelidate } from '@vuelidate/core'
 import { email, helpers, required } from '@vuelidate/validators'
 import { HttpStatusCode } from 'axios'
+import type { Modal } from 'bootstrap'
 import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
 
@@ -18,11 +19,11 @@ const isModalLoading = ref(false);
 
 const editId = ref(null as number | null);
 const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
+const tenantAddEditModalRef = ref(null as null | Modal);
 
 const isPageEnd = ref(false);
 const perPage = ref(10);
 const lastRecordKey = ref(null);
-const modalId = ref('');
 const tenant = ref({} as Tenant);
 
 const tenantList = ref([] as Tenant[]);
@@ -48,7 +49,14 @@ const validations = computed(() => {
         required: helpers.withMessage('Tenant Name required', required),
       },
       user_name: {
-        required: helpers.withMessage('Primary User Name is required', required),
+        required: helpers.withMessage('User Name is required', required),
+      },
+      tenant_email_id: {
+        required: helpers.withMessage('Tenant Email ID is required', required),
+        email: helpers.withMessage('Enter a valid Tenant Email ID', email),
+      },
+      tenant_phone: {
+        required: helpers.withMessage('Tenant Phone Number is required', required),
       },
       email_id: {
         required: helpers.withMessage('Email ID is required', required),
@@ -62,6 +70,10 @@ const v$ = useVuelidate(validations, { tenant });
 onMounted(() => {
   getTenantList();
 });
+
+// onBeforeUnmount(() => {
+//   _hideModal();
+// });
 
 const getUpdatedTenantList = () => {
   lastRecordKey.value = null;
@@ -101,7 +113,7 @@ const addTenant = async () => {
       if (response.status == HttpStatusCode.Created) {
         toast.success(response.message);
         getUpdatedTenantList();
-        commonFunctions.bsModalHide(modalId.value);
+        _hideModal();
       }
     }
   } catch (error: any) {
@@ -169,6 +181,18 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
     callback();
   }
 };
+const clearData = () => {
+  tenant.value = {};
+  v$.value.tenant.$reset();
+}
+
+const _showModal = () => {
+  tenantAddEditModalRef.value?.show();
+}
+const _hideModal = () => {
+  tenantAddEditModalRef.value?.hide();
+}
+
 </script>
 <template>
   <div class="content-card content-header card-gap-mb">
@@ -178,8 +202,7 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
     @scroll="handleScroll('scrollerRef', !isLoading, getTenantList)" ref="scrollerRef">
     <div class="row py-2">
       <div class="col text-end">
-        <button class="btn btn-primary mx-2" type="button"
-          @click="commonFunctions.bsModalShow('tenantAddEditModal'); modalId = 'tenantAddEditModal'">
+        <button class="btn btn-primary mx-2" type="button" @click="_showModal">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New Tenant
         </button>
@@ -251,70 +274,83 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
       </table>
     </div>
   </div>
-  <div class="modal fade" id="tenantAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div v-loading="isModalLoading" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalLabel">New Tenant</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="container">
-            <form class="form-inline">
-              <div class="row">
-                <label for="name" class="col-sm-4 col-form-label">Tenant Name</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="tenant.name" id="name"
-                    :class="{ 'is-invalid': v$.tenant.name.$error }" placeholder="Enter Tenant Name">
-                  <div class="invalid-feedback" v-for="error of v$.tenant.name.$errors" :key="error.$uid">
-                    {{ error.$message }}
-                  </div>
-                </div>
+  <ModalComponent v-loading="isModalLoading" ref="tenantAddEditModalRef" title="New Tenant" @hide="clearData" hide-cancel
+    centered>
+    <template #body>
+      <div class="container">
+        <form class="form-inline">
+          <div class="row">
+            <label for="name" class="col-sm-4 col-form-label">Tenant Name</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" v-model="tenant.name" id="name"
+                :class="{ 'is-invalid': v$.tenant.name.$error }" placeholder="Enter Tenant Name">
+              <div class="invalid-feedback" v-for="error of v$.tenant.name.$errors" :key="error.$uid">
+                {{ error.$message }}
               </div>
-              <div class="row">
-                <label for="user_name" class="col-sm-4 col-form-label">Primary User Name</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="tenant.user_name" id="user_name"
-                    :class="{ 'is-invalid': v$.tenant.user_name.$error }" placeholder="Enter User Name">
-                  <div class="invalid-feedback" v-for="error of v$.tenant.user_name.$errors" :key="error.$uid">
-                    {{ error.$message }}
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <label for="email_id" class="col-sm-4 col-form-label">Primary User Email</label>
-                <div class="col-sm-8">
-                  <input type="email" class="form-control" v-model="tenant.email_id" id="email_id"
-                    :class="{ 'is-invalid': v$.tenant.email_id.$error }" placeholder="Enter Email ID">
-                  <div class="invalid-feedback" v-for="error of v$.tenant.email_id.$errors" :key="error.$uid">
-                    {{ error.$message }}
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <label for="phone" class="col-sm-4 col-form-label">Phone</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="tenant.phone" id="phone"
-                    placeholder="Enter Phone Number">
-                </div>
-              </div>
-              <div class="row">
-                <label for="location" class="col-sm-4 col-form-label">Location</label>
-                <div class="col-sm-8">
-                  <input type="text" v-model="tenant.location" class="form-control" id="location"
-                    placeholder="Enter Location">
-                </div>
-              </div>
-            </form>
+            </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
-          <button type="button" @click="addTenant" class="btn btn-primary">Save</button>
-        </div>
+          <div class="row">
+            <label for="name" class="col-sm-4 col-form-label">Email ID</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" v-model="tenant.tenant_email_id" id="tenant_email_id"
+                :class="{ 'is-invalid': v$.tenant.tenant_email_id.$error }" placeholder="Enter Email ID">
+              <div class="invalid-feedback" v-for="error of v$.tenant.tenant_email_id.$errors" :key="error.$uid">
+                {{ error.$message }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <label for="name" class="col-sm-4 col-form-label">Phone</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" v-model="tenant.tenant_phone" id="tenant_phone"
+                :class="{ 'is-invalid': v$.tenant.tenant_phone.$error }" placeholder="Enter Phone">
+              <div class="invalid-feedback" v-for="error of v$.tenant.tenant_phone.$errors" :key="error.$uid">
+                {{ error.$message }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <label for="location" class="col-sm-4 col-form-label">Location</label>
+            <div class="col-sm-8">
+              <input type="text" v-model="tenant.location" class="form-control" id="location"
+                placeholder="Enter Location">
+            </div>
+          </div>
+          <h6 class="mt-4">Primary User Info</h6>
+          <hr class="mt-0">
+          <div class="row">
+            <label for="user_name" class="col-sm-4 col-form-label">Display Name</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" v-model="tenant.user_name" id="user_name"
+                :class="{ 'is-invalid': v$.tenant.user_name.$error }" placeholder="Enter Display Name">
+              <div class="invalid-feedback" v-for="error of v$.tenant.user_name.$errors" :key="error.$uid">
+                {{ error.$message }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <label for="email_id" class="col-sm-4 col-form-label">Email</label>
+            <div class="col-sm-8">
+              <input type="email" class="form-control" v-model="tenant.email_id" id="email_id"
+                :class="{ 'is-invalid': v$.tenant.email_id.$error }" placeholder="Enter Email ID">
+              <div class="invalid-feedback" v-for="error of v$.tenant.email_id.$errors" :key="error.$uid">
+                {{ error.$message }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <label for="phone" class="col-sm-4 col-form-label">Phone</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" v-model="tenant.phone" id="phone" placeholder="Enter Phone Number">
+            </div>
+          </div>
+        </form>
       </div>
-    </div>
-  </div>
+    </template>
+    <template #footer>
+      <button class="btn btn-primary" @click="addTenant">Save</button>
+    </template>
+  </ModalComponent>
   <dialog-component id="deleteTenant" :onYes="onYesTenant" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete tenant?" />
 </template>

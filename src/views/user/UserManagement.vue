@@ -9,6 +9,7 @@ import { useCommonFunctions } from '@/utils/useCommonFunctions'
 import { useVuelidate } from '@vuelidate/core'
 import { email, helpers, required } from '@vuelidate/validators'
 import { HttpStatusCode } from 'axios'
+import type { Modal } from 'bootstrap'
 import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
 const toast = useToast();
@@ -16,6 +17,7 @@ const commonFunctions = useCommonFunctions();
 
 const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilegeModal> | null);
 const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
+const userAddEditModalRef = ref(null as null | Modal);
 
 const isPageEnd = ref(false);
 const perPage = ref(10);
@@ -24,15 +26,7 @@ const isLoading = ref(false);
 const isModalLoading = ref(false);
 const editId = ref(null as number | null);
 
-const modalId = ref('');
-const user = ref({
-  user_id: null,
-  user_type_id: null,
-  user_name: null,
-  email_id: null,
-  phone: null,
-  user_status_id: null,
-});
+const user = ref({} as User);
 
 const userList = ref([] as User[]);
 const userFields = ref([
@@ -86,6 +80,9 @@ const v$ = useVuelidate(validations, { user });
 onMounted(() => {
   getUserList();
 });
+// onBeforeUnmount(() => {
+//   _hideModal();
+// });
 
 const getUpdatedUserList = () => {
   lastRecordKey.value = null;
@@ -125,7 +122,7 @@ const addUser = async () => {
       if (response.status == HttpStatusCode.Created) {
         toast.success(response.message);
         getUpdatedUserList();
-        commonFunctions.bsModalHide(modalId.value);
+        _hideModal();
       }
     }
   } catch (error: any) {
@@ -153,7 +150,6 @@ const updateUser = async (userData: any) => {
       toast.success(response.message);
       getUpdatedUserList();
       editId.value = null;
-      // bsModalHide();
     }
     // }
   } catch (error: any) {
@@ -218,6 +214,17 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
     callback();
   }
 };
+const clearData = () => {
+  user.value = {};
+  v$.value.user.$reset();
+}
+
+const _showModal = () => {
+  userAddEditModalRef.value?.show();
+}
+const _hideModal = () => {
+  userAddEditModalRef.value?.hide();
+}
 </script>
 <template>
   <div class="content-card content-header card-gap-mb">
@@ -227,8 +234,7 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
     @scroll="handleScroll('scrollerRef', !isLoading, getUserList)" ref="scrollerRef">
     <div class="row py-2">
       <div class="col text-end">
-        <button class="btn btn-primary mx-2" type="button"
-          @click="commonFunctions.bsModalShow('userAddEditModal'); modalId = 'userAddEditModal'">
+        <button class="btn btn-primary mx-2" type="button" @click="_showModal">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New User
         </button>
@@ -317,65 +323,65 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
       </table>
     </div>
   </div>
-  <div class="modal fade" id="userAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+  <!-- <div class="modal fade" id="userAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div v-loading="isModalLoading" class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="modalLabel">New User</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <div class="container">
-            <form class="form-inline">
-              <div class="row">
-                <label for="user_name" class="col-sm-4 col-form-label">Display Name</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="user.user_name" id="user_name"
-                    :class="{ 'is-invalid': v$.user.user_name.$error }" placeholder="Enter Display Name">
-                  <div class="invalid-feedback" v-for="error of v$.user.user_name.$errors" :key="error.$uid">
-                    {{ error.$message }}
-                  </div>
-                </div>
+        <div class="modal-body"> -->
+  <ModalComponent v-loading="isModalLoading" ref="userAddEditModalRef" title="New User" @hide="clearData" hide-cancel
+    centered>
+    <template #body>
+      <div class="container">
+        <form class="form-inline">
+          <div class="row">
+            <label for="user_name" class="col-sm-4 col-form-label">Display Name</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" v-model="user.user_name" id="user_name"
+                :class="{ 'is-invalid': v$.user.user_name.$error }" placeholder="Enter Display Name">
+              <div class="invalid-feedback" v-for="error of v$.user.user_name.$errors" :key="error.$uid">
+                {{ error.$message }}
               </div>
-              <div class="row">
-                <label for="user_type_id" class="col-sm-4 col-form-label">User Type</label>
-                <div class="col-sm-8">
-                  <select class="form-select" v-model="user.user_type_id"
-                    :class="{ 'is-invalid': v$.user.user_type_id.$error }" aria-label="User Type">
-                    <option :value="null">Select</option>
-                    <option v-for="info in userTypeList" :key="info.id" :value="info.id">{{ info.userType }}</option>
-                  </select>
-                  <div class="invalid-feedback" v-for="error of v$.user.user_type_id.$errors" :key="error.$uid">
-                    {{ error.$message }}
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <label for="email_id" class="col-sm-4 col-form-label">Email ID</label>
-                <div class="col-sm-8">
-                  <input type="email" class="form-control" v-model="user.email_id" id="email_id"
-                    :class="{ 'is-invalid': v$.user.email_id.$error }" placeholder="Enter Email ID">
-                  <div class="invalid-feedback" v-for="error of v$.user.email_id.$errors" :key="error.$uid">
-                    {{ error.$message }}
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <label for="phone" class="col-sm-4 col-form-label">Phone</label>
-                <div class="col-sm-8">
-                  <input type="tet" class="form-control" v-model="user.phone" id="phone" placeholder="Enter Phone Number">
-                </div>
-              </div>
-            </form>
+            </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <!-- <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button> -->
-          <button type="button" @click="addUser" class="btn btn-primary">Save</button>
-        </div>
+          <div class="row">
+            <label for="user_type_id" class="col-sm-4 col-form-label">User Type</label>
+            <div class="col-sm-8">
+              <select class="form-select" v-model="user.user_type_id"
+                :class="{ 'is-invalid': v$.user.user_type_id.$error }" aria-label="User Type">
+                <option :value="null">Select</option>
+                <option v-for="info in userTypeList" :key="info.id" :value="info.id">{{ info.userType }}</option>
+              </select>
+              <div class="invalid-feedback" v-for="error of v$.user.user_type_id.$errors" :key="error.$uid">
+                {{ error.$message }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <label for="email_id" class="col-sm-4 col-form-label">Email ID</label>
+            <div class="col-sm-8">
+              <input type="email" class="form-control" v-model="user.email_id" id="email_id"
+                :class="{ 'is-invalid': v$.user.email_id.$error }" placeholder="Enter Email ID">
+              <div class="invalid-feedback" v-for="error of v$.user.email_id.$errors" :key="error.$uid">
+                {{ error.$message }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <label for="phone" class="col-sm-4 col-form-label">Phone</label>
+            <div class="col-sm-8">
+              <input type="tet" class="form-control" v-model="user.phone" id="phone" placeholder="Enter Phone Number">
+            </div>
+          </div>
+        </form>
       </div>
-    </div>
-  </div>
+    </template>
+    <template #footer>
+      <button class="btn btn-primary" @click="addUser">Save</button>
+    </template>
+  </ModalComponent>
   <UserPrivilegeModal ref="userPrivilegeRef" />
   <dialog-component id="deleteUser" :onYes="onYesUser" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete user?" />

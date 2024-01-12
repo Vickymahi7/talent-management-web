@@ -109,6 +109,9 @@ const showSkillExp = computed(() => {
 onMounted(() => {
   getTenantSettings();
 })
+// onBeforeUnmount(() => {
+//   _hideModal();
+// });
 
 const getTenantSettings = async () => {
   try {
@@ -176,7 +179,8 @@ const clearData = () => {
 }
 </script>
 <template>
-  <ModalComponent v-loading="isModalLoading" ref="addHrProfileModalRef" title="New Profile" @hide="clearData" hide-cancel>
+  <ModalComponent v-loading="isModalLoading" ref="addHrProfileModalRef" title="New Profile" @hide="clearData" hide-cancel
+    centered>
     <template #body>
       <div class="container">
         <form class="form-inline">

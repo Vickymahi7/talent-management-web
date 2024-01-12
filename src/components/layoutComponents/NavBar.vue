@@ -8,7 +8,9 @@ import { useDark, useToggle } from '@vueuse/core';
 import { computed, ref } from 'vue';
 
 const dark = useDark({
-  selector: 'body',
+  attribute: 'data-bs-theme',
+  valueDark: 'dark',
+  valueLight: 'light',
 });
 const toggleDark = () => useToggle(dark.value);
 const tenantProfileModalRef = ref(null as InstanceType<typeof TenantProfileModal> | null);

@@ -1,16 +1,44 @@
-$text-color: #000;
+// Light Theme Variables
+$body-bg-light: $white;
+$body-color-light: $black;
 $text-color-light: #666;
-$form-text-color: #666;
-$heading-color: #54b848;
-$link-color: #000;
-$link-color-hover: #666;
+$body-bg-theme-light: #eef8ed;
+$card-bg-light: $white;
+$border-color-light: #cccccc;
+$border-color-focus-light: $body-color-light;
+$header-text-color-light: darken($body-bg-theme-light, 45%);
+$link-color-light: $body-color-light;
+$link-hover-color-light: lighten($link-color-light, 40%);
+$primary-btn-bg-light: $black;
+$primary-btn-color-light: $white;
+
+// Dark Theme Variables
+$body-bg-dark: $gray-800;
+$body-color-dark: $white;
+$text-color-dark: $white;
+$body-bg-theme-dark: $gray-900;
+$card-bg-dark: $gray-800;
+$border-color-dark: $gray-700;
+$border-color-focus-dark: $body-color-dark;
+$header-text-color-dark: #fff; // lighten for dark mode
+$link-color-dark: $body-color-dark;
+$link-hover-color-dark: darken($link-color-dark, 40%);
+$primary-btn-bg-dark: $black;
+$primary-btn-color-dark: $white;
+
+// $text-color: #000;
+$text-color-grey: #666;
+// $form-text-color: #666;
+// $heading-color: #54b848;
+// $link-color: #000;
+// $link-color-hover: #666;
 $spl-link-color: #54b848;
 $spl-link-hover: #666;
-$bg-color: #eef8ed;
-$bg-color-light: #f8fcf7;
+// $bg-color: #eef8ed;
+// $bg-color-light: #f8fcf7;
 $form-border-color: #888888;
 $form-focus-border-color: #000;
-$card-color: #fff;
+// $card-color: #fff;
 $table-hover-color: #e3e3e3;
 
 $primary-btn-color: #fff;

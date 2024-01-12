@@ -78,6 +78,23 @@ export function useCommonFunctions() {
     myModal.hide();
   };
 
+  const duplicateProfileTitle = (profileTitle?: string | null) => {
+    let baseTitle = profileTitle || "";
+    const copyPattern = /\s-\sCopy(\(\d+\))?$/;
+
+    if (copyPattern.test(baseTitle)) {
+      const match = baseTitle.match(/\(\d+\)$/);
+      const copyCount = match
+        ? parseInt(match[0].replace(/\D/g, ""), 10) + 1
+        : 1;
+
+      baseTitle = baseTitle.replace(copyPattern, ` - Copy(${copyCount})`);
+    } else {
+      baseTitle += " - Copy";
+    }
+    return baseTitle;
+  };
+
   return {
     getExperienceString,
     fileUploadBtnClick,
@@ -87,5 +104,6 @@ export function useCommonFunctions() {
     getUserTypeById,
     bsModalShow,
     bsModalHide,
+    duplicateProfileTitle,
   };
 }
