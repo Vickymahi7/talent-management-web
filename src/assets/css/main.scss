@@ -239,12 +239,12 @@ a {
 
     a {
       display: block;
-      color: var(--text-color);
+      color: var(--bs-link-color);
       padding: 0.2em 0;
 
       &.active,
       &:hover {
-        color: var(--bs-body-color);
+        color: var(--bs-link-hover-color);
       }
     }
 
