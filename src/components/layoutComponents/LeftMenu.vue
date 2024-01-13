@@ -50,13 +50,14 @@ const getUserMenuPrivilegeList = async () => {
       <li v-for="menu in mainMenuList" :key="menu" class="mb-2">
         <p class="main-menu">{{ menu[0].main_menu }}</p>
         <ul class="sub-menu">
-          <li v-for="subMenu in filteredUserMenuList(menu[0].main_menu_id)" :key="subMenu.id"
-            class="d-flex justify-content-between">
-            <router-link :to="{ name: subMenu.web_url }" :class="{ 'active': $route.name == subMenu.web_url }">
-              {{ subMenu.menu }}
-            </router-link>
-            <font-awesome-icon v-if="$route.name == subMenu.web_url" icon="fa-solid fa-caret-right"
-              class="align-self-center me-2" />
+          <li v-for="subMenu in filteredUserMenuList(menu[0].main_menu_id)" :key="subMenu.id">
+            <div class="d-flex justify-content-between px-2">
+              <router-link :to="{ name: subMenu.web_url }" :class="{ 'active': $route.name == subMenu.web_url }">
+                {{ subMenu.menu }}
+              </router-link>
+              <font-awesome-icon v-if="$route.name == subMenu.web_url" icon="fa-solid fa-caret-right"
+                class="align-self-center" />
+            </div>
           </li>
         </ul>
       </li>

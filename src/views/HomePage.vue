@@ -32,19 +32,19 @@ const loginUser = async () => {
     const response: any = await axios.post('/login', loginData.value)
     isLoading.value = false;
 
-    localStorage.setItem("accessToken", response.accessToken)
-    localStorage.setItem("userTypeId", response.userTypeId)
-    localStorage.setItem("userName", response.userName)
-    localStorage.setItem("tenantLogo", response.tenantLogo)
+    localStorage.setItem("accessToken", response.accessToken ?? '');
+    localStorage.setItem("userTypeId", response.userTypeId ?? '');
+    localStorage.setItem("userName", response.userName ?? '');
+    localStorage.setItem("tenantLogo", response.tenantLogo ?? '');
 
     if (response.userTypeId == UserTypeId.SAD) {
       router.push({ name: 'tenantmanagement' });
     }
-    else if (response.userTypeId == UserTypeId.USR) {
-      router.push({ name: 'userhrprofile' });
+    else if (response.userTypeId == UserTypeId.ADM) {
+      router.push({ name: 'hrprofilemanagement' });
     }
     else {
-      router.push({ name: 'hrprofilemanagement' });
+      router.push({ name: 'userhrprofile' });
     }
   } catch (error: any) {
     isLoading.value = false;

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
+import InviteAdUsersModal from "@/components/modals/InviteAdUsersModal.vue";
 import ModalComponent from "@/components/modals/ModalComponent.vue";
 import axios from '@/plugins/axios';
 import type HrProfile from '@/types/HrProfile';
@@ -8,7 +9,6 @@ import { PROFILE_STATUS } from '@/utils/constants';
 import { formatDateTime } from '@/utils/dateFormats';
 import { UserTypeId } from '@/utils/enums';
 import { useCommonFunctions } from '@/utils/useCommonFunctions';
-import HrProfileComponent from "@/views/hrProfile/HrProfile.vue";
 import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser';
 import { HttpStatusCode } from 'axios';
 import { Modal } from 'bootstrap';
@@ -26,10 +26,11 @@ const router = useRouter();
 const addHrProfileModalRef = ref(null as InstanceType<typeof AddHrProfileModal> | null);
 const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
 const hrProfileModalRef = ref(null as InstanceType<typeof ModalComponent> | null);
+const inviteAdUsersModalRef = ref(null as InstanceType<typeof InviteAdUsersModal> | null);
 
 const isLoading = ref(false);
 const isModalLoading = ref(false);
-const hrProfileModalFlag = ref(false);
+const showHrProfileModal = ref(false);
 const showInviteUserModal = ref(false);
 const searchText = ref('');
 const status_id = ref([] as number[]);
@@ -40,7 +41,7 @@ const hrProfileId = ref('');
 const hrProfile = ref({} as HrProfile);
 const hrProfileList = ref([] as HrProfile[]);
 const hrProfileFields = [
-  { key: 'select', label: '' },
+  // { key: 'select', label: '' },
   { key: 'index', label: 'SN' },
   { key: 'profile_title', label: 'Profile Title' },
   { key: 'first_name', label: 'Resource Name' },
@@ -162,11 +163,12 @@ const handleTableRowClick = (modalId: string, _hrProfileId: string) => {
   else {
     hrProfileId.value = _hrProfileId;
     // showModal(modalId);
-    showBsPopup();
+    openHrProfileModal();
   }
 }
 
 const adLoginPopup = async () => {
+  isLoading.value = true;
   await instance.loginPopup(loginRequest);
   getGraphData()
 }
@@ -190,7 +192,7 @@ const getGraphData = async () => {
     accessToken.value = response.accessToken;
     showInviteUserModal.value = true;
     nextTick(() => {
-      showModal('inviteAdUsersModal');
+      inviteAdUsersModalRef.value?.showModal();
     })
   }
 };
@@ -220,15 +222,14 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
   }
 };
 
-function showBsPopup() {
-  hrProfileModalFlag.value = true;
-  nextTick(() => {
-    if (hrProfileModalRef.value) {
-      hrProfileModalRef.value.show();
-      // const myModal = Modal.getOrCreateInstance(hrProfileModalRef.value)
-      // myModal.show();
-    }
-  })
+function openHrProfileModal() {
+  router.push({ name: 'hrprofile', params: { id: hrProfileId.value } });
+  // showHrProfileModal.value = true;
+  // nextTick(() => {
+  //   if (hrProfileModalRef.value) {
+  //     hrProfileModalRef.value.toggle();
+  //   }
+  // })
 }
 </script>
 <template>
@@ -318,7 +319,7 @@ function showBsPopup() {
                 <div class="icon-btn me-2" title="Preview & Download" @click.stop="showResumePreview(hrProfileData)">
                   <font-awesome-icon icon="fa-solid fa-download" />
                 </div>
-                <div class="icon-btn me-2" @click.stop="deleteHrProfile(hrProfileData.id!)" title="Delete Profile"
+                <div class="icon-btn" @click.stop="deleteHrProfile(hrProfileData.id!)" title="Delete Profile"
                   data-bs-toggle="modal" data-bs-target="#deleteHrProfile">
                   <font-awesome-icon icon="fa-solid fa-trash" />
                 </div>
@@ -339,13 +340,13 @@ function showBsPopup() {
     @refreshParent="getUpdatedHrProfileList" />
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
-  <InviteAdUsersModal v-if="showInviteUserModal" :accessToken="accessToken!" />
-  <ModalComponent v-if="hrProfileModalFlag" v-loading="isModalLoading" ref="hrProfileModalRef" id="hrProfileModal"
+  <InviteAdUsersModal v-if="showInviteUserModal" ref="inviteAdUsersModalRef" :accessToken="accessToken!" />
+  <!-- <ModalComponent v-if="showHrProfileModal" v-loading="isModalLoading" ref="hrProfileModalRef" id="hrProfileModal"
     title="New Profile" content-class="profile-modal" fullscreen hide-header>
     <template #body>
       <HrProfileComponent :id="hrProfileId" :key="hrProfileId" />
     </template>
-  </ModalComponent>
+  </ModalComponent> -->
   <ResumePreviewModal id="profileResumePreviewModal" :hrProfile="hrProfile" />
   <dialog-component id="duplicateProfileConfirm" :onYes="onYesDuplicateProfile" title="Create Duplicate Profile"
     message="Are you sure you want to create a copy of this profile?" />

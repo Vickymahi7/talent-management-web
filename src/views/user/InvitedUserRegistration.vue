@@ -35,7 +35,7 @@ export default {
     return {
       user: {
         user_name: {
-          required: helpers.withMessage('Display Name is required', required),
+          required: helpers.withMessage('Name is required', required),
         },
         password: {
           required: helpers.withMessage('Password is required', required),
@@ -43,7 +43,7 @@ export default {
             `Password must have a minimum length of ${$params.min} characters`, minLength(6)),
         },
         confirm_password: {
-          required: helpers.withMessage('Please confirm your password', required),
+          required: helpers.withMessage('Confirm password is required', required),
           sameAsPassword: helpers.withMessage('Passwords does not match', sameAs(this.user.password)),
         },
       }
@@ -184,14 +184,6 @@ export default {
           </button>
         </div>
       </form>
-      <!-- </template> -->
-      <!-- <template v-else-if="showActivationForm && isActiveUser">
-                <div class="d-flex flex-column justify-content-center align-items-center align-self-center">
-                    <p class="fs-6">User Already Activated</p>
-                    <p class="fs-6">Please <router-link class="spl-link" :to="{ path: '/' }">Login</router-link> to continue
-                    </p>
-                </div>
-            </template> -->
     </div>
   </main>
 </template>

@@ -3,6 +3,7 @@ import axios from '@/plugins/axios';
 import type { AdUser } from '@/types/AdUser';
 import { callMsGraph } from '@/utils/authConfig';
 import { HttpStatusCode } from 'axios';
+import type { Modal } from 'bootstrap';
 import { onBeforeMount, onMounted, ref } from 'vue';
 import { useToast } from 'vue-toastification';
 
@@ -20,6 +21,8 @@ const isPageEnd = ref(false);
 const nextPageToken = ref('');
 const users = ref([] as AdUser[]);
 const inviteUserList = ref([] as AdUser[]);
+
+const inviteAdUserModalRef = ref(null as null | Modal);
 
 onBeforeMount(() => {
   getAdUserList();
@@ -94,46 +97,45 @@ const inviteAdUsers = async () => {
   }
 };
 
+const _showModal = () => {
+  inviteAdUserModalRef.value?.show();
+}
+const _hideModal = () => {
+  inviteAdUserModalRef.value?.hide();
+}
+
+defineExpose({ showModal: _showModal });
+
 </script>
 <template>
-  <div class="modal fade" :id="id" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-      <div v-loading="isModalLoading" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalLabel">Invite Active Directory Users</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body" @scroll="handleScroll('scroller', !isModalLoading, getAdUserList)" ref="scroller">
-          <!-- <div class="text-end mb-3">
-            <button type="button" class="btn btn-primary">
-              Invite
-              <span v-if="inviteUserList.length > 0" class="badge bg-light text-dark"> {{ inviteUserList.length
-              }}</span>
-            </button>
-          </div> -->
-          <div class="list-group">
-            <label v-for="user in users" :key="user.id" class="list-group-item d-flex align-items-center">
-              <input class="form-check-input checkbox-lg me-3 mt-0" type="checkbox"
-                :value="inviteUserList.some(data => data.mail == user.mail)" @change="manageInviteList(user)">
-              <div class="row d-inline-block">
-                <div class="col card-title">{{ user.displayName }}</div>
-                <div class="col">{{ user.mail }}</div>
-              </div>
-            </label>
-            <div v-if="users.length == 0" class="text-center">
-              No Users found
+  <ModalComponent ref="inviteAdUserModalRef" hide-cancel centered scrollable>
+    <template #modal-content>
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Invite Active Directory Users</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" @scroll="handleScroll('scroller', !isModalLoading, getAdUserList)" ref="scroller">
+        <div class="list-group" v-loading="isModalLoading">
+          <label v-for="user in users" :key="user.id" class="list-group-item d-flex align-items-center">
+            <input class="form-check-input checkbox-lg me-3 mt-0" type="checkbox"
+              :value="inviteUserList.some(data => data.mail == user.mail)" @change="manageInviteList(user)">
+            <div class="row d-inline-block">
+              <div class="col card-title">{{ user.displayName }}</div>
+              <div class="col">{{ user.mail }}</div>
             </div>
+          </label>
+          <div v-if="users.length == 0" class="text-center">
+            No Users found
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" @click="inviteAdUsers">
-            Invite
-            <span v-if="inviteUserList.length > 0" class="badge bg-light text-dark"> {{ inviteUserList.length
-            }}</span>
-          </button>
-          <button type="button" class="btn secondary-btn" data-bs-dismiss="modal">Close</button>
-        </div>
       </div>
-    </div>
-  </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" @click="inviteAdUsers">
+          Invite
+          <span v-if="inviteUserList.length > 0" class="badge bg-light text-dark"> {{ inviteUserList.length
+          }}</span>
+        </button>
+      </div>
+    </template>
+  </ModalComponent>
 </template>

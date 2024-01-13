@@ -81,10 +81,12 @@ defineExpose({ showModal: _showModal });
             <tr v-for="item in standardPrivilegeList" :key="item.standard_menu_id">
               <td v-for="field in userMenuPrivilegeFields" :key="field.key">
                 <template v-if="field.key == 'active'">
-                  <input class="form-check-input checkbox-lg mt-0" type="checkbox" v-model="item[field.key]"
+                  <font-awesome-icon v-if="item[field.key] && item.is_default" icon="fa-solid fa-check"
+                    class="text-success px-1" title="Default Menu" />
+                  <!-- <input v-if="item[field.key] && item.is_default" class="form-check-input checkbox-lg mt-0"
+                    type="checkbox" v-model="item[field.key]" disabled title="Default Menu"> -->
+                  <input v-else class="form-check-input checkbox-lg mx-1" type="checkbox" v-model="item[field.key]"
                     @change="updateUserMenuPrivilege(item)">
-                  <!-- <el-switch v-model="item[field.key]" size="small" :active-value="1" :inactive-value="0"
-                    @change="updateUserMenuPrivilege(item)" @click="test" /> -->
                 </template>
                 <template v-else>{{ item[field.key] }}</template>
               </td>

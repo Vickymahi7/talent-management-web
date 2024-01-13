@@ -49,6 +49,16 @@ body {
   --table-bg2: #{lighten($body-bg-theme-light, 3%)};
   --table-hover-bg: #{darken($body-bg-theme-light, 10%)};
 
+  --el-mask-color: var(--bs-body-bg) !important;
+  --el-bg-color: var(--body-bg-theme) !important;
+
+  // .modal {
+  //   --bs-modal-zindex: 10000;
+  // }
+  // .modal-backdrop {
+  //   --bs-backdrop-zindex: 3000;
+  // }
+
   .form-check-input:checked {
     --bs-form-check-bg: #{$primary-btn-bg-light};
   }
@@ -99,7 +109,7 @@ body {
   --bs-primary-rgb: #{to-rgb($primary-btn-bg-dark)};
   --bs-primary-color: #{$primary-btn-color-dark};
   --table-bg2: #{lighten($body-bg-theme-dark, 3%)};
-  --table-hover-bg: #{darken($body-bg-theme-dark, 10%)};
+  --table-hover-bg: #{lighten($body-bg-theme-dark, 10%)};
 
   .form-check-input:checked {
     --bs-form-check-bg: #{$primary-btn-bg-dark};
@@ -264,11 +274,6 @@ a {
     .sub-menu {
       li {
         border-bottom: 1px solid var(--bs-border-color);
-
-        * {
-          padding-right: 5px;
-          padding-left: 5px;
-        }
       }
     }
   }
@@ -580,12 +585,14 @@ h6 {
 
     td:first-child,
     th:first-child {
+      text-align: center;
       border-top-left-radius: $card-border-radius;
       border-bottom-left-radius: $card-border-radius;
     }
 
     td:last-child,
     th:last-child {
+      // text-align: center;
       border-top-right-radius: $card-border-radius;
       border-bottom-right-radius: $card-border-radius;
     }
@@ -611,7 +618,6 @@ h6 {
 
   tr:hover td {
     background-color: var(--table-hover-bg);
-    cursor: pointer;
     transition: background-color 0.2s ease-in;
   }
   .clickable-cell {
@@ -764,6 +770,11 @@ h6 {
   }
 }
 
+.el-dialog__body {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
 .hide-caret {
   &.dropdown-toggle::after {
     display: none !important;
@@ -808,7 +819,7 @@ h6 {
 
 .tab-content {
   padding: 1.5em;
-  height: calc(100% - 50px);
+  height: calc(100% - 45px);
   border-bottom-left-radius: $card-border-radius;
   border-bottom-right-radius: $card-border-radius;
   border-right: 1px solid var(--bs-border-color);
@@ -818,7 +829,9 @@ h6 {
 }
 
 .resume-template-header {
-  width: $res-template-width;
+  margin: 5px auto;
+  text-align: right;
+  max-width: $res-template-width;
 }
 
 .resume-template {

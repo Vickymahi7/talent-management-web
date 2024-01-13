@@ -95,7 +95,7 @@ const showTenantProfileModal = () => {
             </li>
             <li>
               <a class="dropdown-item" href="#" @click="showUserProfileModal"><font-awesome-icon icon="fa-solid fa-user"
-                  class="me-2" />My Profile</a>
+                  class="me-2" />My Account</a>
             </li>
             <li>
               <a class="dropdown-item" href="#" @click.prevent="$router.push({ name: 'home' })"><font-awesome-icon

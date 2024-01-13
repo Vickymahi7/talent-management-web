@@ -84,7 +84,10 @@ const updateTenant = async () => {
     if (!v$.value.tenant.$invalid) {
       isLoading.value = true;
       const response: any = await axios.patch('/tenant/update', tenantData);
-      if (response.status == HttpStatusCode.Ok) {
+      if (response.status == HttpStatusCode.BadRequest) {
+        toast.info(response.message);
+      }
+      else if (response.status == HttpStatusCode.Ok) {
         toast.success(response.message);
         elements.value.editMode = false;
         elements.value.profileSettingEditMode = false;

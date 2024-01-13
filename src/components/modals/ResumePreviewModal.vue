@@ -1,45 +1,58 @@
-<script lang="ts">
+<script lang="ts" setup>
 import type HrProfile from '@/types/HrProfile';
+import type { Tenant } from '@/types/Tenant';
 import { formatDateMonthYear } from '@/utils/dateFormats';
-import type { PropType } from 'vue';
+import { computed, type PropType } from 'vue';
+const props = defineProps({
+  id: { type: String, default: 'resumePreviewModal' },
+  hrProfile: { type: Object as PropType<HrProfile> },
+  tenantSettings: { type: Object as PropType<Tenant> },
+});
 
-export default {
-  props: {
-    id: { type: String, default: 'resumePreviewModal' },
-    hrProfile: { type: Object as PropType<HrProfile | undefined | null> },
-  },
-  data() {
-    return {
-      formatDateMonthYear: formatDateMonthYear,
-    }
-  },
-  methods: {
-    async print() {
-      const vue = this as any;
-      await vue.$htmlToPaper('printMe', {
-        styles: ['../../resTemplateStyle.css'],
-        timeout: 10000,
-        autoClose: true,
-      }, () => {
-        console.log('testing...')
-      })
-    }
+const emailId = computed(() => {
+  let _emailId = props.hrProfile!.email_id;
+  if (props.tenantSettings!.is_official_contact_info) {
+    _emailId = props.tenantSettings!.tenant_email_id;
   }
+  return _emailId;
+})
+
+const phoneNumber = computed(() => {
+  let _phone = props.hrProfile!.mobile;
+  if (props.tenantSettings!.is_official_contact_info) {
+    _phone = props.tenantSettings!.tenant_phone;
+  }
+  return _phone;
+})
+
+const print = async () => {
+  const vue = this as any;
+  await vue.$htmlToPaper('printMe', {
+    styles: ['../../resTemplateStyle.css'],
+    timeout: 10000,
+    autoClose: true,
+  }, () => {
+    console.log('testing...')
+  })
 }
+
 </script>
 <template>
   <ModalComponent :id="id" title="Resume Preview" hide-footer hide-cancel centered size="modal-xl">
     <template #body>
       <template v-if="hrProfile">
-        <div class="resume-template-header text-end mb-2 mx-auto">
-          <a href="#" @click="print"><font-awesome-icon class="mx-2" icon="fa-solid fa-download" /></a>
-          <button class="btn btn-primary ms-2" type="button">
+        <div class="resume-template-header">
+          <button class="btn btn-primary ms-2" type="button" @click="print">
+            <font-awesome-icon class="me-2" icon="fa-solid fa-download" />
+            Download
+          </button>
+          <!-- <button class="btn btn-primary ms-2" type="button">
             <font-awesome-icon class="me-2" icon="fa-solid fa-envelope" />
             Send Resume
-          </button>
+          </button> -->
         </div>
         <div id="printMe" class="resume-template mx-auto">
-          <div class="resume-wrapper">
+          <div class="resume-wrapper border">
             <header>
               <div class="picture-resume-wrapper">
                 <div class="picture-resume">
@@ -61,14 +74,12 @@ export default {
               <section class="left-section">
                 <template v-if="hrProfile.summary">
                   <h2><span class="heading">Summary</span></h2>
-                  <p class="bold">
-                    {{ hrProfile.summary }}
-                  </p>
+                  <p class="bold" v-html="hrProfile.summary"></p>
                 </template>
                 <h2><span class="heading">Contact</span></h2>
                 <ul class="list-content contact-info">
-                  <li v-if="hrProfile.email_id">{{ hrProfile.email_id }}</li>
-                  <li v-if="hrProfile.mobile">{{ hrProfile.mobile }}</li>
+                  <li v-if="emailId">{{ emailId }}</li>
+                  <li v-if="phoneNumber">{{ phoneNumber }}</li>
                   <li v-if="hrProfile.website">{{ hrProfile.website }}</li>
                   <li v-if="hrProfile.city">
                     {{ hrProfile.city }}
@@ -96,7 +107,7 @@ export default {
                 <template v-if="hrProfile.skills">
                   <h2><span class="heading">Technical Skills</span></h2>
                   <div class="badge-list">
-                    <span class="badge-item" v-for="skill, index in hrProfile.skills" :key="index">{{ skill
+                    <span class="badge-item" v-for="skill, index in hrProfile.skills" :key="index">{{ skill.skill
                     }}</span>
                   </div>
                   <!-- <ul class="list-content">

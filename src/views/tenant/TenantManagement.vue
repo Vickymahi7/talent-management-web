@@ -32,7 +32,6 @@ const tenantFields = [
   { key: 'name', label: 'Tenant', isEditable: true },
   { key: 'user_name', label: 'Display Name' },
   { key: 'email_id', label: 'Login Email' },
-  { key: 'active', label: 'Active', },
   { key: 'tenant_status_id', label: 'Status', isEditable: true },
   { key: 'last_updated_dt', label: 'Last Updated' },
   { key: 'actions', label: 'Action', },
@@ -138,7 +137,10 @@ const updateTenant = async (tenantData: Tenant) => {
     data.tenant_status_id = tenantData.tenant_status_id;
     isLoading.value = true;
     const response: any = await axios.patch('/tenant/update', data);
-    if (response.status == HttpStatusCode.Ok) {
+    if (response.status == HttpStatusCode.BadRequest) {
+      toast.info(response.message);
+    }
+    else if (response.status == HttpStatusCode.Ok) {
       toast.success(response.message);
       getUpdatedTenantList();
       editId.value = null;
@@ -224,15 +226,15 @@ const _hideModal = () => {
               <template v-if="field.key == 'name'">
                 <input v-if="editId == tenant.tenant_id" type="text" class="form-control form-control-sm"
                   v-model="tenant[field.key]" placeholder="Enter Name" @keyup.enter="updateTenant(tenant)">
-                <div v-else>{{ tenant[field.key] }}</div>
-              </template>
-              <template v-else-if="field.key == 'active'">
-                <div v-if="tenant.user && tenant.user[field.key]" class="text-success">
-                  <font-awesome-icon icon="fa-solid fa-user-check" />
-                </div>
-                <div v-else class="text-danger">
-                  <font-awesome-icon icon="fa-solid fa-user-xmark" />
-                </div>
+                <template v-else>
+                  <span v-if="tenant.user?.active" class="text-success me-2" title="User Activated">
+                    <font-awesome-icon icon="fa-solid fa-user-check" />
+                  </span>
+                  <span v-else class="text-danger me-2" title="User Not Activated">
+                    <font-awesome-icon icon="fa-solid fa-user-xmark" />
+                  </span>
+                  {{ tenant[field.key] }}
+                </template>
               </template>
               <template v-else-if="field.key == 'tenant_status_id'">
                 <select v-if="editId == tenant.tenant_id" class="form-select form-control-sm" v-model="tenant[field.key]"
@@ -255,11 +257,11 @@ const _hideModal = () => {
                   </span>
                 </template>
                 <template v-else>
-                  <div class="icon-btn me-2" @click="handleTableCellClick(tenant)" title="Edit User">
+                  <div class="icon-btn me-2" @click="handleTableCellClick(tenant)" title="Edit Tenant">
                     <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                   </div>
-                  <div class="icon-btn" @click="deleteTenant(tenant.tenant_id!)" title="Delete Tenant"
-                    data-bs-toggle="modal" data-bs-target="#deleteTenant">
+                  <div v-if="tenant.user && !tenant.user.active" class="icon-btn" @click="deleteTenant(tenant.tenant_id!)"
+                    title="Delete Tenant" data-bs-toggle="modal" data-bs-target="#deleteTenant">
                     <font-awesome-icon icon="fa-solid fa-trash" />
                   </div>
                 </template>

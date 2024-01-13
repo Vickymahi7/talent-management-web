@@ -9,6 +9,7 @@ defineProps({
   hideCancel: Boolean,
   hideFooter: Boolean,
   centered: Boolean,
+  scrollable: Boolean,
   fullscreen: Boolean,
   size: { type: String, },
 });
@@ -35,33 +36,42 @@ const shown = (() => emit('shown'));
 const hide = (() => emit('hide'));
 const hidden = (() => emit('hidden'));
 
+const _toggle = () => {
+  thisModalObj.value?.toggle();
+};
 const _show = () => {
   thisModalObj.value?.show();
 };
 const _hide = () => {
   thisModalObj.value?.hide();
 };
-defineExpose({ show: _show, hide: _hide });
+defineExpose({ toggle: _toggle, show: _show, hide: _hide });
 </script>
 
 <template>
   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="" aria-hidden="true" ref="modalElement">
-    <div class="modal-dialog"
-      :class="{ [size!]: size, 'modal-fullscreen': fullscreen, 'modal-dialog-centered': centered }">
+    <div class="modal-dialog" :class="{
+      [size!]: size,
+      'modal-fullscreen': fullscreen,
+      'modal-dialog-centered': centered,
+      'modal-dialog-scrollable': scrollable
+    }">
       <div class="modal-content" :class="contentClass ? contentClass : ''">
-        <div v-if="!hideHeader" class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">{{ title }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <slot name="body" />
-        </div>
-        <div v-if="!hideFooter" class="modal-footer">
-          <button v-if="!hideCancel" type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            {{ cancelTitle }}
-          </button>
-          <slot name="footer"></slot>
-        </div>
+        <slot name="modal-content">
+          <div v-if="!hideHeader" class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">{{ title }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <slot name="body" />
+          </div>
+          <div v-if="!hideFooter" class="modal-footer">
+            <button v-if="!hideCancel" type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {{ cancelTitle }}
+            </button>
+            <slot name="footer"></slot>
+          </div>
+        </slot>
       </div>
     </div>
   </div>

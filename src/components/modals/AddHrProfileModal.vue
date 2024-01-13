@@ -179,7 +179,7 @@ const clearData = () => {
 }
 </script>
 <template>
-  <ModalComponent v-loading="isModalLoading" ref="addHrProfileModalRef" title="New Profile" @hide="clearData" hide-cancel
+  <ModalComponent :id="id" v-loading="isModalLoading" ref="addHrProfileModalRef" title="New Profile" @hide="clearData" hide-cancel
     centered>
     <template #body>
       <div class="container">

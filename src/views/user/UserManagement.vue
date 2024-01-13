@@ -308,7 +308,7 @@ const _hideModal = () => {
                     data-bs-target="#deleteUser">
                     <font-awesome-icon icon="fa-solid fa-trash" />
                   </div>
-                  <div class="icon-btn me-2" @click="showUserPrivileges(item.user_id!)" title="User Privileges">
+                  <div class="icon-btn" @click="showUserPrivileges(item.user_id!)" title="User Privileges">
                     <font-awesome-icon icon="fa-solid fa-cog" />
                   </div>
                 </template>

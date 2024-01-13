@@ -1,6 +1,6 @@
 import { useRouteCheck } from "@/composables/useRouteCheck";
+import FullscreenLayout from "@/layouts/FullscreenLayout.vue";
 import StandardLayout from "@/layouts/StandardLayout.vue";
-import { UserTypeId } from "@/utils/enums";
 import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
@@ -15,7 +15,7 @@ const routes = [
     path: "/tenantmanagement",
     name: "tenantmanagement",
     component: () => import("@/views/tenant/TenantManagement.vue"),
-    meta: { layout: StandardLayout, accessedBy: [UserTypeId.SAD] },
+    meta: { layout: StandardLayout, requiresAuth: true },
   },
 
   // User Routes
@@ -25,7 +25,7 @@ const routes = [
     component: () => import("@/views/user/UserManagement.vue"),
     meta: {
       layout: StandardLayout,
-      accessedBy: [UserTypeId.SAD, UserTypeId.ADM, UserTypeId.USR],
+      requiresAuth: true,
     },
   },
   {
@@ -54,8 +54,9 @@ const routes = [
     component: () => import("@/views/hrProfile/HrProfile.vue"),
     props: true,
     meta: {
-      layout: StandardLayout,
-      accessedBy: [UserTypeId.ADM, UserTypeId.USR],
+      // layout: StandardLayout,
+      layout: FullscreenLayout,
+      requiresAuth: false,
     },
   },
   {
@@ -65,7 +66,7 @@ const routes = [
     props: true,
     meta: {
       layout: StandardLayout,
-      accessedBy: [UserTypeId.SAD, UserTypeId.ADM, UserTypeId.USR],
+      requiresAuth: true,
     },
   },
   {
@@ -74,7 +75,7 @@ const routes = [
     component: () => import("@/views/hrProfile/HrProfileManagement.vue"),
     meta: {
       layout: StandardLayout,
-      accessedBy: [UserTypeId.ADM, UserTypeId.USR],
+      requiresAuth: true,
     },
   },
   {
@@ -83,7 +84,7 @@ const routes = [
     component: () => import("@/views/hrProfile/TalentPool.vue"),
     meta: {
       layout: StandardLayout,
-      accessedBy: [UserTypeId.ADM, UserTypeId.USR],
+      requiresAuth: true,
     },
   },
 ];
@@ -97,16 +98,10 @@ const routeCheck = useRouteCheck();
 
 router.beforeEach(async (to, from, next) => {
   const homePage = to.name === "home";
-  const userTypeId = localStorage.getItem("userTypeId")
-    ? parseInt(localStorage.getItem("userTypeId")!)
-    : null;
-
   const meta: any = to.meta;
-  console.log(meta.accessedBy);
-  console.log(to.name);
-  if (!homePage && meta.accessedBy) {
+  if (!homePage && meta.requiresAuth) {
     const canAccess = await routeCheck.canUserAccess(to.name);
-    console.log("hasAccess: ", canAccess);
+    console.log("canAccess: ", canAccess);
     if (!canAccess) {
       next("/");
     } else {

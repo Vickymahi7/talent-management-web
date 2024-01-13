@@ -20,12 +20,15 @@ import { email, helpers, required } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
 import { Modal } from 'bootstrap';
 import { computed, nextTick, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from "vue-router";
 import { useToast } from 'vue-toastification';
 const props = defineProps({
   id: String
 });
 const toast = useToast();
 const commonFunctions = useCommonFunctions();
+const route = useRoute();
+const router = useRouter();
 
 const editorInitObject = {
   selector: 'textarea',
@@ -61,6 +64,7 @@ const addHrProfileModalRef = ref(null as InstanceType<typeof AddHrProfileModal> 
 
 const isLoading = ref(false);
 const isModalLoading = ref(false);
+const isUserHrProfile = ref(false);
 
 const resumeFiles = ref('');
 const docFiles = ref('');
@@ -149,20 +153,22 @@ const getImageUrlWithTimestamp = computed(() => {
 })
 
 onMounted(() => {
-  refreshPageData();
+  getPageData();
+  getTenantSettings();
 })
 
-const refreshPageData = async () => {
-  if (props.id) {
-    getHrProfile();
-  }
-  else {
+const getPageData = async () => {
+  if (route.name === 'userhrprofile') {
+    console.log(route.name)
+    isUserHrProfile.value = true;
     getHrProfileList();
   }
-  getTenantSettings();
+  else {
+    getHrProfileDetail();
+  }
 };
 
-const getHrProfile = async () => {
+const getHrProfileDetail = async () => {
   try {
     isLoading.value = true;
     const response: any = await axios.get('/hrprofile/view/' + props.id);
@@ -193,7 +199,7 @@ const getHrProfileList = async () => {
     hrProfileList.value = response.hrProfileList as HrProfile[];
     profileCount.value = response.total;
     if (profileCount.value == 0) {
-      showAddProfileModal();
+      // showAddProfileModal();
       hrProfile.value = {};
     } else {
       hrProfile.value = hrProfileList.value[0];
@@ -216,7 +222,7 @@ const updateHrProfile = async (data: any) => {
 
       if (response.status == HttpStatusCode.Ok) {
         toast.success(response.message);
-        refreshPageData();
+        getPageData();
         elements.value.titleEdit = false;
         elements.value.nameEdit = false;
         elements.value.primaryInfoEdit = false;
@@ -235,9 +241,11 @@ const updateHrProfile = async (data: any) => {
         // educationData.value = {} as Education;
         // projectData.value = {} as Project;
         hideModal(modalId.value);
+        console.log('end')
       }
     }
   } catch (error: any) {
+    console.log(error)
     toast.error(error.message);
   }
   finally {
@@ -284,7 +292,7 @@ const uploadProfilePhoto = async (event: any) => {
 
       if (response.status == HttpStatusCode.Ok) {
         toast.success(response.message);
-        refreshPageData();
+        getPageData();
       }
     }
   } catch (error: any) {
@@ -309,7 +317,7 @@ const uploadResume = async (event: any) => {
       });
       if (response.status == HttpStatusCode.Ok) {
         toast.success(response.message);
-        refreshPageData();
+        getPageData();
       }
     }
   } catch (error: any) {
@@ -339,7 +347,7 @@ const uploadDocument = async () => {
       });
       if (response.status == HttpStatusCode.Ok) {
         toast.success(response.message);
-        refreshPageData();
+        getPageData();
         clearDocData();
       }
     }
@@ -437,13 +445,13 @@ const updateHrProfileItem = (key: string) => {
   updateHrProfile(data);
 };
 const updateProfileChildItems = (itemData: any, itemKey: string) => {
-  let itemVal = null;
+  let itemVal = null as any;
   const profileData = hrProfile.value as any;
   if (elements.value.tabItemEdit) {
     itemVal = profileData[itemKey];
   }
   else {
-    itemVal = profileData[itemKey] ? profileData[itemKey].concat([itemData]) : [itemData];
+    itemVal = profileData[itemKey] ? [itemData].concat(profileData[itemKey]) : [itemData];
   }
 
   const data: any = {}
@@ -494,16 +502,19 @@ const showProfileChildItemEdit = (itemKey: string, itemData: HrProfileChilderen,
   showModal(modalId.value);
 };
 
-const showAddProfileModal = () => {
-  if (props.id) {
-    // emit('closeModal');
-    const modal = Modal.getOrCreateInstance('hrProfileModal', {
-      keyboard: false
-    })
-    modal.hide();
-  }
+const showAddProfileModal = async () => {
+  // if (props.id) {
+  //   // emit('closeModal');
+  //   const _modal = document.getElementById('hrProfileModal')!;
+  //   const modal = Modal.getOrCreateInstance(_modal, {
+  //     keyboard: false
+  //   })
+  //   modal.toggle();
+  //   // modal.dispose();
+  // }
 
   nextTick(() => {
+    console.log(addHrProfileModalRef.value)
     addHrProfileModalRef.value?.showModal();
   })
 }
@@ -533,7 +544,7 @@ const onYesProfile = async () => {
     const response: any = await axios.delete('/hrprofile/delete/' + dialogParam.value.id)
     if (response.status == HttpStatusCode.Ok) {
       toast.success(response.message);
-      refreshPageData();
+      getPageData();
     }
 
   } catch (error: any) {
@@ -579,7 +590,7 @@ const onYesHrProfileResume = async () => {
     const response: any = await axios.delete('/hrprofile/deleteresume/' + dialogParam.value.id)
     if (response.status == HttpStatusCode.Ok) {
       toast.success(response.message);
-      refreshPageData();
+      getPageData();
     }
 
   } catch (error: any) {
@@ -606,7 +617,7 @@ const onYesHrProfileDoc = async () => {
 
     if (response.status == HttpStatusCode.Ok) {
       toast.success(response.message);
-      refreshPageData();
+      getPageData();
     }
   } catch (error: any) {
     toast.error(error.message);
@@ -624,6 +635,7 @@ const showProfileTitleEdit = () => {
 }
 </script>
 <template>
+  <div v-if="!isUserHrProfile" class="mt-5"></div>
   <div v-if="!isEmptyProfile" class="d-flex card-gap-mb">
     <div v-show="elements.titleEdit" class="content-card content-header justify-content-start">
       <input type="text" ref="profileTitleRef" class="form-control py-1 d-inline-block w-25"
@@ -668,13 +680,17 @@ const showProfileTitleEdit = () => {
         </div>
       </div>
     </div>
-    <button class="btn btn-primary ms-2" type="button" @click="showAddProfileModal();">
+    <button v-if="isUserHrProfile" class="btn btn-primary ms-2" type="button" @click="showAddProfileModal();">
       <font-awesome-icon icon="fa-solid fa-plus-circle" class="me-2" />
       Add New Profile
     </button>
     <button class="btn btn-primary ms-2" type="button" data-bs-toggle="modal" data-bs-target="#resumePreviewModal">
       <font-awesome-icon class="me-2" icon="fa-solid fa-download" />
       Resume Preview
+    </button>
+    <button v-if="!isUserHrProfile" class="btn btn-secondary ms-2" type="button" @click="$router.back()">
+      <font-awesome-icon icon="fa-solid fa-times" class="me-2" />
+      Close
     </button>
   </div>
   <div v-loading="isLoading" class="content-body profile-section">
@@ -775,7 +791,7 @@ const showProfileTitleEdit = () => {
                 </div>
                 <div class="profile-item-container">
                   <span>
-                    <span class="icon-btn me-2">
+                    <span class="icon-btn me-2" title="LinkedIn">
                       <font-awesome-icon icon="fa-brands fa-linkedin" />
                     </span>
                   </span>
@@ -788,7 +804,7 @@ const showProfileTitleEdit = () => {
                 <!-- <div class="separator my-3"></div> -->
                 <div class="d-flex justify-content-between align-items-center">
                   <p class="label-text">
-                    <span class="icon-btn me-2">
+                    <span class="icon-btn me-2" title="Resume Attachment">
                       <font-awesome-icon icon="fa-solid fa-paperclip" />
                     </span>
                     <span v-if="hrProfile.resume_url">{{ hrProfile.first_name }} - Resume</span>
@@ -837,8 +853,6 @@ const showProfileTitleEdit = () => {
                       <font-awesome-icon icon="fa-solid fa-envelope" />
                     </span>
                   </span>
-                  <!-- <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.email_id" /> -->
                   <p>{{ officialEmailId }}</p>
                 </div>
                 <div class="profile-item-container">
@@ -847,22 +861,8 @@ const showProfileTitleEdit = () => {
                       <font-awesome-icon icon="fa-solid fa-phone" />
                     </span>
                   </span>
-                  <!-- <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.mobile"> -->
                   <p>{{ officialPhone }}</p>
                 </div>
-                <!-- <div class="profile-item-container">
-                  <span>
-                    <span class="icon-btn me-2">
-                      <font-awesome-icon icon="fa-brands fa-linkedin" />
-                    </span>
-                  </span>
-                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.linkedin_id">
-                  <p v-else>
-                    {{ hrProfile.linkedin_id }}
-                  </p>
-                </div> -->
               </div>
             </div>
           </div>
@@ -897,7 +897,7 @@ const showProfileTitleEdit = () => {
                 <span class="icon-btn me-1" @click="addSkill">
                   <font-awesome-icon icon="fa-solid fa-check" />
                 </span>
-                <span class="icon-btn" @click="refreshPageData(); elements.skillEdit = false;">
+                <span class="icon-btn" @click="getPageData(); elements.skillEdit = false;">
                   <font-awesome-icon icon="fa-solid fa-xmark" />
                 </span>
               </span>
@@ -1008,11 +1008,14 @@ const showProfileTitleEdit = () => {
                   </span>
                 </div>
                 <div class="summary-content">
-                  <textarea v-if="elements.summaryEdit" v-model="hrProfile.summary" name="" id=""
-                    class="form-control h-100"></textarea>
-                  <p v-else class="">
-                    {{ hrProfile.summary }}
-                  </p>
+                  <!-- <textarea v-if="elements.summaryEdit" v-model="hrProfile.summary" name="" id=""
+                    class="form-control h-100"></textarea> -->
+                  <div v-show="elements.summaryEdit">
+                    <editor v-model="hrProfile.summary" api-key="cef8afeordxmk3br8qxqww6h6sxtwvvu4hnmxsmc55740o0d"
+                      :init="editorInitObject" />
+                  </div>
+                  <p v-if="!elements.summaryEdit" class="" v-html="hrProfile.summary"></p>
+                  <!-- <p v-else class="" v-html="hrProfile.summary"></p> -->
                 </div>
               </div>
             </div>
@@ -1266,7 +1269,7 @@ const showProfileTitleEdit = () => {
                         <span class="icon-btn me-2" @click="updateProfileChildItems(docsEditData, 'docs')">
                           <font-awesome-icon icon="fa-solid fa-check" />
                         </span>
-                        <span class="icon-btn" @click="clearDocData(); refreshPageData();">
+                        <span class="icon-btn" @click="clearDocData(); getPageData();">
                           <font-awesome-icon icon="fa-solid fa-xmark" />
                         </span>
                       </template>
@@ -1316,6 +1319,11 @@ const showProfileTitleEdit = () => {
       </div>
     </template>
   </div>
+  <!-- <nav v-if="!isUserHrProfile" class="navbar navbar-expand-md justify-content-between px-2 bg-light">
+    <a class="navbar-brand app-logo" href="#">
+    </a>
+    <button type="button" class="btn btn-secondary" @click="$router.back()" aria-label="Close">Close</button>
+  </nav> -->
   <div class="modal fade" id="workExperienceAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div v-loading="isModalLoading" class="modal-content">
@@ -1560,7 +1568,7 @@ const showProfileTitleEdit = () => {
       </div>
     </div>
   </div>
-  <ResumePreviewModal :hrProfile="hrProfile" />
+  <ResumePreviewModal :hrProfile="hrProfile" :tenantSettings="tenant" />
   <AddHrProfileModal id="addHrProfileModal-hrProfile" ref="addHrProfileModalRef" @refreshParent="getHrProfileList" />
   <dialog-component id="removeProfileChildItem" :onYes="onYesProfileChildItemDelete" :returnParams="dialogParam"
     title="Delete Confirmation" :message="`Are you sure to delete ${deleteChildTitle} info?`" />
