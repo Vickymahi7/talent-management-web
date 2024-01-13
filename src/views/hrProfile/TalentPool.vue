@@ -171,5 +171,5 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
       </table>
     </div>
   </div>
-  <ResumePreviewModal :hrProfile="hrProfilePreviewData" />
+  <ResumePreviewModal :hrProfile="hrProfilePreviewData!" />
 </template>
