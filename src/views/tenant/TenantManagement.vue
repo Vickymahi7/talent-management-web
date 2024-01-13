@@ -280,7 +280,7 @@ const _hideModal = () => {
     </div>
   </div>
   <ModalComponent v-loading="isModalLoading" ref="tenantAddEditModalRef" title="New Tenant" @hide="clearData" hide-cancel
-    centered>
+    centered no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container">
         <form class="form-inline">

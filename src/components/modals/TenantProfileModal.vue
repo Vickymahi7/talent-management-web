@@ -135,7 +135,7 @@ const uploadTenantLogo = async (event: any) => {
 
 <template>
   <ModalComponent v-loading="isLoading" title="Tenant Profile" ref="tenentProfileModalref" size="modal-lg" centered
-    hide-footer>
+    hide-footer no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container profile-setting mb-5">
         <div v-if="!elements.editMode" class="row mb-2 text-end">

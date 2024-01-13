@@ -100,9 +100,6 @@ const inviteAdUsers = async () => {
 const _showModal = () => {
   inviteAdUserModalRef.value?.show();
 }
-const _hideModal = () => {
-  inviteAdUserModalRef.value?.hide();
-}
 
 defineExpose({ showModal: _showModal });
 

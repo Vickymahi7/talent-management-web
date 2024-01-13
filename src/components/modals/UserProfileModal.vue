@@ -170,7 +170,8 @@ defineExpose({ showModal: _showModal });
 </script>
 
 <template>
-  <ModalComponent v-loading="isLoading" title="My Account" ref="userProfileModal" size="modal-lg" centered hide-footer>
+  <ModalComponent v-loading="isLoading" title="My Account" ref="userProfileModal" size="modal-lg" centered hide-footer
+    no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container profile-setting">
         <div v-if="!elements.editMode" class="row mb-2 text-end">

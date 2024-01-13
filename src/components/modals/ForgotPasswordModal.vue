@@ -11,7 +11,6 @@ const toast = useToast();
 
 const forgotPasswordModal = ref(null as null | Modal);
 const isLoading = ref(false);
-const standardPrivilegeList = ref([] as any);
 const email_id = ref('');
 
 const validations = computed(() => {
@@ -45,42 +44,6 @@ const forgotPassword = async () => {
   }
 }
 
-
-const getStandardPrivilegeList = async (userId: number) => {
-  try {
-    isLoading.value = true;
-    const response: any = await axios.get('/standardprivilege/list/' + userId)
-    standardPrivilegeList.value = response.standardPrivilegeList;
-  } catch (error: any) {
-    toast.error(error.message);
-  }
-  finally {
-    isLoading.value = false;
-  }
-}
-
-const updateUserMenuPrivilege = async (item: any) => {
-  if (item.user_menu_privilege_id) {
-    try {
-      let data = {
-        user_menu_privilege_id: item.user_menu_privilege_id,
-        active: item.active,
-      }
-      isLoading.value = true;
-      const response: any = await axios.post('/usermenuprivilege/statechange', data)
-      if (response.status == HttpStatusCode.Ok) {
-        toast.success(response.message);
-        // bsModalHide();
-      }
-    } catch (error: any) {
-      toast.error(error.message);
-    }
-    finally {
-      isLoading.value = false;
-    }
-  }
-}
-
 const _showModal = () => {
   forgotPasswordModal.value?.show();
 }
@@ -89,7 +52,8 @@ defineExpose({ showModal: _showModal });
 </script>
 
 <template>
-  <ModalComponent v-loading="isLoading" title="Forgot Password ?" ref="forgotPasswordModal" hide-cancel>
+  <ModalComponent v-loading="isLoading" title="Forgot Password ?" ref="forgotPasswordModal" @hide="email_id = ''"
+    hide-cancel centered>
     <template #body>
       <div class="container">
         <div class="row">

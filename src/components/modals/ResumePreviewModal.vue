@@ -11,7 +11,7 @@ const props = defineProps({
 
 const emailId = computed(() => {
   let _emailId = props.hrProfile!.email_id;
-  if (props.tenantSettings!.is_official_contact_info) {
+  if (props.tenantSettings?.is_official_contact_info) {
     _emailId = props.tenantSettings!.tenant_email_id;
   }
   return _emailId;
@@ -19,7 +19,7 @@ const emailId = computed(() => {
 
 const phoneNumber = computed(() => {
   let _phone = props.hrProfile!.mobile;
-  if (props.tenantSettings!.is_official_contact_info) {
+  if (props.tenantSettings?.is_official_contact_info) {
     _phone = props.tenantSettings!.tenant_phone;
   }
   return _phone;

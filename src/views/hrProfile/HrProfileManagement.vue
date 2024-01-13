@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
 import InviteAdUsersModal from "@/components/modals/InviteAdUsersModal.vue";
-import ModalComponent from "@/components/modals/ModalComponent.vue";
 import axios from '@/plugins/axios';
 import type HrProfile from '@/types/HrProfile';
 import type { Skill } from "@/types/Skill";
@@ -25,12 +24,10 @@ const router = useRouter();
 
 const addHrProfileModalRef = ref(null as InstanceType<typeof AddHrProfileModal> | null);
 const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
-const hrProfileModalRef = ref(null as InstanceType<typeof ModalComponent> | null);
 const inviteAdUsersModalRef = ref(null as InstanceType<typeof InviteAdUsersModal> | null);
 
 const isLoading = ref(false);
 const isModalLoading = ref(false);
-const showHrProfileModal = ref(false);
 const showInviteUserModal = ref(false);
 const searchText = ref('');
 const status_id = ref([] as number[]);
@@ -283,7 +280,7 @@ function openHrProfileModal() {
         </thead>
         <tbody class="custom-tbody-style">
           <tr v-for="(hrProfileData, index) in hrProfileList" :key="hrProfileData.id"
-            @click="handleTableRowClick('hrProfileModal', hrProfileData.id!)">
+            @click="handleTableRowClick('hrProfileModal', hrProfileData.id!)" role="button">
             <td v-for="field in hrProfileFields" :key="field.key">
               <template v-if="field.key == 'select'">
                 <input class="form-check-input" type="checkbox">

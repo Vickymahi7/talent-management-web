@@ -20,7 +20,7 @@ import { email, helpers, required } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
 import { Modal } from 'bootstrap';
 import { computed, nextTick, onMounted, ref } from 'vue';
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { useToast } from 'vue-toastification';
 const props = defineProps({
   id: String
@@ -28,12 +28,14 @@ const props = defineProps({
 const toast = useToast();
 const commonFunctions = useCommonFunctions();
 const route = useRoute();
-const router = useRouter();
 
 const editorInitObject = {
   selector: 'textarea',
   menubar: false,
   statusbar: false,
+  skin: (document.documentElement.dataset.bsTheme === "dark" ? 'oxide-dark' : 'oxide'),
+  content_css: (document.documentElement.dataset.bsTheme === "dark" ? 'dark' : 'default'),
+  height: 220,
   paste_as_text: true,
   plugins: 'paste, lists',
   toolbar: 'bold italic | bullist numlist',
@@ -364,6 +366,7 @@ const editDoc = (document: Docs) => {
   docsEditData.value = document;
 };
 const clearWorkExperienceData = () => {
+  elements.value.tabItemEdit = false;
   workExperienceData.value.company = '';
   workExperienceData.value.position = '';
   workExperienceData.value.location = '';
@@ -372,6 +375,7 @@ const clearWorkExperienceData = () => {
   workExperienceData.value.description = '';
 };
 const clearEducationData = () => {
+  elements.value.tabItemEdit = false;
   educationData.value.degree = '';
   educationData.value.major = '';
   educationData.value.university = '';
@@ -380,6 +384,7 @@ const clearEducationData = () => {
   educationData.value.end_date = null;
 };
 const clearProjectData = () => {
+  elements.value.tabItemEdit = false;
   projectData.value.title = '';
   projectData.value.start_date = null;
   projectData.value.end_date = null;
@@ -654,7 +659,7 @@ const showProfileTitleEdit = () => {
         <label class="d-inline-block me-2">Profile - {{ hrProfile.profile_title }} </label>
         <font-awesome-icon icon="fa-solid fa-pencil-alt" @click="showProfileTitleEdit" />
       </span>
-      <div class="d-flex">
+      <div v-if="isUserHrProfile" class="d-flex">
         <div v-if="profileCount > 1" class="dropdown">
           <span class="badge bg-primary hide-caret dropdown-toggle me-3" role="button" id="dropdownMenuProfileSwitch"
             data-bs-toggle="dropdown" aria-expanded="false">
@@ -1319,76 +1324,6 @@ const showProfileTitleEdit = () => {
       </div>
     </template>
   </div>
-  <!-- <nav v-if="!isUserHrProfile" class="navbar navbar-expand-md justify-content-between px-2 bg-light">
-    <a class="navbar-brand app-logo" href="#">
-    </a>
-    <button type="button" class="btn btn-secondary" @click="$router.back()" aria-label="Close">Close</button>
-  </nav> -->
-  <div class="modal fade" id="workExperienceAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div v-loading="isModalLoading" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalLabel">{{ elements.tabItemEdit ? 'Edit' : 'Add' }} Work Experience</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="container">
-            <form class="form-inline">
-              <div class="row">
-                <div class="col-12">
-                  <div class="form-floating mb-1">
-                    <input type="text" v-model="workExperienceData.company"
-                      class="form-control border-top-0 border-end-0 border-start-0" id="company" placeholder="">
-                    <label for="company">Company</label>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="form-floating mb-1">
-                    <input type="text" v-model="workExperienceData.location"
-                      class="form-control border-top-0 border-end-0 border-start-0" id="location" placeholder="">
-                    <label for="location">Location</label>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="form-floating mb-1">
-                    <input type="text" v-model="workExperienceData.position"
-                      class="form-control border-top-0 border-end-0 border-start-0" id="position" placeholder="">
-                    <label for="position">Position</label>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="form-floating mb-1">
-                    <input type="date" v-model="workExperienceData.start_date"
-                      class="form-control border-top-0 border-end-0 border-start-0" id="start_date" placeholder="">
-                    <label for="start_date">Start Date</label>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="form-floating mb-1">
-                    <input type="date" v-model="workExperienceData.end_date"
-                      class="form-control border-top-0 border-end-0 border-start-0" id="end_date" placeholder="">
-                    <label for="end_date">End Date</label>
-                  </div>
-                </div>
-                <div class="col-12">
-                  <div class="form-group mt-2">
-                    <label for="description">Responsibilities</label>
-                    <editor v-model="workExperienceData.description"
-                      class="form-control border-top-0 border-end-0 border-start-0" id="description"
-                      api-key="cef8afeordxmk3br8qxqww6h6sxtwvvu4hnmxsmc55740o0d" :init="editorInitObject" />
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" @click="updateProfileChildItems(workExperienceData, 'work_experience')"
-            class="btn btn-primary">Save</button>
-        </div>
-      </div>
-    </div>
-  </div>
   <!-- <div class="modal fade" id="workExperienceAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div v-loading="isModalLoading" class="modal-content">
@@ -1396,178 +1331,183 @@ const showProfileTitleEdit = () => {
           <h5 class="modal-title" id="modalLabel">{{ elements.tabItemEdit ? 'Edit' : 'Add' }} Work Experience</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <div class="container">
-            <form class="form-inline">
-              <div class="row">
-                <label for="company" class="col-sm-4 col-form-label">Company</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="workExperienceData.company" id="company"
-                    placeholder="Enter Company Name">
-                </div>
+        <div class="modal-body"> -->
+
+  <ModalComponent id="workExperienceAddEditModal" v-loading="isModalLoading" ref="addHrProfileModalRef"
+    :title="`${elements.tabItemEdit ? 'Edit' : 'Add'} Work Experience`" @hide="clearWorkExperienceData(); getPageData();"
+    hide-cancel centered no-close-on-backdrop no-close-on-esc>
+    <template #body>
+      <div class="container">
+        <form class="form-inline">
+          <div class="row">
+            <div class="col-12">
+              <div class="form-floating mb-1">
+                <input type="text" v-model="workExperienceData.company"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="company" placeholder="">
+                <label for="company">Company</label>
               </div>
-              <div class="row">
-                <label for="position" class="col-sm-4 col-form-label">Position</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="workExperienceData.position" id="position"
-                    placeholder="Enter Position">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="text" v-model="workExperienceData.location"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="location" placeholder="">
+                <label for="location">Location</label>
               </div>
-              <div class="row">
-                <label for="location" class="col-sm-4 col-form-label">Location</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="workExperienceData.location" id="location"
-                    placeholder="Enter Location">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="text" v-model="workExperienceData.position"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="position" placeholder="">
+                <label for="position">Position</label>
               </div>
-              <div class="row">
-                <label for="start_date" class="col-sm-4 col-form-label">Start Date</label>
-                <div class="col-sm-8">
-                  <input type="date" class="form-control" v-model="workExperienceData.start_date" id="start_date">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="date" v-model="workExperienceData.start_date"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="start_date" placeholder="">
+                <label for="start_date">Start Date</label>
               </div>
-              <div class="row">
-                <label for="end_date" class="col-sm-4 col-form-label">End Date</label>
-                <div class="col-sm-8">
-                  <input type="date" class="form-control" v-model="workExperienceData.end_date" id="end_date">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="date" v-model="workExperienceData.end_date"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="end_date" placeholder="">
+                <label for="end_date">End Date</label>
               </div>
-              <div class="row">
-                <label for="description" class="col-sm-4 col-form-label align-self-start">Responsibilities</label>
-                <div class="col-sm-8">
-                  <editor api-key="cef8afeordxmk3br8qxqww6h6sxtwvvu4hnmxsmc55740o0d" :init="editorInitObject" />
-                </div>
+            </div>
+            <div class="col-12">
+              <div class="form-group mt-2">
+                <label for="description">Responsibilities</label>
+                <editor v-model="workExperienceData.description"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="description"
+                  api-key="cef8afeordxmk3br8qxqww6h6sxtwvvu4hnmxsmc55740o0d" :init="editorInitObject" />
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" @click="updateProfileChildItems(workExperienceData, 'work_experience')"
-            class="btn btn-primary">Save</button>
-        </div>
+        </form>
       </div>
-    </div>
-  </div> -->
-  <div class="modal fade" id="educationAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div v-loading="isModalLoading" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalLabel">{{ elements.tabItemEdit ? 'Edit' : 'Add' }} Education</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="container">
-            <form class="form-inline">
-              <div class="row">
-                <label for="university" class="col-sm-4 col-form-label">School / College</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="educationData.university" id="university"
-                    placeholder="Enter School / College Name">
-                </div>
+    </template>
+    <template #footer>
+      <button class="btn btn-primary"
+        @click="updateProfileChildItems(workExperienceData, 'work_experience')">Save</button>
+    </template>
+  </ModalComponent>
+
+  <ModalComponent id="educationAddEditModal" v-loading="isModalLoading" ref="addHrProfileModalRef"
+    :title="`${elements.tabItemEdit ? 'Edit' : 'Add'} Education`" @hide="clearEducationData(); getPageData();" hide-cancel
+    centered no-close-on-backdrop no-close-on-esc>
+    <template #body>
+      <div class="container">
+        <form class="form-inline">
+          <div class="row">
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="text" v-model="educationData.university"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="university" placeholder="">
+                <label for="university">School / College</label>
               </div>
-              <div class="row">
-                <label for="location" class="col-sm-4 col-form-label">Location</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="educationData.location" id="location"
-                    placeholder="Enter Location">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="text" v-model="educationData.location"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="location" placeholder="">
+                <label for="location">Location</label>
               </div>
-              <div class="row">
-                <label for="degree" class="col-sm-4 col-form-label">Degree</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="educationData.degree" id="degree"
-                    placeholder="Enter Degree">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="text" v-model="educationData.degree"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="degree" placeholder="">
+                <label for="degree">Degree</label>
               </div>
-              <div class="row">
-                <label for="major" class="col-sm-4 col-form-label">Field of Study</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="educationData.major" id="major"
-                    placeholder="Enter Field of Study">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="text" v-model="educationData.major"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="major" placeholder="">
+                <label for="major">Field of Study</label>
               </div>
-              <div class="row">
-                <label for="start_date" class="col-sm-4 col-form-label">Start Date</label>
-                <div class="col-sm-8">
-                  <input type="date" class="form-control" v-model="educationData.start_date" id="start_date">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="date" v-model="educationData.start_date"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="start_date" placeholder="">
+                <label for="start_date">Start Date</label>
               </div>
-              <div class="row">
-                <label for="end_date" class="col-sm-4 col-form-label">End Date</label>
-                <div class="col-sm-8">
-                  <input type="date" class="form-control" v-model="educationData.end_date" id="end_date">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="date" v-model="educationData.end_date"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="end_date" placeholder="">
+                <label for="end_date">End Date</label>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" @click="updateProfileChildItems(educationData, 'education')"
-            class="btn btn-primary">Save</button>
-        </div>
+        </form>
       </div>
-    </div>
-  </div>
-  <div class="modal fade" id="projectAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div v-loading="isModalLoading" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalLabel">{{ elements.tabItemEdit ? 'Edit' : 'Add' }} Project</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="container">
-            <form class="form-inline">
-              <div class="row">
-                <label for="title" class="col-sm-4 col-form-label">Project Title</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="projectData.title" id="title"
-                    placeholder="Enter Project Title">
-                </div>
+    </template>
+    <template #footer>
+      <button class="btn btn-primary" @click="updateProfileChildItems(educationData, 'education')">Save</button>
+    </template>
+  </ModalComponent>
+
+  <ModalComponent id="projectAddEditModal" v-loading="isModalLoading" ref="addHrProfileModalRef"
+    :title="`${elements.tabItemEdit ? 'Edit' : 'Add'} Project`" @hide="clearProjectData(); getPageData();" hide-cancel
+    centered no-close-on-backdrop no-close-on-esc>
+    <template #body>
+      <div class="container">
+        <form class="form-inline">
+          <div class="row">
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="text" v-model="projectData.title"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="title" placeholder="">
+                <label for="title">Project Title</label>
               </div>
-              <div class="row">
-                <label for="client" class="col-sm-4 col-form-label">Client</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="projectData.client" id="client"
-                    placeholder="Enter Client Name">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="text" v-model="projectData.client"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="client" placeholder="">
+                <label for="client">Client</label>
               </div>
-              <div class="row">
-                <label for="start_date" class="col-sm-4 col-form-label">Start Date</label>
-                <div class="col-sm-8">
-                  <input type="date" class="form-control" v-model="projectData.start_date" id="start_date">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="date" v-model="projectData.start_date"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="start_date" placeholder="">
+                <label for="start_date">Start Date</label>
               </div>
-              <div class="row">
-                <label for="end_date" class="col-sm-4 col-form-label">End Date</label>
-                <div class="col-sm-8">
-                  <input type="date" class="form-control" v-model="projectData.end_date" id="end_date">
-                </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating mb-1">
+                <input type="date" v-model="projectData.end_date"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="end_date" placeholder="">
+                <label for="end_date">End Date</label>
               </div>
-              <div class="row">
-                <label for="technology" class="col-sm-4 col-form-label">Technologies</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" v-model="projectData.technology" id="technology"
-                    placeholder="Enter Technologies used">
-                </div>
+            </div>
+            <div class="col-12">
+              <div class="form-floating mb-1">
+                <input type="text" v-model="projectData.technology"
+                  class="form-control border-top-0 border-end-0 border-start-0" id="technology" placeholder="">
+                <label for="technology">Technologies</label>
               </div>
-              <div class="row">
-                <label for="description" class="col-sm-4 col-form-label">Responsibilities</label>
-                <div class="col-sm-8">
-                  <textarea class="form-control" v-model="projectData.description" rows="5" id="description"
-                    placeholder="Enter Responsibilities"></textarea>
-                </div>
+            </div>
+            <div class="col-12">
+              <div class="form-group mt-2">
+                <label for="description">Responsibilities</label>
+                <editor v-model="projectData.description" api-key="cef8afeordxmk3br8qxqww6h6sxtwvvu4hnmxsmc55740o0d"
+                  :init="editorInitObject" placeholder="Enter Responsibilities" />
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" @click="updateProfileChildItems(projectData, 'project')"
-            class="btn btn-primary">Save</button>
-        </div>
+        </form>
       </div>
-    </div>
-  </div>
+    </template>
+    <template #footer>
+      <button class="btn btn-primary" @click="updateProfileChildItems(projectData, 'project')">Save</button>
+    </template>
+  </ModalComponent>
   <ResumePreviewModal :hrProfile="hrProfile" :tenantSettings="tenant" />
   <AddHrProfileModal id="addHrProfileModal-hrProfile" ref="addHrProfileModalRef" @refreshParent="getHrProfileList" />
   <dialog-component id="removeProfileChildItem" :onYes="onYesProfileChildItemDelete" :returnParams="dialogParam"
@@ -1581,4 +1521,8 @@ const showProfileTitleEdit = () => {
   <dialog-component id="duplicateProfileConfirmation" :onYes="onYesDuplicateProfile" title="Create Duplicate Profile"
     message="Are you sure you want to create a copy of this profile?" />
 </template>
-@/composables/useCommonFunctions
+<style lang="scss">
+.mce-content-body {
+  background: #df2c2c
+}
+</style>
