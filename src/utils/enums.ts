@@ -25,3 +25,9 @@ export enum AccountStatusId {
   BLO = 3,
   SUS = 4,
 }
+
+export enum ProfileStatus {
+  DRAFT = 1,
+  PREPARED = 2,
+  VERIFIED = 3,
+}

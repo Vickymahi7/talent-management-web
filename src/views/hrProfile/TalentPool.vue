@@ -5,6 +5,7 @@ import type HrProfile from '@/types/HrProfile'
 import type { Skill } from '@/types/Skill'
 import { PROFILE_STATUS } from '@/utils/constants'
 import { formatDateTime } from '@/utils/dateFormats'
+import { ProfileStatus } from '@/utils/enums'
 import { useCommonFunctions } from '@/utils/useCommonFunctions'
 import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
@@ -21,7 +22,7 @@ const hrProfileList = ref([] as HrProfile[]);
 
 const totalRows = ref(1);
 const currentPage = ref(1);
-const perPage = ref(10);
+const perPage = ref(15);
 
 const hrProfileFields = [
   { key: 'index', label: 'SN' },
@@ -36,6 +37,10 @@ const hrProfileFields = [
 
 const pageStart = computed(() => {
   return (currentPage.value - 1) * perPage.value;
+});
+
+const filteredProfileStatus = computed(() => {
+  return PROFILE_STATUS.filter(data => data.id != ProfileStatus.DRAFT);
 });
 
 // watch: {
@@ -63,7 +68,7 @@ const getHrProfileList = async () => {
       start: pageStart.value,
     };
     isLoading.value = true;
-    const response: any = await axios.get('/hrprofile/list', { params: queryParams });
+    const response: any = await axios.get('/hrprofile/talentpool/list', { params: queryParams });
     hrProfileList.value = hrProfileList.value.concat(response.hrProfileList);
     totalRows.value = response.total;
     currentPage.value = response.total > perPage.value ? currentPage.value : 1;
@@ -112,7 +117,7 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
             id="inlineRadioStatusAll" :value="null" @change="getHrProfileList">
           <label class="form-check-label" for="inlineRadioStatusAll">All</label>
         </div> -->
-        <div v-for="status in PROFILE_STATUS" :key="status.id" class="form-check form-check-inline mb-0">
+        <div v-for="status in filteredProfileStatus" :key="status.id" class="form-check form-check-inline mb-0">
           <input class="form-check-input" v-model="status_id" type="checkbox" :id="'inlineRadio' + status.id"
             :value="status.id" @change="getUpdatedHrProfileList">
           <label class="form-check-label" :for="'inlineRadio' + status.id">{{ status.status }}</label>

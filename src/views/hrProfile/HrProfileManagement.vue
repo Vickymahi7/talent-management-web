@@ -51,7 +51,7 @@ const hrProfileFields = [
 
 const totalRows = ref(1);
 const currentPage = ref(1);
-const perPage = ref(10);
+const perPage = ref(15);
 
 const dialogParam = ref({
   id: null as string | number | null,

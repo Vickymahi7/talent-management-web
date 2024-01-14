@@ -12,7 +12,7 @@ import type { Tenant } from "@/types/Tenant";
 import type { WorkExperience } from '@/types/WorkExperience';
 import { PROFILE_STATUS } from '@/utils/constants';
 import { formatDate, formatDateTime } from '@/utils/dateFormats';
-import { UserTypeId } from '@/utils/enums';
+import { ProfileStatus, UserTypeId } from '@/utils/enums';
 import { useCommonFunctions } from '@/utils/useCommonFunctions';
 import Editor from '@tinymce/tinymce-vue';
 import { useVuelidate } from '@vuelidate/core';
@@ -121,6 +121,19 @@ const v$ = useVuelidate(validations, { hrProfile });
 
 const isEmptyProfile = computed(() => {
   return !(profileCount.value > 0) && !props.id;
+})
+
+const isProfileVerified = computed(() => {
+  return hrProfile.value.status_id === ProfileStatus.VERIFIED;
+})
+
+const profileStatus = computed(() => {
+  if (userTypeId.value != UserTypeId.USR) {
+    return PROFILE_STATUS.filter(data => data.id != ProfileStatus.VERIFIED);
+  }
+  else {
+    return PROFILE_STATUS;
+  }
 })
 
 const officialEmailId = computed(() => {
@@ -657,7 +670,7 @@ const showProfileTitleEdit = () => {
     <div v-if="!elements.titleEdit" class="content-card content-header">
       <span>
         <label class="d-inline-block me-2">Profile - {{ hrProfile.profile_title }} </label>
-        <font-awesome-icon icon="fa-solid fa-pencil-alt" @click="showProfileTitleEdit" />
+        <font-awesome-icon v-if="!isProfileVerified" icon="fa-solid fa-pencil-alt" @click="showProfileTitleEdit" />
       </span>
       <div v-if="isUserHrProfile" class="d-flex">
         <div v-if="profileCount > 1" class="dropdown">
@@ -722,7 +735,7 @@ const showProfileTitleEdit = () => {
                 <font-awesome-icon icon="fa-solid fa-check" />
               </span>
             </span>
-            <span v-else class="icon-btn float-end" @click="elements.nameEdit = true">
+            <span v-if="!isProfileVerified" class="icon-btn float-end" @click="elements.nameEdit = true">
               <font-awesome-icon icon="fa-solid fa-pencil-alt" />
             </span>
           </div>
@@ -731,7 +744,8 @@ const showProfileTitleEdit = () => {
               width="150" height="150" />
             <img v-else class="profile-picture" src="@/assets/img/user-icon.jpg" alt="Profile Picture" width="150"
               height="150" />
-            <span class="icon-btn upload-icon" @click="commonFunctions.fileUploadBtnClick('profileUploadInput')">
+            <span v-if="!isProfileVerified" class="icon-btn upload-icon"
+              @click="commonFunctions.fileUploadBtnClick('profileUploadInput')">
               <font-awesome-icon icon="fa-solid fa-camera" />
               <input type="file" id="profileUploadInput" class="icon-upload-input" @input="uploadProfilePhoto($event)"
                 placeholder="Choose Photo">
@@ -761,7 +775,8 @@ const showProfileTitleEdit = () => {
                   <font-awesome-icon icon="fa-solid fa-check" />
                 </span>
               </span>
-              <span v-else class="icon-btn float-end" @click="elements.primaryInfoEdit = true">
+              <span v-else-if="!elements.primaryInfoEdit && userTypeId != UserTypeId.USR" class="icon-btn float-end"
+                @click="elements.primaryInfoEdit = true">
                 <font-awesome-icon icon="fa-solid fa-pencil-alt" />
               </span>
             </h6>
@@ -769,7 +784,7 @@ const showProfileTitleEdit = () => {
               <div class="profile-container">
                 <div class="profile-item-container">
                   <p class="label-text">Years of Experience</p>
-                  <div v-if="elements.primaryInfoEdit" class="input-group input-group-sm">
+                  <div v-if="elements.primaryInfoEdit && !isProfileVerified" class="input-group input-group-sm">
                     <input type="text" v-model="hrProfile.experience_year" class="form-control form-control-sm"
                       placeholder="Enter Year" aria-label="experience_year">
                     <span class="input-group-text">years</span>
@@ -784,14 +799,14 @@ const showProfileTitleEdit = () => {
                 </div>
                 <div class="profile-item-container">
                   <p class="label-text">CTC</p>
-                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.ctc">
+                  <input v-if="elements.primaryInfoEdit && !isProfileVerified" type="text"
+                    class="form-control form-control-sm" v-model="hrProfile.ctc">
                   <p v-else>{{ hrProfile.ctc }}</p>
                 </div>
                 <div class="profile-item-container">
                   <p class="label-text">Preferred Location</p>
-                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.location">
+                  <input v-if="elements.primaryInfoEdit && !isProfileVerified" type="text"
+                    class="form-control form-control-sm" v-model="hrProfile.location">
                   <p v-else>{{ hrProfile.location }}</p>
                 </div>
                 <div class="profile-item-container">
@@ -800,8 +815,8 @@ const showProfileTitleEdit = () => {
                       <font-awesome-icon icon="fa-brands fa-linkedin" />
                     </span>
                   </span>
-                  <input v-if="elements.primaryInfoEdit" type="text" class="form-control form-control-sm"
-                    v-model="hrProfile.linkedin_id">
+                  <input v-if="elements.primaryInfoEdit && !isProfileVerified" type="text"
+                    class="form-control form-control-sm" v-model="hrProfile.linkedin_id">
                   <p v-else>
                     {{ hrProfile.linkedin_id }}
                   </p>
@@ -820,13 +835,13 @@ const showProfileTitleEdit = () => {
                       <a :href="hrProfile.resume_url" target="_blank" class="btn btn-primary ms-2 br-0" type="button">
                         Show
                       </a>
-                      <a href="#" class="btn btn-primary ms-2 br-0" type="button"
+                      <a v-if="!isProfileVerified" href="#" class="btn btn-primary ms-2 br-0" type="button"
                         @click.prevent="deleteHrProfileResume(hrProfile.id!)" data-bs-toggle="modal"
                         data-bs-target="#deleteHrProfileResume">
                         Remove
                       </a>
                     </template>
-                    <button v-else @click="commonFunctions.fileUploadBtnClick('resume-input')"
+                    <button v-else-if="!isProfileVerified" @click="commonFunctions.fileUploadBtnClick('resume-input')"
                       class="btn btn-primary br-0" type="button">
                       Upload
                       <input type="file" id="resume-input" class="icon-upload-input" @input="uploadResume"
@@ -838,10 +853,10 @@ const showProfileTitleEdit = () => {
               <div class="profile-container">
                 <div class="profile-item-container">
                   <p class="label-text">Profile Status</p>
-                  <select v-if="elements.primaryInfoEdit && userTypeId != UserTypeId.USR"
-                    class="form-select form-control-sm" v-model="hrProfile.status_id" aria-label="Profile Status">
+                  <select v-if="elements.primaryInfoEdit" class="form-select form-control-sm"
+                    v-model="hrProfile.status_id" aria-label="Profile Status">
                     <option value="">Select</option>
-                    <option v-for="status in PROFILE_STATUS" :key="status.id" :value="status.id">{{ status.status }}
+                    <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}
                     </option>
                   </select>
                   <p v-else>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</p>
@@ -885,7 +900,8 @@ const showProfileTitleEdit = () => {
                   <font-awesome-icon icon="fa-solid fa-check" />
                 </span>
               </span>
-              <span v-else class="icon-btn float-end" @click="elements.aboutInfoEdit = true">
+              <span v-if="!isProfileVerified && !elements.aboutInfoEdit" class="icon-btn float-end"
+                @click="elements.aboutInfoEdit = true">
                 <font-awesome-icon icon="fa-solid fa-pencil-alt" />
               </span>
             </h6>
@@ -906,7 +922,7 @@ const showProfileTitleEdit = () => {
                   <font-awesome-icon icon="fa-solid fa-xmark" />
                 </span>
               </span>
-              <span v-else class="float-end">
+              <span v-if="!isProfileVerified && !elements.skillEdit" class="float-end">
                 <span class="icon-btn" @click="elements.skillEdit = true; skillData = {}">
                   <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                 </span>
@@ -957,7 +973,7 @@ const showProfileTitleEdit = () => {
                   <font-awesome-icon icon="fa-solid fa-xmark" />
                 </span>
               </span>
-              <span v-else class="float-end">
+              <span v-if="!isProfileVerified && !elements.noteEdit" class="float-end">
                 <span class="icon-btn" @click="elements.noteEdit = true">
                   <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                 </span>
@@ -1008,7 +1024,8 @@ const showProfileTitleEdit = () => {
                       <font-awesome-icon icon="fa-solid fa-xmark" />
                     </span>
                   </span>
-                  <span v-else class="icon-btn" @click="elements.summaryEdit = true">
+                  <span v-if="!isProfileVerified && !elements.summaryEdit" class="icon-btn"
+                    @click="elements.summaryEdit = true">
                     <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                   </span>
                 </div>
@@ -1052,7 +1069,7 @@ const showProfileTitleEdit = () => {
                         </a>
                       </p>
                     </div>
-                    <div class="text-nowrap text-end ms-2">
+                    <div v-if="!isProfileVerified" class="text-nowrap text-end ms-2">
                       <span class="icon-btn me-2"
                         @click="showProfileChildItemEdit('work_experience', workExperience, 'workExperienceAddEditModal')">
                         <font-awesome-icon icon="fa-solid fa-pencil-alt" />
@@ -1068,7 +1085,7 @@ const showProfileTitleEdit = () => {
                   <p>No record found</p>
                 </div>
                 <div class="py-3">
-                  <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
+                  <button v-if="!isProfileVerified" class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
                     data-bs-target="#workExperienceAddEditModal"
                     @click="modalId = 'workExperienceAddEditModal'; elements.modalEdit = true;">
                     Add Work Experience
@@ -1096,8 +1113,8 @@ const showProfileTitleEdit = () => {
                       </p>
                     </div>
                     <div class="text-end">
-                      <span class="icon-btn me-2"
-                        @click="showProfileChildItemEdit('education', education, 'educationAddEditModal')">
+                      <span v-if="!isProfileVerified" class="icon-btn me-2"
+                        @click="showProfileChildItemEdit('education', education, 'educationAddEditModal');">
                         <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                       </span>
                       <span class="icon-btn" @click="removeProfileChildItem('education', education)">
@@ -1109,7 +1126,7 @@ const showProfileTitleEdit = () => {
                 <div v-else class="list-item">
                   <p>No record found</p>
                 </div>
-                <div class="py-3">
+                <div v-if="!isProfileVerified" class="py-3">
                   <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
                     data-bs-target="#educationAddEditModal"
                     @click="modalId = 'educationAddEditModal'; elements.modalEdit = true">
@@ -1144,7 +1161,7 @@ const showProfileTitleEdit = () => {
                         <!-- </div> -->
                       </div>
                     </div>
-                    <div class="text-nowrap text-end ms-2">
+                    <div v-if="!isProfileVerified" class="text-nowrap text-end ms-2">
                       <span class="icon-btn me-2"
                         @click="showProfileChildItemEdit('project', project, 'projectAddEditModal')">
                         <font-awesome-icon icon="fa-solid fa-pencil-alt" />
@@ -1158,7 +1175,7 @@ const showProfileTitleEdit = () => {
                 <div v-else class="list-item">
                   <p>No Projects found</p>
                 </div>
-                <div class="py-3">
+                <div v-if="!isProfileVerified" class="py-3">
                   <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
                     data-bs-target="#projectAddEditModal"
                     @click="modalId = 'projectAddEditModal'; elements.modalEdit = true">
@@ -1177,7 +1194,7 @@ const showProfileTitleEdit = () => {
                     <font-awesome-icon icon="fa-solid fa-xmark" />
                   </span>
                 </span>
-                <span v-else class="icon-btn" @click="elements.personalInfoEdit = true">
+                <span v-if="!isProfileVerified" class="icon-btn" @click="elements.personalInfoEdit = true">
                   <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                 </span>
               </div>
@@ -1279,7 +1296,7 @@ const showProfileTitleEdit = () => {
                         </span>
                       </template>
                       <template v-else>
-                        <span class="icon-btn me-2" @click="editDoc(document)">
+                        <span v-if="!isProfileVerified" class="icon-btn me-2" @click="editDoc(document)">
                           <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                         </span>
                         <span class="icon-btn" @click.prevent="deleteHrProfileDoc(document.id!, document)"
@@ -1312,10 +1329,12 @@ const showProfileTitleEdit = () => {
                       </button>
                     </div>
                   </div>
-                  <button v-if="!elements.tabItemEdit" class="btn btn-primary br-0" type="button"
-                    @click="elements.tabItemEdit = true">
-                    Add Document
-                  </button>
+                  <template v-if="!isProfileVerified">
+                    <button v-if="!elements.tabItemEdit" class="btn btn-primary br-0" type="button"
+                      @click="elements.tabItemEdit = true">
+                      Add Document
+                    </button>
+                  </template>
                 </div>
               </div>
             </div>

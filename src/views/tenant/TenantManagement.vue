@@ -22,7 +22,7 @@ const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
 const tenantAddEditModalRef = ref(null as null | Modal);
 
 const isPageEnd = ref(false);
-const perPage = ref(10);
+const perPage = ref(15);
 const lastRecordKey = ref(null);
 const tenant = ref({} as Tenant);
 
