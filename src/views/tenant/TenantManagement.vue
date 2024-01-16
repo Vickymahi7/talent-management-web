@@ -180,6 +180,26 @@ const onYesTenant = async () => {
   }
 };
 
+const resendActivationMail = (id: number) => {
+  dialogParam.value.id = id;
+}
+const onYesConfirmation = async () => {
+  try {
+    isLoading.value = true;
+    const response: any = await axios.post('/user/resendactivation/' + dialogParam.value.id)
+    if (response.status == HttpStatusCode.Ok) {
+      toast.success(response.message);
+      getUpdatedTenantList();
+    }
+
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+}
+
 const handleScroll = (refName: string, isNotLoading: boolean, callback: Function) => {
   // Trigger fetchData when scrolling near the bottom of the container
   if (scrollerRef.value && scrollerRef.value.scrollTop + scrollerRef.value.clientHeight >= scrollerRef.value.scrollHeight - 20 && isNotLoading && !isPageEnd.value) {
@@ -257,6 +277,11 @@ const _hideModal = () => {
                   </span>
                 </template>
                 <template v-else>
+                  <div v-if="!tenant.user?.active" class="icon-btn me-2"
+                    @click="resendActivationMail(tenant.user?.user_id!)" title="Resend Activation Mail"
+                    data-bs-toggle="modal" data-bs-target="#resendConfirmation">
+                    <font-awesome-icon icon="fa-solid fa-share-from-square" />
+                  </div>
                   <div class="icon-btn me-2" @click="handleTableCellClick(tenant)" title="Edit Tenant">
                     <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                   </div>
@@ -358,4 +383,6 @@ const _hideModal = () => {
   </ModalComponent>
   <dialog-component id="deleteTenant" :onYes="onYesTenant" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete tenant?" />
+  <dialog-component id="resendConfirmation" :onYes="onYesConfirmation" :returnParams="dialogParam"
+    title="Mail Resend Confirmation" message="Are you sure to resend activation mail?" />
 </template>

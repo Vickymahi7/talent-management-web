@@ -13,6 +13,7 @@ import { email, helpers, required } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
 import type { Modal } from 'bootstrap';
 import { computed, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
 defineProps({
   id: { type: String, default: 'addHrProfileModal' },
@@ -20,6 +21,7 @@ defineProps({
 const emit = defineEmits(['refreshParent']);
 
 const commonFunctions = useCommonFunctions();
+const route = useRoute();
 
 const addHrProfileModalRef = ref(null as null | Modal);
 
@@ -84,7 +86,7 @@ const hrProfile = ref({
   skype_id: '',
   status: '',
   status_id: null,
-  user_id: '',
+  user_id: null,
   active: true,
   created_by_id: '',
   created_dt: null,
@@ -131,6 +133,8 @@ const addHrProfile = async () => {
     v$.value.hrProfile.$touch();
     if (!v$.value.hrProfile.$invalid) {
       isModalLoading.value = true;
+      hrProfile.value.is_current_user = route.name == 'userhrprofile';
+
       const response: any = await axios.post('/hrprofile/add', hrProfile.value);
 
       if (response.status == HttpStatusCode.Created) {

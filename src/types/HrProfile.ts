@@ -44,8 +44,9 @@ export default interface HrProfile {
   skype_id?: string;
   status?: string;
   status_id?: number | null;
-  user_id?: string;
-  active?: true;
+  user_id?: number | null;
+  is_current_user?: boolean;
+  active?: boolean;
   created_by_id?: string;
   created_dt?: Date | null;
   last_updated_dt?: Date | null;

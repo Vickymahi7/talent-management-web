@@ -181,7 +181,7 @@ defineExpose({ showModal: _showModal });
           </div>
         </div>
         <div class="row gy-5">
-          <div class="col-4">
+          <div class="col-md-12 col-lg-4">
             <div class="card shadow-sm p-3">
               <div class="p-2 mb-2 d-block position-relative">
                 <!-- <img class="d-block rounded-circle mx-auto" src="@/assets/img/user-icon.jpg" alt="" width="100"
@@ -213,7 +213,7 @@ defineExpose({ showModal: _showModal });
               </div>
             </div>
           </div>
-          <div class="col-8">
+          <div class="col-md-12 col-lg-8">
             <div class="card shadow-sm p-3">
               <form v-if="elements.editMode">
                 <div class="row g-3 align-items-center">

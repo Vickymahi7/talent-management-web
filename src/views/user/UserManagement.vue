@@ -1,23 +1,30 @@
 <script lang="ts" setup>
-import UserPrivilegeModal from '@/components/modals/UserPrivilegeModal.vue'
-import axios from '@/plugins/axios'
-import type { User } from '@/types/User'
-import { ACCOUNT_STATUS, USER_TYPES } from '@/utils/constants'
-import { formatDateTime } from '@/utils/dateFormats'
-import { UserTypeId } from '@/utils/enums'
-import { useCommonFunctions } from '@/utils/useCommonFunctions'
-import { useVuelidate } from '@vuelidate/core'
-import { email, helpers, required } from '@vuelidate/validators'
-import { HttpStatusCode } from 'axios'
-import type { Modal } from 'bootstrap'
-import { computed, onMounted, ref } from 'vue'
-import { useToast } from 'vue-toastification'
+import InviteAdUsersModal from "@/components/modals/InviteAdUsersModal.vue";
+import UserPrivilegeModal from '@/components/modals/UserPrivilegeModal.vue';
+import { useMsal } from '@/composables/useMsal';
+import axios from '@/plugins/axios';
+import type { User } from '@/types/User';
+import { ACCOUNT_STATUS, USER_TYPES } from '@/utils/constants';
+import { formatDateTime } from '@/utils/dateFormats';
+import { UserTypeId } from '@/utils/enums';
+import { useCommonFunctions } from '@/utils/useCommonFunctions';
+import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser';
+import { useVuelidate } from '@vuelidate/core';
+import { email, helpers, required } from '@vuelidate/validators';
+import { HttpStatusCode } from 'axios';
+import type { Modal } from 'bootstrap';
+import { computed, nextTick, onMounted, ref } from 'vue';
+import { useToast } from 'vue-toastification';
+import { loginRequest } from "../../utils/authConfig";
+
 const toast = useToast();
 const commonFunctions = useCommonFunctions();
+const instance = useMsal().instance;
 
 const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilegeModal> | null);
 const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
 const userAddEditModalRef = ref(null as null | Modal);
+const inviteAdUsersModalRef = ref(null as InstanceType<typeof InviteAdUsersModal> | null);
 
 const isPageEnd = ref(false);
 const perPage = ref(15);
@@ -25,9 +32,11 @@ const lastRecordKey = ref(null);
 const isLoading = ref(false);
 const isModalLoading = ref(false);
 const editId = ref(null as number | null);
+const accessToken = ref(null as string | null);
 
 const user = ref({} as User);
 
+const showInviteUserModal = ref(false);
 const userList = ref([] as User[]);
 const userFields = ref([
   { key: 'user_id', label: 'ID' },
@@ -207,7 +216,35 @@ const cancelInlineEdit = () => {
 const showUserPrivileges = (userId: number) => {
   userPrivilegeRef.value?.showModal(userId);
 }
-
+const adLoginPopup = async () => {
+  isLoading.value = true;
+  await instance.loginPopup(loginRequest);
+  getGraphData()
+}
+const getGraphData = async () => {
+  isLoading.value = true;
+  const response = await instance.acquireTokenSilent({
+    ...loginRequest
+  }).catch(async (e) => {
+    if (e instanceof InteractionRequiredAuthError || e instanceof BrowserAuthError) {
+      // await instance.acquireTokenRedirect(loginRequest);
+      await instance.loginPopup(loginRequest);
+      adLoginPopup();
+    }
+    else {
+      throw e;
+    }
+  }).finally(() => {
+    isLoading.value = false;
+  });
+  if (response?.accessToken) {
+    accessToken.value = response.accessToken;
+    showInviteUserModal.value = true;
+    nextTick(() => {
+      inviteAdUsersModalRef.value?.showModal();
+    })
+  }
+};
 const handleScroll = (refName: string, isNotLoading: boolean, callback: Function) => {
   // Trigger fetchData when scrolling near the bottom of the container
   if (scrollerRef.value && scrollerRef.value.scrollTop + scrollerRef.value.clientHeight >= scrollerRef.value.scrollHeight - 20 && isNotLoading && !isPageEnd.value) {
@@ -237,6 +274,10 @@ const _hideModal = () => {
         <button class="btn btn-primary mx-2" type="button" @click="_showModal">
           <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
           New User
+        </button>
+        <button v-if="userTypeId != UserTypeId.USR" class="btn btn-primary ms-2" type="button" @click="adLoginPopup">
+          <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
+          Invite AD Users
         </button>
       </div>
     </div>
@@ -269,12 +310,12 @@ const _hideModal = () => {
                 <div v-else>{{ item[field.key] }}</div>
               </template>
               <template v-else-if="field.key == 'user_type_id'">
-                <select v-if="editId == item.user_id" class="form-select form-control-sm" v-model="item[field.key]"
+                <!-- <select v-if="editId == item.user_id" class="form-select form-control-sm" v-model="item[field.key]"
                   :aria-label="field.label">
                   <option :value="null">Select</option>
                   <option v-for="info in userTypeList" :key="info.id" :value="info.id">{{ info.userType }}</option>
-                </select>
-                <span v-else>{{ commonFunctions.getUserTypeById(item[field.key]) }}</span>
+                </select> -->
+                <span v-if="item[field.key]">{{ commonFunctions.getUserTypeById(item[field.key]) }}</span>
               </template>
               <template v-else-if="field.key == 'user_status_id'">
                 <select v-if="editId == item.user_id" class="form-select form-control-sm" v-model="item[field.key]"
@@ -308,7 +349,8 @@ const _hideModal = () => {
                     data-bs-target="#deleteUser">
                     <font-awesome-icon icon="fa-solid fa-trash" />
                   </div>
-                  <div class="icon-btn" @click="showUserPrivileges(item.user_id!)" title="User Privileges">
+                  <div v-if="item.user_type_id != UserTypeId.SAD" class="icon-btn"
+                    @click="showUserPrivileges(item.user_id!)" title="User Privileges">
                     <font-awesome-icon icon="fa-solid fa-cog" />
                   </div>
                 </template>
@@ -382,6 +424,7 @@ const _hideModal = () => {
       <button class="btn btn-primary" @click="addUser">Save</button>
     </template>
   </ModalComponent>
+  <InviteAdUsersModal v-if="showInviteUserModal" ref="inviteAdUsersModalRef" :accessToken="accessToken!" />
   <UserPrivilegeModal ref="userPrivilegeRef" />
   <dialog-component id="deleteUser" :onYes="onYesUser" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete user?" />

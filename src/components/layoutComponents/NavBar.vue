@@ -89,7 +89,7 @@ const showTenantProfileModal = () => {
             </span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-            <li v-if="userTypeId == UserTypeId.SAD || userTypeId == UserTypeId.ADM">
+            <li v-if="userTypeId == UserTypeId.ADM">
               <a class="dropdown-item" href="#" @click="showTenantProfileModal"><font-awesome-icon
                   icon="fa-solid fa-toolbox" class="me-2" />Tenant Profile</a>
             </li>

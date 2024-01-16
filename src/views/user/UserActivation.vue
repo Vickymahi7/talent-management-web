@@ -50,15 +50,16 @@ export default {
       try {
         this.isLoading = true;
         const response: any = await axios.get('/user/activationdetail/' + this.token)
+        if (response.status == HttpStatusCode.NotFound) {
+          this.toast.warning(response.message);
+          this.$router.push('/');
+        }
         this.user = response.user;
         if (this.user) {
           this.showActivationForm = this.user.active ? false : true;
           this.isActiveUser = this.user.active ?? false;
         }
       } catch (error: any) {
-        if (error.status == HttpStatusCode.NotFound) {
-          this.$router.push('/');
-        }
         this.toast.error(error.message);
       }
       finally {

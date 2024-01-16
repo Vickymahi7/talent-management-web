@@ -128,7 +128,7 @@ const isProfileVerified = computed(() => {
 })
 
 const profileStatus = computed(() => {
-  if (userTypeId.value != UserTypeId.USR) {
+  if (userTypeId.value == UserTypeId.USR) {
     return PROFILE_STATUS.filter(data => data.id != ProfileStatus.VERIFIED);
   }
   else {
@@ -174,9 +174,8 @@ onMounted(() => {
 
 const getPageData = async () => {
   if (route.name === 'userhrprofile') {
-    console.log(route.name)
     isUserHrProfile.value = true;
-    getHrProfileList();
+    getUserHrProfileList();
   }
   else {
     getHrProfileDetail();
@@ -207,10 +206,10 @@ const getTenantSettings = async () => {
     isLoading.value = false;
   }
 };
-const getHrProfileList = async () => {
+const getUserHrProfileList = async () => {
   try {
     isLoading.value = true;
-    const response: any = await axios.get('/hrprofile/list');
+    const response: any = await axios.get('/hrprofile/user/list');
     hrProfileList.value = response.hrProfileList as HrProfile[];
     profileCount.value = response.total;
     if (profileCount.value == 0) {
@@ -272,13 +271,15 @@ const onYesDuplicateProfile = async () => {
   let existingProfileTitle = hrProfile.value.profile_title;
   try {
     hrProfile.value.profile_title = commonFunctions.duplicateProfileTitle(hrProfile.value.profile_title);
+    // set is_current_user as true if current page is 'userhrprofile'
+    hrProfile.value.is_current_user = route.name == 'userhrprofile';
 
     isModalLoading.value = true;
     const response: any = await axios.post('/hrprofile/add', hrProfile.value);
 
     if (response.status == HttpStatusCode.Created) {
       toast.success(response.message);
-      getHrProfileList();
+      getUserHrProfileList();
     }
   } catch (error: any) {
     toast.error(error.message);
@@ -488,7 +489,7 @@ const addSkill = () => {
     if (!hrProfile.value.skills.some((data) => data.skill?.toLocaleLowerCase() === _skill.skill?.toLocaleLowerCase())) {
       hrProfile.value.skills.push(_skill);
 
-      updateHrProfileItem('skills');
+      // updateHrProfileItem('skills');
       skillData.value = {};
     }
   }
@@ -501,7 +502,7 @@ const editSkill = (_skill: Skill) => {
 
 const removeSkill = (skill: Skill) => {
   hrProfile.value.skills = hrProfile.value.skills ? hrProfile.value.skills.filter(item => item.skill != skill.skill) : [];
-  updateHrProfileItem('skills');
+  // updateHrProfileItem('skills');
 };
 
 const showProfileChildItemEdit = (itemKey: string, itemData: HrProfileChilderen, modId: string) => {
@@ -735,7 +736,7 @@ const showProfileTitleEdit = () => {
                 <font-awesome-icon icon="fa-solid fa-check" />
               </span>
             </span>
-            <span v-if="!isProfileVerified" class="icon-btn float-end" @click="elements.nameEdit = true">
+            <span v-else-if="!isProfileVerified" class="icon-btn float-end" @click="elements.nameEdit = true">
               <font-awesome-icon icon="fa-solid fa-pencil-alt" />
             </span>
           </div>
@@ -767,18 +768,20 @@ const showProfileTitleEdit = () => {
         <div class="profile-prime-info content-card">
           <div class="d-flex flex-column">
             <h6 class="label-text mb-2 w-100">Primary Info
-              <span v-if="elements.primaryInfoEdit">
-                <span class="icon-btn float-end" @click="elements.primaryInfoEdit = false">
-                  <font-awesome-icon icon="fa-solid fa-xmark" />
+              <template v-if="!isProfileVerified || userTypeId == UserTypeId.ADM">
+                <span v-if="elements.primaryInfoEdit">
+                  <span class="icon-btn float-end" @click="elements.primaryInfoEdit = false">
+                    <font-awesome-icon icon="fa-solid fa-xmark" />
+                  </span>
+                  <span class="icon-btn float-end me-1" @click="updatePrimaryInfo">
+                    <font-awesome-icon icon="fa-solid fa-check" />
+                  </span>
                 </span>
-                <span class="icon-btn float-end me-1" @click="updatePrimaryInfo">
-                  <font-awesome-icon icon="fa-solid fa-check" />
+                <span v-else-if="!elements.primaryInfoEdit" class="icon-btn float-end"
+                  @click="elements.primaryInfoEdit = true">
+                  <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                 </span>
-              </span>
-              <span v-else-if="!elements.primaryInfoEdit && userTypeId != UserTypeId.USR" class="icon-btn float-end"
-                @click="elements.primaryInfoEdit = true">
-                <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-              </span>
+              </template>
             </h6>
             <div class="primary-info">
               <div class="profile-container">
@@ -892,18 +895,19 @@ const showProfileTitleEdit = () => {
         <div class="profile-description">
           <div class="content-card h-100 card-gap-mb">
             <h6 class="label-text mb-2">About
-              <span v-if="elements.aboutInfoEdit">
-                <span class="icon-btn float-end" @click="elements.aboutInfoEdit = false">
-                  <font-awesome-icon icon="fa-solid fa-xmark" />
+              <template v-if="!isProfileVerified">
+                <span v-if="elements.aboutInfoEdit">
+                  <span class="icon-btn float-end" @click="elements.aboutInfoEdit = false">
+                    <font-awesome-icon icon="fa-solid fa-xmark" />
+                  </span>
+                  <span class="icon-btn float-end me-1" @click="updateHrProfileItem('objective')">
+                    <font-awesome-icon icon="fa-solid fa-check" />
+                  </span>
                 </span>
-                <span class="icon-btn float-end me-1" @click="updateHrProfileItem('objective')">
-                  <font-awesome-icon icon="fa-solid fa-check" />
+                <span v-if="!elements.aboutInfoEdit" class="icon-btn float-end" @click="elements.aboutInfoEdit = true">
+                  <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                 </span>
-              </span>
-              <span v-if="!isProfileVerified && !elements.aboutInfoEdit" class="icon-btn float-end"
-                @click="elements.aboutInfoEdit = true">
-                <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-              </span>
+              </template>
             </h6>
             <div v-if="elements.aboutInfoEdit" class="note-input-group">
               <textarea v-model="hrProfile.objective" name="" id="" class="form-control" rows="2"></textarea>
@@ -914,70 +918,38 @@ const showProfileTitleEdit = () => {
           </div>
           <div class="content-card  h-100 card-gap-mb">
             <h6 class="label-text">Skills
-              <span v-if="elements.skillEdit" class="float-end">
-                <span class="icon-btn me-1" @click="addSkill">
-                  <font-awesome-icon icon="fa-solid fa-check" />
-                </span>
-                <span class="icon-btn" @click="getPageData(); elements.skillEdit = false;">
-                  <font-awesome-icon icon="fa-solid fa-xmark" />
-                </span>
-              </span>
               <span v-if="!isProfileVerified && !elements.skillEdit" class="float-end">
-                <span class="icon-btn" @click="elements.skillEdit = true; skillData = {}">
+                <span class="icon-btn" data-bs-toggle="modal" data-bs-target="#addSkillModal">
                   <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                 </span>
               </span>
             </h6>
-            <div v-if="elements.skillEdit" class="row gx-1 gy-1 mt-2 mb-1">
-              <div class="col">
-                <input type="text" v-model.trim="skillData.skill" @keyup.enter.prevent="addSkill"
-                  class="form-control form-control-sm" placeholder="Skill">
-              </div>
-              <div v-if="showSkillExp" class="col-8 d-flex">
-                <input type="number" min="0" v-model.trim="skillData.experience_year" @keyup.enter.prevent="addSkill"
-                  class="form-control form-control-sm" placeholder="Year" aria-label="experience_year">
-                <input type="number" min="0" v-model.trim="skillData.experience_month" @keyup.enter.prevent="addSkill"
-                  class="form-control form-control-sm" placeholder="Month" aria-label="experience_month">
-              </div>
-            </div>
             <p class="profile-short-content">
-              <template v-if="elements.skillEdit">
-                <span v-for="_skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1"
-                  @click="editSkill(_skill)" role="button">
-                  <span class="pe-1">{{ _skill.skill }}
-                    <span v-if="showSkillExp && (_skill.experience_year || _skill.experience_month)">({{
-                      commonFunctions.getExperienceString(_skill.experience_year,
-                        _skill.experience_month) }})</span>
-                  </span>
-                  <a href="#" class="d-inline-block " @click="removeSkill(_skill)">
-                    <font-awesome-icon icon="fa-solid fa-xmark" />
-                  </a>
-                </span>
-              </template>
-              <template v-else>
-                <span v-for="_skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1">
-                  {{ _skill.skill }}
-                  <span v-if="showSkillExp && (_skill.experience_year || _skill.experience_month)">({{
-                    commonFunctions.getExperienceString(_skill.experience_year, _skill.experience_month) }})</span>
-                </span>
-              </template>
+              <span v-for="_skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1">
+                {{ _skill.skill }}
+                <span v-if="showSkillExp && (_skill.experience_year || _skill.experience_month)">({{
+                  commonFunctions.getExperienceString(_skill.experience_year, _skill.experience_month) }})</span>
+              </span>
+              <!-- </template> -->
             </p>
           </div>
           <div class="content-card  h-100">
             <h6 class="label-text">Note
-              <span v-if="elements.noteEdit" class="float-end">
-                <span class="icon-btn me-1" @click="updateHrProfileItem('note')">
-                  <font-awesome-icon icon="fa-solid fa-check" />
+              <template v-if="!isProfileVerified">
+                <span v-if="elements.noteEdit" class="float-end">
+                  <span class="icon-btn me-1" @click="updateHrProfileItem('note')">
+                    <font-awesome-icon icon="fa-solid fa-check" />
+                  </span>
+                  <span class="icon-btn" @click="elements.noteEdit = false">
+                    <font-awesome-icon icon="fa-solid fa-xmark" />
+                  </span>
                 </span>
-                <span class="icon-btn" @click="elements.noteEdit = false">
-                  <font-awesome-icon icon="fa-solid fa-xmark" />
+                <span v-if="!elements.noteEdit" class="float-end">
+                  <span class="icon-btn" @click="elements.noteEdit = true">
+                    <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                  </span>
                 </span>
-              </span>
-              <span v-if="!isProfileVerified && !elements.noteEdit" class="float-end">
-                <span class="icon-btn" @click="elements.noteEdit = true">
-                  <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                </span>
-              </span>
+              </template>
             </h6>
             <div v-if="elements.noteEdit" class="note-input-group">
               <textarea name="" id="" v-model="hrProfile.note" class="form-control" rows="2"></textarea>
@@ -1016,18 +988,20 @@ const showProfileTitleEdit = () => {
             <div class="tab-pane fade show active" id="nav-summary" role="tabpanel" aria-labelledby="nav-summary-tab">
               <div class="content-list">
                 <div class="d-block text-end mb-2">
-                  <span v-if="elements.summaryEdit">
-                    <span class="icon-btn me-1" @click="updateHrProfileItem('summary')">
-                      <font-awesome-icon icon="fa-solid fa-check" />
+                  <template v-if="!isProfileVerified">
+                    <span v-if="elements.summaryEdit">
+                      <span class="icon-btn me-1" @click="updateHrProfileItem('summary')">
+                        <font-awesome-icon icon="fa-solid fa-check" />
+                      </span>
+                      <span class="icon-btn" @click="elements.summaryEdit = false">
+                        <font-awesome-icon icon="fa-solid fa-xmark" />
+                      </span>
                     </span>
-                    <span class="icon-btn" @click="elements.summaryEdit = false">
-                      <font-awesome-icon icon="fa-solid fa-xmark" />
+                    <span v-if="!isProfileVerified && !elements.summaryEdit" class="icon-btn"
+                      @click="elements.summaryEdit = true">
+                      <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                     </span>
-                  </span>
-                  <span v-if="!isProfileVerified && !elements.summaryEdit" class="icon-btn"
-                    @click="elements.summaryEdit = true">
-                    <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                  </span>
+                  </template>
                 </div>
                 <div class="summary-content">
                   <!-- <textarea v-if="elements.summaryEdit" v-model="hrProfile.summary" name="" id=""
@@ -1112,12 +1086,13 @@ const showProfileTitleEdit = () => {
                         <span v-if="education.location">{{ education.location }}</span>
                       </p>
                     </div>
-                    <div class="text-end">
-                      <span v-if="!isProfileVerified" class="icon-btn me-2"
+                    <div v-if="!isProfileVerified" class="text-end">
+                      <span class="icon-btn me-2"
                         @click="showProfileChildItemEdit('education', education, 'educationAddEditModal');">
                         <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                       </span>
-                      <span class="icon-btn" @click="removeProfileChildItem('education', education)">
+                      <span class="icon-btn" data-bs-toggle="modal" data-bs-target="#removeProfileChildItem"
+                        @click="removeProfileChildItem('education', education)">
                         <font-awesome-icon icon="fa-solid fa-trash" />
                       </span>
                     </div>
@@ -1166,7 +1141,8 @@ const showProfileTitleEdit = () => {
                         @click="showProfileChildItemEdit('project', project, 'projectAddEditModal')">
                         <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                       </span>
-                      <span class="icon-btn" @click="removeProfileChildItem('project', project)">
+                      <span class="icon-btn" @click="removeProfileChildItem('project', project)" data-bs-toggle="modal"
+                        data-bs-target="#removeProfileChildItem">
                         <font-awesome-icon icon="fa-solid fa-trash" />
                       </span>
                     </div>
@@ -1186,17 +1162,19 @@ const showProfileTitleEdit = () => {
             </div>
             <div class="tab-pane fade" id="nav-personal" role="tabpanel" aria-labelledby="nav-profile-tab">
               <div class="d-block text-end mb-2">
-                <span v-if="elements.personalInfoEdit">
-                  <span class="icon-btn me-1" @click="updatePersonalInfo">
-                    <font-awesome-icon icon="fa-solid fa-check" />
+                <template v-if="!isProfileVerified">
+                  <span v-if="elements.personalInfoEdit">
+                    <span class="icon-btn me-1" @click="updatePersonalInfo">
+                      <font-awesome-icon icon="fa-solid fa-check" />
+                    </span>
+                    <span class="icon-btn" @click="elements.personalInfoEdit = false">
+                      <font-awesome-icon icon="fa-solid fa-xmark" />
+                    </span>
                   </span>
-                  <span class="icon-btn" @click="elements.personalInfoEdit = false">
-                    <font-awesome-icon icon="fa-solid fa-xmark" />
+                  <span v-else class="icon-btn" @click="elements.personalInfoEdit = true">
+                    <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                   </span>
-                </span>
-                <span v-if="!isProfileVerified" class="icon-btn" @click="elements.personalInfoEdit = true">
-                  <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                </span>
+                </template>
               </div>
               <div class="row">
                 <div class="col">
@@ -1286,7 +1264,7 @@ const showProfileTitleEdit = () => {
                       <a v-else-if="document.title" :href="document.path" target="_blank">{{
                         document.title }}.{{ document.path.split(".").pop() }}</a>
                     </div>
-                    <div class="text-nowrap text-end ms-2">
+                    <div v-if="!isProfileVerified" class="text-nowrap text-end ms-2">
                       <template v-if="elements.tabItemEdit && document.id == docId">
                         <span class="icon-btn me-2" @click="updateProfileChildItems(docsEditData, 'docs')">
                           <font-awesome-icon icon="fa-solid fa-check" />
@@ -1296,7 +1274,7 @@ const showProfileTitleEdit = () => {
                         </span>
                       </template>
                       <template v-else>
-                        <span v-if="!isProfileVerified" class="icon-btn me-2" @click="editDoc(document)">
+                        <span class="icon-btn me-2" @click="editDoc(document)">
                           <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                         </span>
                         <span class="icon-btn" @click.prevent="deleteHrProfileDoc(document.id!, document)"
@@ -1310,7 +1288,7 @@ const showProfileTitleEdit = () => {
                 <div v-else class="list-item">
                   <p>No Document found</p>
                 </div>
-                <div class="py-3">
+                <div v-if="!isProfileVerified" class="py-3">
                   <div v-if="elements.tabItemEdit && !docId" class="row">
                     <div class="col-4">
                       <input type="text" v-model="docsData.title" class="form-control form-control-sm"
@@ -1329,7 +1307,7 @@ const showProfileTitleEdit = () => {
                       </button>
                     </div>
                   </div>
-                  <template v-if="!isProfileVerified">
+                  <template v-else>
                     <button v-if="!elements.tabItemEdit" class="btn btn-primary br-0" type="button"
                       @click="elements.tabItemEdit = true">
                       Add Document
@@ -1343,16 +1321,57 @@ const showProfileTitleEdit = () => {
       </div>
     </template>
   </div>
-  <!-- <div class="modal fade" id="workExperienceAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div v-loading="isModalLoading" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalLabel">{{ elements.tabItemEdit ? 'Edit' : 'Add' }} Work Experience</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body"> -->
-
-  <ModalComponent id="workExperienceAddEditModal" v-loading="isModalLoading" ref="addHrProfileModalRef"
+  <ModalComponent id="addSkillModal" v-loading="isModalLoading" ref="addSkillModalRef" title="Add Skills"
+    @hide="getPageData(); elements.skillEdit = false; skillData = {};" hide-cancel centered no-close-on-backdrop
+    no-close-on-esc>
+    <template #body>
+      <div class="container">
+        <form class="form-inline">
+          <div class="row">
+            <label for="skills" class="col-sm-4 col-form-label align-self-start">{{ showSkillExp ? 'Skill & Experience' :
+              'Skills' }}</label>
+            <div class="col-sm-12">
+              <div class="row gx-1 gy-1">
+                <div class="col">
+                  <input type="text" v-model.trim="skillData.skill" @keyup.enter.prevent="addSkill" class="form-control"
+                    placeholder="Enter Skill">
+                </div>
+                <div v-if="showSkillExp" class="col-8 d-flex">
+                  <input type="number" min="0" v-model.trim="skillData.experience_year" @keyup.enter.prevent="addSkill"
+                    class="form-control" placeholder="Experience Years" aria-label="experience_year">
+                  <input type="number" min="0" v-model.trim="skillData.experience_month" @keyup.enter.prevent="addSkill"
+                    class="form-control" placeholder="Experience Months" aria-label="experience_month">
+                  <!-- <button class="btn btn-primary ms-1" @click.prevent="addSkill">Add</button> -->
+                  <div class="align-self-center ms-1">
+                    <span class="icon-btn" @click="addSkill" title="Add Skill">
+                      <font-awesome-icon icon="fa-solid fa-check" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div v-if="hrProfile.skills && hrProfile.skills.length > 0" class="mt-2">
+                <span v-for="_skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1"
+                  @click="editSkill(_skill)" role="button">
+                  <span>{{ _skill.skill }}
+                    <span v-if="_skill.experience_year || _skill.experience_month">({{
+                      commonFunctions.getExperienceString(_skill.experience_year,
+                        _skill.experience_month) }})</span>
+                  </span>
+                  <a href="#" class="d-inline-block ps-1" @click.stop="removeSkill(_skill)">
+                    <font-awesome-icon icon="fa-solid fa-xmark" />
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </template>
+    <template #footer>
+      <button class="btn btn-primary" @click="updateHrProfileItem('skills')">Save</button>
+    </template>
+  </ModalComponent>
+  <ModalComponent id="workExperienceAddEditModal" v-loading="isModalLoading"
     :title="`${elements.tabItemEdit ? 'Edit' : 'Add'} Work Experience`" @hide="clearWorkExperienceData(); getPageData();"
     hide-cancel centered no-close-on-backdrop no-close-on-esc>
     <template #body>
@@ -1412,7 +1431,7 @@ const showProfileTitleEdit = () => {
     </template>
   </ModalComponent>
 
-  <ModalComponent id="educationAddEditModal" v-loading="isModalLoading" ref="addHrProfileModalRef"
+  <ModalComponent id="educationAddEditModal" v-loading="isModalLoading"
     :title="`${elements.tabItemEdit ? 'Edit' : 'Add'} Education`" @hide="clearEducationData(); getPageData();" hide-cancel
     centered no-close-on-backdrop no-close-on-esc>
     <template #body>
@@ -1470,7 +1489,7 @@ const showProfileTitleEdit = () => {
     </template>
   </ModalComponent>
 
-  <ModalComponent id="projectAddEditModal" v-loading="isModalLoading" ref="addHrProfileModalRef"
+  <ModalComponent id="projectAddEditModal" v-loading="isModalLoading"
     :title="`${elements.tabItemEdit ? 'Edit' : 'Add'} Project`" @hide="clearProjectData(); getPageData();" hide-cancel
     centered no-close-on-backdrop no-close-on-esc>
     <template #body>
@@ -1527,8 +1546,6 @@ const showProfileTitleEdit = () => {
       <button class="btn btn-primary" @click="updateProfileChildItems(projectData, 'project')">Save</button>
     </template>
   </ModalComponent>
-  <ResumePreviewModal :hrProfile="hrProfile" :tenantSettings="tenant" />
-  <AddHrProfileModal id="addHrProfileModal-hrProfile" ref="addHrProfileModalRef" @refreshParent="getHrProfileList" />
   <dialog-component id="removeProfileChildItem" :onYes="onYesProfileChildItemDelete" :returnParams="dialogParam"
     title="Delete Confirmation" :message="`Are you sure to delete ${deleteChildTitle} info?`" />
   <dialog-component id="deleteHrProfileResume" :onYes="onYesHrProfileResume" :returnParams="dialogParam"

@@ -51,7 +51,7 @@ defineExpose({ toggle: _toggle, show: _show, hide: _hide });
 </script>
 
 <template>
-  <div class="modal fade" id="exampleModal" tabindex="-1" :data-bs-backdrop="noCloseOnBackdrop ? 'static' : 'false'"
+  <div class="modal fade" id="exampleModal" tabindex="-1" :data-bs-backdrop="noCloseOnBackdrop ? 'static' : undefined"
     :data-bs-keyboard="!noCloseOnEsc" aria-labelledby="" aria-hidden="true" ref="modalElement">
     <div class="modal-dialog" :class="{
       [size!]: size,

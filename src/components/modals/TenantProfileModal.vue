@@ -295,20 +295,21 @@ const uploadTenantLogo = async (event: any) => {
               </div>
               <!-- <hr class="m-0"> -->
               <hr>
-              <div class="row g-3 align-items-center">
+              <div class="row g-2 align-items-center">
                 <div class="col-sm-12">
-                  <label class="form-check-label" for="isOfficialContactInfo">
-                    <input class="form-check-input checkbox-lg mt-0" v-model="tenant.is_official_contact_info"
-                      :disabled="!elements.profileSettingEditMode" type="checkbox" id="isOfficialContactInfo">
-                    Use Official Phone & Email ID for Profile Contact Info
-                  </label>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" v-model="tenant.is_official_contact_info"
+                      :disabled="!elements.profileSettingEditMode" role="switch" id="isOfficialContactInfo">
+                    <label class="form-check-label" for="isOfficialContactInfo">Use Official Phone & Email ID for Profile
+                      Contact Info</label>
+                  </div>
                 </div>
                 <div class="col-sm-12">
-                  <label class="form-check-label" for="isSkillExperience">
-                    <input class="form-check-input checkbox-lg mt-0" v-model="tenant.is_skill_experience"
-                      :disabled="!elements.profileSettingEditMode" type="checkbox" id="isSkillExperience">
-                    Save Skills with Experience
-                  </label>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" v-model="tenant.is_skill_experience"
+                      :disabled="!elements.profileSettingEditMode" role="switch" id="isSkillExperience">
+                    <label class="form-check-label" for="isSkillExperience">Save Skills with Experience</label>
+                  </div>
                 </div>
               </div>
               <template v-if="elements.profileSettingEditMode">

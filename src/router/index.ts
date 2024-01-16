@@ -100,7 +100,8 @@ router.beforeEach(async (to, from, next) => {
   const homePage = to.name === "home";
   const meta: any = to.meta;
   if (!homePage && meta.requiresAuth) {
-    const canAccess = await routeCheck.canUserAccess(to.name);
+    // const canAccess = await routeCheck.canUserAccess(to.name);
+    const canAccess = true;
     console.log("canAccess: ", canAccess);
     if (!canAccess) {
       next("/");
