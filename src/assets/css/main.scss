@@ -432,10 +432,17 @@ h6 {
         position: relative;
 
         .profile-picture {
-          width: 130px;
-          height: 130px;
+          width: 140px;
+          height: 140px;
           // aspect-ratio: 1 / 1;
           border-radius: $profile-pic-radius;
+          transition: all 0.2s ease-out;
+
+          &.small {
+            width: 110px;
+            height: 110px;
+            transition: all 0.2s ease-in;
+          }
         }
       }
 
@@ -691,6 +698,11 @@ h6 {
     border-color: var(--form-focus-border-color);
     box-shadow: none;
   }
+}
+
+.form-check-input[disabled] ~ .form-check-label,
+.form-check-input:disabled ~ .form-check-label {
+  opacity: 1;
 }
 
 .form-inline {

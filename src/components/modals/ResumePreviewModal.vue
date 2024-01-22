@@ -1,41 +1,48 @@
-<script lang="ts" setup>
+<script lang="ts">
 import type HrProfile from '@/types/HrProfile';
 import type { Tenant } from '@/types/Tenant';
 import { formatDateMonthYear } from '@/utils/dateFormats';
-import { computed, type PropType } from 'vue';
-const props = defineProps({
-  id: { type: String, default: 'resumePreviewModal' },
-  hrProfile: { type: Object as PropType<HrProfile> },
-  tenantSettings: { type: Object as PropType<Tenant> },
-});
-
-const emailId = computed(() => {
-  let _emailId = props.hrProfile!.email_id;
-  if (props.tenantSettings?.is_official_contact_info) {
-    _emailId = props.tenantSettings!.tenant_email_id;
+import { type PropType } from 'vue';
+export default {
+  props: {
+    id: { type: String, default: 'resumePreviewModal' },
+    hrProfile: { type: Object as PropType<HrProfile | undefined | null> },
+    tenantSettings: { type: Object as PropType<Tenant | undefined | null> },
+  },
+  data() {
+    return {
+      formatDateMonthYear: formatDateMonthYear,
+    }
+  },
+  computed: {
+    emailId() {
+      let _emailId = this.hrProfile!.email_id;
+      if (this.tenantSettings?.is_official_contact_info) {
+        _emailId = this.tenantSettings?.tenant_email_id;
+      }
+      return _emailId;
+    },
+    phoneNumber() {
+      let _phone = this.hrProfile!.mobile;
+      if (this.tenantSettings?.is_official_contact_info) {
+        _phone = this.tenantSettings?.tenant_phone;
+      }
+      return _phone;
+    }
+  },
+  methods: {
+    async print() {
+      const vue = this as any;
+      await vue.$htmlToPaper('printMe', {
+        styles: ['../../resTemplateStyle.css'],
+        timeout: 10000,
+        autoClose: true,
+      }, () => {
+        console.log('testing...')
+      })
+    }
   }
-  return _emailId;
-})
-
-const phoneNumber = computed(() => {
-  let _phone = props.hrProfile!.mobile;
-  if (props.tenantSettings?.is_official_contact_info) {
-    _phone = props.tenantSettings!.tenant_phone;
-  }
-  return _phone;
-})
-
-const print = async () => {
-  const vue = this as any;
-  await vue.$htmlToPaper('printMe', {
-    styles: ['../../resTemplateStyle.css'],
-    timeout: 10000,
-    autoClose: true,
-  }, () => {
-    console.log('testing...')
-  })
 }
-
 </script>
 <template>
   <ModalComponent :id="id" title="Resume Preview" hide-footer hide-cancel centered size="modal-xl">
@@ -53,12 +60,12 @@ const print = async () => {
         </div>
         <div id="printMe" class="resume-template mx-auto">
           <div class="resume-wrapper border">
-            <header>
-              <div class="picture-resume-wrapper">
+            <header :class="{ 'no-picture': !hrProfile.photo_url }">
+              <div v-if="hrProfile.photo_url" class="picture-resume-wrapper">
                 <div class="picture-resume">
                   <span>
-                    <img v-if="hrProfile.photo_url" :src="hrProfile.photo_url" alt="" />
-                    <img v-else src="@/assets/img/user-icon.jpg" alt="" />
+                    <img :src="hrProfile.photo_url" alt="" />
+                    <!-- <img v-else src="@/assets/img/user-icon.jpg" alt="" /> -->
                   </span>
                 </div>
               </div>
@@ -74,7 +81,7 @@ const print = async () => {
               <section class="left-section">
                 <template v-if="hrProfile.summary">
                   <h2><span class="heading">Summary</span></h2>
-                  <p class="bold" v-html="hrProfile.summary"></p>
+                  <p class="bold html-content" v-html="hrProfile.summary"></p>
                 </template>
                 <h2><span class="heading">Contact</span></h2>
                 <ul class="list-content contact-info">
@@ -98,6 +105,7 @@ const print = async () => {
                       </h6>
                       <p v-if="education.university || education.location" class="bold">
                         <span v-if="education.university">{{ education.university }}</span>
+                        <span v-if="education.university && education.location">, </span>
                         <span v-if="education.location">{{ education.location }}</span>
                       </p>
                       <p v-if="education.end_date">{{ formatDateMonthYear(education.end_date) }}</p>
@@ -130,7 +138,7 @@ const print = async () => {
                         }}</span>
                       </span>
                     </div>
-                    <p v-html="workExperience.description"></p>
+                    <p class="html-content" v-html="workExperience.description"></p>
                   </div>
                 </div>
                 <div v-if="hrProfile.project" class="project-wrapper">
@@ -178,6 +186,7 @@ $sub-heading-color: $header-bg;
 $muted-color: #777777;
 $profile-title-color: $header-text-color;
 $profile-title-size: 14px;
+$content-padding: 15px;
 $heading-size: 18px;
 $profile-name-color: #fff;
 $left-section-color: #7a7a7a;
@@ -196,8 +205,21 @@ $boldColor: #4a4e51;
   box-sizing: border-box;
 }
 
+.ms-2 {
+  margin-left: 0.5rem !important;
+}
+
+.me-2 {
+  margin-right: 0.5rem !important;
+}
+
+.bold {
+  color: #4a4e51;
+  font-weight: 400;
+}
+
 .resume-wrapper {
-  // font-family: 'Open Sans', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   font-size: 12px;
   line-height: 1.5em;
   width: $res-template-width;
@@ -228,6 +250,8 @@ h1 {
   line-height: 1em;
   letter-spacing: 2px;
   color: $profile-name-color;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 h2 {
@@ -260,16 +284,29 @@ h3 {
   font-size: 16px;
   margin-bottom: 0;
   font-weight: 500;
+  margin-top: 0;
 }
 
 h5 {
   font-size: 12px;
   margin-bottom: $std-margin-bottom;
+  margin-top: 0;
+}
+
+h6 {
+  font-size: 12px;
+  margin-bottom: 3px;
+  margin-top: 0;
 }
 
 p {
   margin-bottom: $std-margin-bottom;
+  margin-top: 0;
 }
+
+// .html-content>p {
+//   margin: 0;
+// }
 
 header {
   display: flex;
@@ -278,6 +315,12 @@ header {
   padding: 10px 50px;
   background-color: $header-bg;
   color: $header-text-color;
+
+  &.no-picture {
+    justify-content: left;
+    padding: $content-padding;
+    height: 200px;
+  }
 
   .picture-resume-wrapper {
     display: block;
@@ -336,7 +379,7 @@ header {
   flex: 40%;
   color: $left-section-color;
   background-color: $left-section-bg;
-  padding: 15px;
+  padding: $content-padding;
 
   ul {
     margin: 0;
@@ -399,7 +442,7 @@ header {
   flex: 70%;
   color: $right-section-color;
   background-color: $right-section-bg;
-  padding: 15px;
+  padding: $content-padding;
 
   .experience {
 

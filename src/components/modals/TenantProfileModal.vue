@@ -295,7 +295,7 @@ const uploadTenantLogo = async (event: any) => {
               </div>
               <!-- <hr class="m-0"> -->
               <hr>
-              <div class="row g-2 align-items-center">
+              <!-- <div class="row g-2 align-items-center">
                 <div class="col-sm-12">
                   <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" v-model="tenant.is_official_contact_info"
@@ -309,6 +309,44 @@ const uploadTenantLogo = async (event: any) => {
                     <input class="form-check-input" type="checkbox" v-model="tenant.is_skill_experience"
                       :disabled="!elements.profileSettingEditMode" role="switch" id="isSkillExperience">
                     <label class="form-check-label" for="isSkillExperience">Save Skills with Experience</label>
+                  </div>
+                </div>
+              </div> -->
+              <div class="row g-2 align-items-center">
+                <div class="col-sm-12">
+                  <div class="ps-2">
+                    <label class="label-text mb-2 d-block">Profile View Contact</label>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" :disabled="!elements.profileSettingEditMode" type="radio"
+                        name="is_official_contact_infoOptions" v-model="tenant.is_official_contact_info"
+                        id="is_official_contact_info1" :value="true">
+                      <label class="form-check-label" for="is_official_contact_info1">Official Phone and Email
+                        Contact</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" :disabled="!elements.profileSettingEditMode" type="radio"
+                        name="is_official_contact_infoOptions" v-model="tenant.is_official_contact_info"
+                        id="is_official_contact_info2" :value="false">
+                      <label class="form-check-label" for="is_official_contact_info2">Personal Phone and Email
+                        Contact</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-12">
+                  <label class="label-text mb-2 d-block">Profile View Skills</label>
+                  <div class="ps-2">
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" :disabled="!elements.profileSettingEditMode" type="radio"
+                        name="is_skill_experienceOptions" v-model="tenant.is_skill_experience" id="is_skill_experience2"
+                        :value="false">
+                      <label class="form-check-label" for="is_skill_experience2">Skill Only</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" :disabled="!elements.profileSettingEditMode" type="radio"
+                        name="is_skill_experienceOptions" v-model="tenant.is_skill_experience" id="is_skill_experience1"
+                        :value="true">
+                      <label class="form-check-label" for="is_skill_experience1">Skill with Experience</label>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -3,6 +3,7 @@ import ResumePreviewModal from '@/components/modals/ResumePreviewModal.vue'
 import axios from '@/plugins/axios'
 import type HrProfile from '@/types/HrProfile'
 import type { Skill } from '@/types/Skill'
+import type { Tenant } from '@/types/Tenant'
 import { PROFILE_STATUS } from '@/utils/constants'
 import { formatDateTime } from '@/utils/dateFormats'
 import { ProfileStatus } from '@/utils/enums'
@@ -19,6 +20,7 @@ const status_id = ref([] as number[]);
 
 const hrProfilePreviewData = ref(null as null | HrProfile);
 const hrProfileList = ref([] as HrProfile[]);
+const tenant = ref({} as Tenant);
 
 const totalRows = ref(1);
 const currentPage = ref(1);
@@ -50,6 +52,7 @@ const filteredProfileStatus = computed(() => {
 // };
 onMounted(() => {
   getUpdatedHrProfileList();
+  getTenantSettings();
 });
 
 const getUpdatedHrProfileList = () => {
@@ -75,6 +78,19 @@ const getHrProfileList = async () => {
   } catch (error: any) {
     toast.error(error.message);
   } finally {
+    isLoading.value = false;
+  }
+};
+
+const getTenantSettings = async () => {
+  try {
+    isLoading.value = true;
+    const response: any = await axios.get('/tenantsetting/view');
+    tenant.value = response.tenant as Tenant;
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
     isLoading.value = false;
   }
 };
@@ -176,5 +192,5 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
       </table>
     </div>
   </div>
-  <ResumePreviewModal :hrProfile="hrProfilePreviewData!" />
+  <ResumePreviewModal :hrProfile="hrProfilePreviewData!" :tenantSettings="tenant" />
 </template>

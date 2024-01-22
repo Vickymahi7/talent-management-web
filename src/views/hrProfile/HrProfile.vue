@@ -37,7 +37,7 @@ const editorInitObject = {
   content_css: (document.documentElement.dataset.bsTheme === "dark" ? 'dark' : 'default'),
   height: 220,
   paste_as_text: true,
-  plugins: 'paste, lists',
+  plugins: ['paste', 'lists'],
   toolbar: 'bold italic | bullist numlist',
   setup: (editor) => {
     editor.on('init', () => {
@@ -478,7 +478,8 @@ const updateProfileChildItems = (itemData: any, itemKey: string) => {
 
   updateHrProfile(data);
 };
-const addSkill = () => {
+const addSkill = (event) => {
+  event.preventDefault();
   if (skillData.value.skill) {
     const _skill: Skill = {
       skill: skillData.value.skill,
@@ -678,6 +679,7 @@ const showProfileTitleEdit = () => {
           <span class="badge bg-primary hide-caret dropdown-toggle me-3" role="button" id="dropdownMenuProfileSwitch"
             data-bs-toggle="dropdown" aria-expanded="false">
             Switch Profiles
+            <font-awesome-icon icon="fa-solid fa-caret-down" class="ms-1" />
           </span>
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuProfileSwitch">
             <li v-for="profileItem in hrProfileList" :key="profileItem.id">
@@ -741,10 +743,10 @@ const showProfileTitleEdit = () => {
             </span>
           </div>
           <div class="profile-picture-wrapper">
-            <img v-if="hrProfile.photo_url" class="profile-picture" :src="getImageUrlWithTimestamp" alt="Profile Picture"
-              width="150" height="150" />
-            <img v-else class="profile-picture" src="@/assets/img/user-icon.jpg" alt="Profile Picture" width="150"
-              height="150" />
+            <img v-if="hrProfile.photo_url" class="profile-picture" :class="{ 'small': elements.nameEdit }"
+              :src="getImageUrlWithTimestamp" alt="Profile Picture" width="150" height="150" />
+            <img v-else class="profile-picture" :class="{ 'small': elements.nameEdit }" src="@/assets/img/user-icon.jpg"
+              alt="Profile Picture" width="150" height="150" />
             <span v-if="!isProfileVerified" class="icon-btn upload-icon"
               @click="commonFunctions.fileUploadBtnClick('profileUploadInput')">
               <font-awesome-icon icon="fa-solid fa-camera" />
@@ -1348,6 +1350,13 @@ const showProfileTitleEdit = () => {
                     </span>
                   </div>
                 </div>
+                <div v-else class="col">
+                  <div class="align-self-center ms-1">
+                    <span class="icon-btn" @click="addSkill" title="Add Skill">
+                      <font-awesome-icon icon="fa-solid fa-check" />
+                    </span>
+                  </div>
+                </div>
               </div>
               <div v-if="hrProfile.skills && hrProfile.skills.length > 0" class="mt-2">
                 <span v-for="_skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1"
@@ -1546,6 +1555,8 @@ const showProfileTitleEdit = () => {
       <button class="btn btn-primary" @click="updateProfileChildItems(projectData, 'project')">Save</button>
     </template>
   </ModalComponent>
+  <ResumePreviewModal :hrProfile="hrProfile" :tenantSettings="tenant" />
+  <AddHrProfileModal id="addHrProfileModal-hrProfile" ref="addHrProfileModalRef" @refreshParent="getHrProfileDetail" />
   <dialog-component id="removeProfileChildItem" :onYes="onYesProfileChildItemDelete" :returnParams="dialogParam"
     title="Delete Confirmation" :message="`Are you sure to delete ${deleteChildTitle} info?`" />
   <dialog-component id="deleteHrProfileResume" :onYes="onYesHrProfileResume" :returnParams="dialogParam"
@@ -1557,8 +1568,3 @@ const showProfileTitleEdit = () => {
   <dialog-component id="duplicateProfileConfirmation" :onYes="onYesDuplicateProfile" title="Create Duplicate Profile"
     message="Are you sure you want to create a copy of this profile?" />
 </template>
-<style lang="scss">
-.mce-content-body {
-  background: #df2c2c
-}
-</style>

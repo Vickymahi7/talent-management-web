@@ -10,6 +10,8 @@ import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { faCopy, faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
 import {
   faCamera,
+  faCaretDown,
+  faCaretRight,
   faCheck,
   faCog,
   faDownload,
@@ -23,14 +25,13 @@ import {
   faRepeat,
   faRightFromBracket,
   faShareFromSquare,
+  faToolbox,
   faTrash,
   faUpload,
   faUser,
   faUserCheck,
   faUserXmark,
   faXmark,
-  faToolbox,
-  faCaretRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import ElementPlus from "element-plus";
@@ -70,7 +71,8 @@ library.add(
   faCopy,
   faRightFromBracket,
   faToolbox,
-  faCaretRight
+  faCaretRight,
+  faCaretDown,
 );
 const accounts = msalInstance.getAllAccounts();
 if (accounts.length > 0) {

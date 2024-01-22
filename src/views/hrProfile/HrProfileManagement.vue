@@ -3,6 +3,7 @@ import AddHrProfileModal from "@/components/modals/AddHrProfileModal.vue";
 import axios from '@/plugins/axios';
 import type HrProfile from '@/types/HrProfile';
 import type { Skill } from "@/types/Skill";
+import type { Tenant } from "@/types/Tenant";
 import { PROFILE_STATUS } from '@/utils/constants';
 import { formatDateTime } from '@/utils/dateFormats';
 import { UserTypeId } from '@/utils/enums';
@@ -28,6 +29,7 @@ const status_id = ref([] as number[]);
 const hrProfileId = ref('');
 
 const hrProfile = ref({} as HrProfile);
+const tenant = ref({} as Tenant);
 const hrProfileList = ref([] as HrProfile[]);
 const hrProfileFields = [
   // { key: 'select', label: '' },
@@ -60,6 +62,7 @@ const userTypeId = computed(() => {
 
 onMounted(() => {
   getUpdatedHrProfileList();
+  getTenantSettings();
 });
 
 // onBeforeUnmount(() => {
@@ -91,6 +94,18 @@ const getHrProfileList = async () => {
     isLoading.value = false;
   }
 }
+const getTenantSettings = async () => {
+  try {
+    isLoading.value = true;
+    const response: any = await axios.get('/tenantsetting/view');
+    tenant.value = response.tenant as Tenant;
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
 const deleteHrProfile = (id: string) => {
   dialogParam.value.id = id;
 }
@@ -156,6 +171,10 @@ const handleTableRowClick = (modalId: string, _hrProfileId: string) => {
     openHrProfileModal();
   }
 }
+const showResumeAttachment = (link: string) => {
+  window.open(link, "_blank");
+}
+
 const showResumePreview = (_hrProfile: HrProfile) => {
   hrProfile.value = _hrProfile;
   nextTick(() => {
@@ -269,9 +288,11 @@ function openHrProfileModal() {
                   data-bs-toggle="modal" data-bs-target="#duplicateProfileConfirm">
                   <font-awesome-icon icon="fa-regular fa-copy" />
                 </div>
-                <div class="icon-btn me-2">
+                <a v-if="hrProfileData.resume_url" target="_blank" href="#"
+                  @click.stop="showResumeAttachment(hrProfileData.resume_url)" class="icon-btn me-2"
+                  title="Resume Attachment">
                   <font-awesome-icon icon="fa-solid fa-paperclip" />
-                </div>
+                </a>
                 <div class="icon-btn me-2" title="Preview & Download" @click.stop="showResumePreview(hrProfileData)">
                   <font-awesome-icon icon="fa-solid fa-download" />
                 </div>
@@ -302,7 +323,7 @@ function openHrProfileModal() {
       <HrProfileComponent :id="hrProfileId" :key="hrProfileId" />
     </template>
   </ModalComponent> -->
-  <ResumePreviewModal id="profileResumePreviewModal" :hrProfile="hrProfile" />
+  <ResumePreviewModal id="profileResumePreviewModal" :hrProfile="hrProfile" :tenantSettings="tenant" />
   <dialog-component id="duplicateProfileConfirm" :onYes="onYesDuplicateProfile" title="Create Duplicate Profile"
     message="Are you sure you want to create a copy of this profile?" />
 </template>
