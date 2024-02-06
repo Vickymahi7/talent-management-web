@@ -170,7 +170,7 @@ defineExpose({ showModal: _showModal });
 </script>
 
 <template>
-  <ModalComponent v-loading="isLoading" title="My Account" ref="userProfileModal" size="modal-lg" centered hide-footer
+  <ModalComponent :is-modal-loading="isLoading" title="My Account" ref="userProfileModal" size="modal-lg" centered hide-footer
     no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container profile-setting">
@@ -184,11 +184,11 @@ defineExpose({ showModal: _showModal });
           <div class="col-md-12 col-lg-4">
             <div class="card shadow-sm p-3">
               <div class="p-2 mb-2 d-block position-relative">
-                <!-- <img class="d-block rounded-circle mx-auto" src="@/assets/img/user-icon.jpg" alt="" width="100"
+                <!-- <img class="d-block rounded-circle mx-auto" src="@/assets/img/user-icon.png" alt="" width="100"
                 height="100"> -->
                 <img v-if="user.photo_url" class="d-block rounded-circle mx-auto" :src="getImageUrlWithTimestamp" alt=""
                   width="100" height="100" />
-                <img v-else class="d-block rounded-circle mx-auto" src="@/assets/img/user-icon.jpg" alt="" width="100"
+                <img v-else class="d-block rounded-circle mx-auto" src="@/assets/img/user-icon.png" alt="" width="100"
                   height="100">
                 <span class="icon-btn upload-icon" style="left: 45%;"
                   @click="commonFunctions.fileUploadBtnClick('userProfileUpload')">

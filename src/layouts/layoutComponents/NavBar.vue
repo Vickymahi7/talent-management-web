@@ -52,7 +52,7 @@ const showTenantProfileModal = () => {
   <nav class="navbar navbar-expand-md">
     <a class="navbar-brand app-logo" href="#">
       <img v-if="tenantLogo" :src="tenantLogo" class="d-inline-block align-middle" alt="">
-      <img v-else src="@/assets/img/logo.png" class="d-inline-block align-middle" alt="">
+      <img v-else src="@/assets/img/tm-name-logo.png" class="d-inline-block align-middle" alt="">
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,7 +89,7 @@ const showTenantProfileModal = () => {
             </span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-            <li v-if="userTypeId == UserTypeId.ADM">
+            <li v-if="userTypeId == UserTypeId.PUS">
               <a class="dropdown-item" href="#" @click="showTenantProfileModal"><font-awesome-icon
                   icon="fa-solid fa-toolbox" class="me-2" />Tenant Profile</a>
             </li>

@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import axios from '@/plugins/axios';
 import type { AdUser } from '@/types/AdUser';
-import { callMsGraph } from '@/utils/authConfig';
+import { callMsGraph, msalInstance } from '@/utils/authConfig';
 import { HttpStatusCode } from 'axios';
 import type { Modal } from 'bootstrap';
-import { onBeforeMount, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useToast } from 'vue-toastification';
 
 const props = defineProps({
@@ -18,30 +18,39 @@ const scroller = ref(null as HTMLElement | null);
 const isModalLoading = ref(false);
 const isPageEnd = ref(false);
 
+const searchText = ref('');
 const nextPageToken = ref('');
-const users = ref([] as AdUser[]);
+const adUsers = ref([] as AdUser[]);
 const inviteUserList = ref([] as AdUser[]);
 
 const inviteAdUserModalRef = ref(null as null | Modal);
 
-onBeforeMount(() => {
-  getAdUserList();
-});
+const userListWithEmailId = computed(() => {
+  // return adUsers.value;
+  return adUsers.value.filter(data => data.mail);
+})
 
-onMounted(() => {
-  getNextUser();
-});
+// onBeforeMount(() => {
+//   getAdUserList();
+// });
+
+const getInitAdUserList = () => {
+  isPageEnd.value = false;
+  nextPageToken.value = '';
+  adUsers.value = [];
+  getAdUserList();
+}
 
 const getAdUserList = async () => {
-  // this.showModal('inviteAdUsersModal');
   if (props.accessToken && !isPageEnd.value) {
     isModalLoading.value = true;
     try {
-      const graphData = await callMsGraph(props.accessToken, nextPageToken.value);
+      const graphData = await callMsGraph(props.accessToken, nextPageToken.value, searchText.value);
       if (graphData.value) {
         nextPageToken.value = graphData['@odata.nextLink']
         isPageEnd.value = graphData['@odata.nextLink'] ? false : true;
-        users.value = users.value.concat(graphData.value);
+        adUsers.value = adUsers.value.concat(graphData.value);
+        console.log("adUsers:" + adUsers.value);
       }
     } catch (error) {
       //error
@@ -50,14 +59,7 @@ const getAdUserList = async () => {
     }
   }
 };
-const getNextUser = () => {
-  window.onscroll = () => {
-    let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
-    if (bottomOfWindow) {
-      getAdUserList();
-    }
-  }
-};
+
 const manageInviteList = (adUser: AdUser) => {
   if (inviteUserList.value.some(data => data.mail == adUser.mail)) {
     inviteUserList.value = inviteUserList.value.filter(({ mail }) => mail != adUser.mail);
@@ -74,7 +76,7 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
 };
 const inviteAdUsers = async () => {
   if (inviteUserList.value.length > 10) {
-    toast.error('Please select a maximum of 10 users');
+    toast.warning('Please select a maximum of 10 users');
     return;
   }
   try {
@@ -89,6 +91,9 @@ const inviteAdUsers = async () => {
       // this.getHrProfileList();
       // this.bsModalHide(this.modalId);
     }
+    else if (response.status == HttpStatusCode.Conflict) {
+      toast.warning(response.message);
+    }
   } catch (error: any) {
     toast.error(error.message);
   }
@@ -97,23 +102,41 @@ const inviteAdUsers = async () => {
   }
 };
 
+const logoutPopup = async () => {
+  isModalLoading.value = true;
+  try {
+    await msalInstance.logoutPopup();
+    inviteAdUserModalRef.value?.hide();
+    isModalLoading.value = false;
+  } catch (error) {
+    isModalLoading.value = false;
+  }
+}
+
 const _showModal = () => {
   inviteAdUserModalRef.value?.show();
+  getAdUserList();
 }
 
 defineExpose({ showModal: _showModal });
 
 </script>
 <template>
-  <ModalComponent ref="inviteAdUserModalRef" hide-cancel centered scrollable>
+  <ModalComponent :is-modal-loading="isModalLoading" ref="inviteAdUserModalRef" hide-cancel >
     <template #modal-content>
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Invite Active Directory Users</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" @scroll="handleScroll('scroller', !isModalLoading, getAdUserList)" ref="scroller">
-        <div class="list-group" v-loading="isModalLoading">
-          <label v-for="user in users" :key="user.id" class="list-group-item d-flex align-items-center">
+      <div class="modal-body" >
+        <div class="row mb-3 align-items-center">
+          <div class="col">
+            <input type="search" v-model="searchText" class="form-control" @input="getInitAdUserList"
+              placeholder="Search..." aria-label="Search">
+          </div>
+        </div>
+        <div class="list-group modal-scroll" @scroll="handleScroll('scroller', !isModalLoading, getAdUserList)" ref="scroller">
+          <label v-for="user in userListWithEmailId" :key="user.id" class="list-group-item d-flex align-items-center">
             <input class="form-check-input checkbox-lg me-3 mt-0" type="checkbox"
               :value="inviteUserList.some(data => data.mail == user.mail)" @change="manageInviteList(user)">
             <div class="row d-inline-block">
@@ -121,12 +144,15 @@ defineExpose({ showModal: _showModal });
               <div class="col">{{ user.mail }}</div>
             </div>
           </label>
-          <div v-if="users.length == 0" class="text-center">
+          <div v-if="adUsers.length == 0" class="text-center">
             No Users found
           </div>
         </div>
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn btn-secondary me-auto" @click="logoutPopup">
+              AD Log Out
+            </button>
         <button type="button" class="btn btn-primary" @click="inviteAdUsers">
           Invite
           <span v-if="inviteUserList.length > 0" class="badge bg-light text-dark"> {{ inviteUserList.length

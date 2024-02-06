@@ -1,4 +1,5 @@
 import { useRouteCheck } from "@/composables/useRouteCheck";
+import BlankLayout from "@/layouts/BlankLayout.vue";
 import FullscreenLayout from "@/layouts/FullscreenLayout.vue";
 import StandardLayout from "@/layouts/StandardLayout.vue";
 import { createRouter, createWebHistory } from "vue-router";
@@ -16,6 +17,7 @@ const routes = [
     name: "tenantmanagement",
     component: () => import("@/views/tenant/TenantManagement.vue"),
     meta: { layout: StandardLayout, requiresAuth: true },
+    // accessedBy: [UserTypeId.PUS, UserTypeId.USR],
   },
 
   // User Routes
@@ -55,7 +57,7 @@ const routes = [
     props: true,
     meta: {
       // layout: StandardLayout,
-      layout: FullscreenLayout,
+      layout: BlankLayout,
       requiresAuth: false,
     },
   },
@@ -66,6 +68,16 @@ const routes = [
     props: true,
     meta: {
       layout: StandardLayout,
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/resumeattachmentpreview/:id",
+    name: "resumeattachmentpreview",
+    component: () => import("@/views/hrProfile/ResumeAttachmentPreview.vue"),
+    props: true,
+    meta: {
+      layout: FullscreenLayout,
       requiresAuth: true,
     },
   },

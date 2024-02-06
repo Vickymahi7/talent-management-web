@@ -38,7 +38,7 @@ const hrProfileFields = [
   { key: 'first_name', label: 'Resource Name' },
   { key: 'email_id', label: 'Email ID' },
   { key: 'skills', label: 'Skills' },
-  { key: 'status_id', label: 'Profile Status', isEditable: true },
+  { key: 'status_id', label: 'Profile Status' },
   { key: 'last_updated_dt', label: 'Last Updated' },
   { key: 'actions', label: 'Action' },
 ];
@@ -212,118 +212,120 @@ function openHrProfileModal() {
 }
 </script>
 <template>
-  <div class="content-card content-header card-gap-mb">
-    <label>Profile Management</label>
-  </div>
-  <div v-loading="isLoading" class="content-body content-card"
-    @scroll="handleScroll('scrollerRef', !isLoading, getHrProfileList)" ref="scrollerRef">
-    <div class="row filter-group py-2 align-items-center">
-      <div class="col-3">
-        <input type="text" v-model="searchText" class="form-control" @keyup.enter="getUpdatedHrProfileList"
-          placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
-      </div>
-      <div class="col">
-        <!-- <div class="form-check form-check-inline mb-0">``
-          <input class="form-check-input" v-model="status_id" type="checkbox" name="profileStatusOptions"
-            id="inlineRadioStatusAll" :value="null" @change="getHrProfileList">
-          <label class="form-check-label" for="inlineRadioStatusAll">All</label>
-        </div> -->
-        <div v-for="status in PROFILE_STATUS" :key="status.id" class="form-check form-check-inline mb-0">
-          <input class="form-check-input" v-model="status_id" type="checkbox" :id="'inlineRadio' + status.id"
-            :value="status.id" @change="getUpdatedHrProfileList">
-          <label class="form-check-label" :for="'inlineRadio' + status.id">{{ status.status }}</label>
-        </div>
-        <!-- <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
-          <option :value="null">Profile Status</option>
-          <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
-        </select> -->
-      </div>
-      <div class="col text-end">
-        <button class="btn btn-primary" type="button" @click="showAddProfileModal">
-          <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
-          New Profile
-        </button>
-        <!-- <button v-if="userTypeId != UserTypeId.USR" class="btn btn-primary ms-2" type="button">
-          <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
-          Profile Excel Import
-        </button> -->
-      </div>
+  <div v-loading="isLoading">
+    <div class="content-card content-header card-gap-mb">
+      <label>Profile Management</label>
     </div>
-    <div class="table-responsive">
-      <table class="table table-borderless custom-table-style">
-        <thead class="table-primary">
-          <tr>
-            <th scope="col" v-for="field in hrProfileFields" :key="field.key">{{ field.label }}</th>
-          </tr>
-        </thead>
-        <tbody class="custom-tbody-style">
-          <tr v-for="(hrProfileData, index) in hrProfileList" :key="hrProfileData.id"
-            @click="handleTableRowClick('hrProfileModal', hrProfileData.id!)" role="button">
-            <td v-for="field in hrProfileFields" :key="field.key">
-              <template v-if="field.key == 'select'">
-                <input class="form-check-input" type="checkbox">
-              </template>
-              <template v-else-if="field.key == 'index'">
-                {{ index + 1 }}
-              </template>
-              <template v-else-if="field.key == 'first_name'">
-                {{ hrProfileData.first_name }} {{ hrProfileData.last_name }}
-              </template>
-              <template v-else-if="field.key == 'skills'">
-                <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfileData.skills)">
-                  <span v-for="_skill, index in hrProfileData.skills" :key="index">{{ _skill.skill }}<span
-                      v-if="hrProfileData.skills && index < hrProfileData.skills.length - 1">,
+    <div class="content-body content-card"
+      @scroll="handleScroll('scrollerRef', !isLoading, getHrProfileList)" ref="scrollerRef">
+      <div class="row filter-group py-2 align-items-center">
+        <div class="col-3">
+          <input type="text" v-model="searchText" class="form-control" @keyup.enter="getUpdatedHrProfileList"
+            placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
+        </div>
+        <div class="col">
+          <!-- <div class="form-check form-check-inline mb-0">``
+            <input class="form-check-input" v-model="status_id" type="checkbox" name="profileStatusOptions"
+              id="inlineRadioStatusAll" :value="null" @change="getHrProfileList">
+            <label class="form-check-label" for="inlineRadioStatusAll">All</label>
+          </div> -->
+          <div v-for="status in PROFILE_STATUS" :key="status.id" class="form-check form-check-inline mb-0">
+            <input class="form-check-input" v-model="status_id" type="checkbox" :id="'inlineRadio' + status.id"
+              :value="status.id" @change="getUpdatedHrProfileList">
+            <label class="form-check-label" :for="'inlineRadio' + status.id">{{ status.status }}</label>
+          </div>
+          <!-- <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
+            <option :value="null">Profile Status</option>
+            <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
+          </select> -->
+        </div>
+        <div class="col text-end">
+          <button class="btn btn-primary" type="button" @click="showAddProfileModal">
+            <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
+            New Profile
+          </button>
+          <!-- <button v-if="userTypeId != UserTypeId.USR" class="btn btn-primary ms-2" type="button">
+            <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
+            Profile Excel Import
+          </button> -->
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-borderless custom-table-style align-middle">
+          <thead class="table-primary">
+            <tr>
+              <th scope="col" v-for="field in hrProfileFields" :key="field.key">{{ field.label }}</th>
+            </tr>
+          </thead>
+          <tbody class="custom-tbody-style">
+            <tr v-for="(hrProfileData, index) in hrProfileList" :key="hrProfileData.id"
+              @click="handleTableRowClick('hrProfileModal', hrProfileData.id!)" role="button">
+              <td v-for="field in hrProfileFields" :key="field.key">
+                <template v-if="field.key == 'select'">
+                  <input class="form-check-input" type="checkbox">
+                </template>
+                <template v-else-if="field.key == 'index'">
+                  {{ index + 1 }}
+                </template>
+                <template v-else-if="field.key == 'first_name'">
+                  {{ hrProfileData.first_name }} {{ hrProfileData.last_name }}
+                </template>
+                <template v-else-if="field.key == 'skills'">
+                  <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfileData.skills)">
+                    <span v-for="_skill, index in hrProfileData.skills" :key="index">{{ _skill.skill }}<span
+                        v-if="hrProfileData.skills && index < hrProfileData.skills.length - 1">,
+                      </span>
                     </span>
-                  </span>
-                </div>
-              </template>
-              <template v-else-if="field.key == 'status_id'">
-                {{ commonFunctions.getProfileStatusById(hrProfileData.status_id) }}
-              </template>
-              <template v-else-if="field.key == 'last_updated_dt'">
-                {{ formatDateTime(hrProfileData.last_updated_dt) }}
-              </template>
-              <template v-else-if="field.key == 'actions'">
-                <div class="icon-btn me-2" @click.stop="duplicateProfile(hrProfileData)" title="Duplicate Profile"
-                  data-bs-toggle="modal" data-bs-target="#duplicateProfileConfirm">
-                  <font-awesome-icon icon="fa-regular fa-copy" />
-                </div>
-                <a v-if="hrProfileData.resume_url" target="_blank" href="#"
-                  @click.stop="showResumeAttachment(hrProfileData.resume_url)" class="icon-btn me-2"
-                  title="Resume Attachment">
-                  <font-awesome-icon icon="fa-solid fa-paperclip" />
-                </a>
-                <div class="icon-btn me-2" title="Preview & Download" @click.stop="showResumePreview(hrProfileData)">
-                  <font-awesome-icon icon="fa-solid fa-download" />
-                </div>
-                <div class="icon-btn" @click.stop="deleteHrProfile(hrProfileData.id!)" title="Delete Profile"
-                  data-bs-toggle="modal" data-bs-target="#deleteHrProfile">
-                  <font-awesome-icon icon="fa-solid fa-trash" />
-                </div>
-              </template>
-              <template v-else>
-                {{ hrProfileData[field.key] }}
-              </template>
-            </td>
-          </tr>
-          <tr v-if="hrProfileList.length == 0">
-            <td colspan="12" class="text-center"> No record found </td>
-          </tr>
-        </tbody>
-      </table>
+                  </div>
+                </template>
+                <template v-else-if="field.key == 'status_id'">
+                  {{ commonFunctions.getProfileStatusById(hrProfileData.status_id) }}
+                </template>
+                <template v-else-if="field.key == 'last_updated_dt'">
+                  {{ formatDateTime(hrProfileData.last_updated_dt) }}
+                </template>
+                <template v-else-if="field.key == 'actions'">
+                  <div class="icon-btn me-2" @click.stop="duplicateProfile(hrProfileData)" title="Duplicate Profile"
+                    data-bs-toggle="modal" data-bs-target="#duplicateProfileConfirm">
+                    <font-awesome-icon icon="fa-regular fa-copy" />
+                  </div>
+                  <a v-if="hrProfileData.resume_url" target="_blank" href="#"
+                    @click.stop="showResumeAttachment(hrProfileData.resume_url)" class="icon-btn me-2"
+                    title="Resume Attachment">
+                    <font-awesome-icon icon="fa-solid fa-paperclip" />
+                  </a>
+                  <div class="icon-btn me-2" title="Preview & Download" @click.stop="showResumePreview(hrProfileData)">
+                    <font-awesome-icon icon="fa-solid fa-download" />
+                  </div>
+                  <div class="icon-btn" @click.stop="deleteHrProfile(hrProfileData.id!)" title="Delete Profile"
+                    data-bs-toggle="modal" data-bs-target="#deleteHrProfile">
+                    <font-awesome-icon icon="fa-solid fa-trash" />
+                  </div>
+                </template>
+                <template v-else>
+                  {{ hrProfileData[field.key] }}
+                </template>
+              </td>
+            </tr>
+            <tr v-if="hrProfileList.length == 0">
+              <td colspan="12" class="text-center"> No record found </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
   <AddHrProfileModal id="addHrProfileModal-profileManage" ref="addHrProfileModalRef"
     @refreshParent="getUpdatedHrProfileList" />
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
-  <!-- <ModalComponent v-if="showHrProfileModal" v-loading="isModalLoading" ref="hrProfileModalRef" id="hrProfileModal"
+  <!-- <ModalComponent v-if="showHrProfileModal" :is-modal-loading="isModalLoading" ref="hrProfileModalRef" id="hrProfileModal"
     title="New Profile" content-class="profile-modal" fullscreen hide-header>
     <template #body>
       <HrProfileComponent :id="hrProfileId" :key="hrProfileId" />
     </template>
   </ModalComponent> -->
   <ResumePreviewModal id="profileResumePreviewModal" :hrProfile="hrProfile" :tenantSettings="tenant" />
-  <dialog-component id="duplicateProfileConfirm" :onYes="onYesDuplicateProfile" title="Create Duplicate Profile"
+  <dialog-component id="duplicateProfileConfirm" :onYes="onYesDuplicateProfile" title="Duplicate Profile"
     message="Are you sure you want to create a copy of this profile?" />
 </template>

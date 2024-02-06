@@ -134,8 +134,8 @@ const uploadTenantLogo = async (event: any) => {
 </script>
 
 <template>
-  <ModalComponent v-loading="isLoading" title="Tenant Profile" ref="tenentProfileModalref" size="modal-lg" centered
-    hide-footer no-close-on-backdrop no-close-on-esc>
+  <ModalComponent :is-modal-loading="isLoading" title="Tenant Profile" ref="tenentProfileModalref" size="modal-lg"
+    centered hide-footer no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container profile-setting mb-5">
         <div v-if="!elements.editMode" class="row mb-2 text-end">
@@ -149,7 +149,7 @@ const uploadTenantLogo = async (event: any) => {
             <!-- <div class="card shadow-lg border-0 p-3"> -->
             <div class="py-2 d-inline-block position-relative">
               <img v-if="tenant.logo_url" class="d-block rounded" :src="getImageUrlWithTimestamp" alt="" height="70" />
-              <img v-else class="d-block rounded" src="@/assets/img/logo.png" alt="" height="70">
+              <img v-else class="d-block rounded" src="@/assets/img/tm-name-logo.png" alt="" height="70">
               <span class="icon-btn upload-icon" @click="commonFunctions.fileUploadBtnClick('upload-input')">
                 <font-awesome-icon icon="fa-solid fa-camera" />
                 <input type="file" id="upload-input" class="icon-upload-input" @input="uploadTenantLogo($event)"

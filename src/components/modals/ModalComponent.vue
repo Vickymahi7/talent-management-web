@@ -13,6 +13,7 @@ defineProps({
   fullscreen: Boolean,
   noCloseOnEsc: Boolean,
   noCloseOnBackdrop: Boolean,
+  isModalLoading: Boolean,
   size: { type: String, },
 });
 const emit = defineEmits(['show', 'shown', 'hide', 'hidden']);
@@ -59,7 +60,7 @@ defineExpose({ toggle: _toggle, show: _show, hide: _hide });
       'modal-dialog-centered': centered,
       'modal-dialog-scrollable': scrollable
     }">
-      <div class="modal-content" :class="contentClass ? contentClass : ''">
+      <div v-loading="isModalLoading" class="modal-content" :class="contentClass ? contentClass : ''">
         <slot name="modal-content">
           <div v-if="!hideHeader" class="modal-header">
             <h5 class="modal-title" id="exampleModalLabel">{{ title }}</h5>

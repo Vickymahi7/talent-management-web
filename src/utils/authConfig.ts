@@ -9,38 +9,39 @@ export const msalConfig = {
     postLogoutRedirectUri: "/", // Must be registered as a SPA redirectURI on your app registration
   },
   cache: {
-    cacheLocation: "localStorage",
+    cacheLocation: 'localStorage',
+    storeAuthStateInCookie: false, 
   },
-  system: {
-    loggerOptions: {
-      loggerCallback: (
-        level: LogLevel,
-        message: string,
-        containsPii: boolean
-      ) => {
-        if (containsPii) {
-          return;
-        }
-        switch (level) {
-          case LogLevel.Error:
-            console.error(message);
-            return;
-          case LogLevel.Info:
-            console.info(message);
-            return;
-          case LogLevel.Verbose:
-            console.debug(message);
-            return;
-          case LogLevel.Warning:
-            console.warn(message);
-            return;
-          default:
-            return;
-        }
-      },
-      logLevel: LogLevel.Verbose,
-    },
-  },
+  // system: {
+  //   loggerOptions: {
+  //     loggerCallback: (
+  //       level: LogLevel,
+  //       message: string,
+  //       containsPii: boolean
+  //     ) => {
+  //       if (containsPii) {
+  //         return;
+  //       }
+  //       switch (level) {
+  //         case LogLevel.Error:
+  //           console.error(message);
+  //           return;
+  //         case LogLevel.Info:
+  //           console.info(message);
+  //           return;
+  //         case LogLevel.Verbose:
+  //           console.debug(message);
+  //           return;
+  //         case LogLevel.Warning:
+  //           console.warn(message);
+  //           return;
+  //         default:
+  //           return;
+  //       }
+  //     },
+  //     logLevel: LogLevel.Verbose,
+  //   },
+  // },
 };
 
 export const msalInstance = new PublicClientApplication(msalConfig);
@@ -52,7 +53,7 @@ export const loginRequest = {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 export const graphConfig = {
-  graphMeEndpoint: "https://graph.microsoft.com/v1.0/users",
+  graphGetUsersEndpoint: "https://graph.microsoft.com/v1.0/users",
 };
 
 function extractSkipTokenFromUrl(url) {
@@ -61,11 +62,16 @@ function extractSkipTokenFromUrl(url) {
   return skipToken;
 }
 
-export async function callMsGraph(accessToken: string, skipToken?: string) {
+export async function callMsGraph(
+  accessToken: string,
+  skipToken?: string,
+  searchText?: string
+) {
   const headers = new Headers();
   const bearer = `Bearer ${accessToken}`;
 
   headers.append("Authorization", bearer);
+  headers.append("ConsistencyLevel", 'eventual');
 
   const options = {
     method: "GET",
@@ -75,8 +81,12 @@ export async function callMsGraph(accessToken: string, skipToken?: string) {
   skipToken = skipToken
     ? `&$skiptoken=${extractSkipTokenFromUrl(skipToken)}`
     : "";
-
-  return fetch(`${graphConfig.graphMeEndpoint}?$top=20${skipToken}`, options)
+  const filter = searchText ? `&$filter=startswith(displayName,'${searchText}')` : "";
+  // $orderby=displayName not working in some cases
+  return fetch(
+    `${graphConfig.graphGetUsersEndpoint}?$top=20&${filter}&$select=displayName,mail${skipToken}`,
+    options
+  )
     .then((response) => response.json())
     .catch((error) => {
       console.log(error);

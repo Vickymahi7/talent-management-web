@@ -21,6 +21,7 @@ const editId = ref(null as number | null);
 const scrollerRef = ref(null as InstanceType<typeof HTMLElement> | null);
 const tenantAddEditModalRef = ref(null as null | Modal);
 
+const searchText = ref('');
 const isPageEnd = ref(false);
 const perPage = ref(15);
 const lastRecordKey = ref(null);
@@ -29,11 +30,11 @@ const tenant = ref({} as Tenant);
 const tenantList = ref([] as Tenant[]);
 const tenantFields = [
   { key: 'tenant_id', label: 'ID', },
-  { key: 'name', label: 'Tenant', isEditable: true },
-  { key: 'user_name', label: 'Display Name' },
-  { key: 'email_id', label: 'Login Email' },
-  { key: 'tenant_status_id', label: 'Status', isEditable: true },
-  { key: 'last_updated_dt', label: 'Last Updated' },
+  { key: 'name', label: 'Tenant', tdClass: 'col-width-lg' },
+  { key: 'user_name', label: 'Display Name', },
+  { key: 'email_id', label: 'Login Email', },
+  { key: 'tenant_status_id', label: 'Status', tdClass: 'col-width-sm' },
+  { key: 'last_updated_dt', label: 'Last Updated', },
   { key: 'actions', label: 'Action', },
 ];
 
@@ -84,6 +85,7 @@ const getUpdatedTenantList = () => {
 const getTenantList = async () => {
   try {
     const queryParams = {
+      searchText: searchText.value,
       lastRecordKey: lastRecordKey.value,
       perPage: perPage.value,
     };
@@ -129,12 +131,16 @@ const updateTenant = async (tenantData: Tenant) => {
   try {
     // v$.value.tenant.$touch();
     // if (!v$.value.tenant.$invalid) {
-    const data: any = {}
-    data.tenant_id = tenantData.tenant_id;
-    data.name = tenantData.name;
-    data.user_id = tenantData.user_id;
-    data.name = tenantData.name;
-    data.tenant_status_id = tenantData.tenant_status_id;
+    const data: Tenant = {
+      tenant_id: tenantData.tenant_id,
+      name: tenantData.name,
+      user_id: tenantData.user_id,
+      tenant_status_id: tenantData.tenant_status_id,
+      user: {
+        email_id: tenantData.user?.email_id
+      },
+    }
+    
     isLoading.value = true;
     const response: any = await axios.patch('/tenant/update', data);
     if (response.status == HttpStatusCode.BadRequest) {
@@ -147,6 +153,7 @@ const updateTenant = async (tenantData: Tenant) => {
     }
     // }
   } catch (error: any) {
+    console.log(error)
     toast.error(error.message);
   }
   finally {
@@ -220,92 +227,107 @@ const _hideModal = () => {
 
 </script>
 <template>
-  <div class="content-card content-header card-gap-mb">
-    <label>Manage Tenant</label>
-  </div>
-  <div v-loading="isLoading" class="content-body content-card"
-    @scroll="handleScroll('scrollerRef', !isLoading, getTenantList)" ref="scrollerRef">
-    <div class="row py-2">
-      <div class="col text-end">
-        <button class="btn btn-primary mx-2" type="button" @click="_showModal">
-          <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
-          New Tenant
-        </button>
+  <div v-loading="isLoading">
+    <div class="content-card content-header card-gap-mb">
+      <label>Manage Tenant</label>
+    </div>
+    <div class="content-body content-card" @scroll="handleScroll('scrollerRef', !isLoading, getTenantList)"
+      ref="scrollerRef">
+      <div class="row filter-group py-2">
+        <div class="col-3">
+          <input type="text" v-model="searchText" class="form-control" @keyup.enter="getTenantList"
+            placeholder="Search..." aria-label="Search">
+        </div>
+        <div class="col text-end">
+          <button class="btn btn-primary mx-2" type="button" @click="_showModal">
+            <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
+            New Tenant
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-borderless custom-table-style align-middle">
+          <thead class="table-primary">
+            <tr>
+              <th scope="col" :class="field.tdClass ?? ''" v-for="field in tenantFields" :key="field.key">{{ field.label
+              }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="custom-tbody-style">
+            <tr v-for="tenant in tenantList" :key="tenant.tenant_id!">
+              <td v-for="field in tenantFields" :key="field.key" :class="field.tdClass ?? ''">
+                <template v-if="field.key == 'name'">
+                  <input v-if="editId == tenant.tenant_id" type="text" class="form-control form-control-sm"
+                    v-model="tenant[field.key]" placeholder="Enter Name" @keyup.enter="updateTenant(tenant)">
+                  <template v-else>
+                    <span v-if="tenant.user?.active" class="text-success me-2" title="User Activated">
+                      <font-awesome-icon icon="fa-solid fa-user-check" />
+                    </span>
+                    <span v-else class="text-danger me-2" title="User Not Activated">
+                      <font-awesome-icon icon="fa-solid fa-user-xmark" />
+                    </span>
+                    {{ tenant[field.key] }}
+                  </template>
+                </template>
+                
+                <template v-else-if="field.key == 'email_id'">
+                  <input v-if="editId == tenant.tenant_id" type="email" class="form-control form-control-sm"
+                    v-model="tenant.user![field.key]" placeholder="Enter Email Id" @keyup.enter="updateTenant(tenant)">
+                  <div v-else>{{ tenant.user![field.key] }}</div>
+                  </template>
+                <template v-else-if="field.key == 'tenant_status_id'">
+                  <select v-if="editId == tenant.tenant_id" class="form-select form-control-sm"
+                    v-model="tenant[field.key]" @change="updateTenant(tenant)" :aria-label="field.label">
+                    <option :value="null">Select</option>
+                    <option v-for="item in ACCOUNT_STATUS" :key="item.id" :value="item.id">{{ item.status }}</option>
+                  </select>
+                  <span v-else>{{ commonFunctions.getTenantStatusById(tenant[field.key]) }}</span>
+                </template>
+                <template v-else-if="field.key == 'last_updated_dt'">
+                  {{ formatDateTime(tenant[field.key]) }}
+                </template>
+                <template v-else-if="field.key == 'actions'">
+                  <template v-if="editId == tenant.tenant_id">
+                    <span class="icon-btn mx-1" @click="updateTenant(tenant)">
+                      <font-awesome-icon icon="fa-solid fa-check" />
+                    </span>
+                    <span class="icon-btn" @click="cancelInlineEdit()">
+                      <font-awesome-icon icon="fa-solid fa-xmark" />
+                    </span>
+                  </template>
+                  <template v-else>
+                    <div v-if="!tenant.user?.active" class="icon-btn me-2"
+                      @click="resendActivationMail(tenant.user?.user_id!)" title="Resend Activation Mail"
+                      data-bs-toggle="modal" data-bs-target="#resendConfirmation">
+                      <font-awesome-icon icon="fa-solid fa-share-from-square" />
+                    </div>
+                    <div class="icon-btn me-2" @click="handleTableCellClick(tenant)" title="Edit Tenant">
+                      <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                    </div>
+                    <div v-if="tenant.user && !tenant.user.active" class="icon-btn"
+                      @click="deleteTenant(tenant.tenant_id!)" title="Delete Tenant" data-bs-toggle="modal"
+                      data-bs-target="#deleteTenant">
+                      <font-awesome-icon icon="fa-solid fa-trash" />
+                    </div>
+                  </template>
+                </template>
+                <template v-else-if="field.key == 'user_name'">
+                  {{ tenant.user![field.key] }}
+                </template>
+                <template v-else>{{ tenant[field.key] }}</template>
+              </td>
+            </tr>
+            <tr v-if="tenantList.length == 0">
+              <td colspan="12" class="text-center"> No record found </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
-    <div class="table-responsive">
-      <table class="table table-borderless custom-table-style">
-        <thead class="table-primary">
-          <tr>
-            <th scope="col" v-for="field in tenantFields" :key="field.key">{{ field.label }}</th>
-          </tr>
-        </thead>
-        <tbody class="custom-tbody-style">
-          <tr v-for="tenant in tenantList" :key="tenant.tenant_id!">
-            <td v-for="field in tenantFields" :key="field.key">
-              <template v-if="field.key == 'name'">
-                <input v-if="editId == tenant.tenant_id" type="text" class="form-control form-control-sm"
-                  v-model="tenant[field.key]" placeholder="Enter Name" @keyup.enter="updateTenant(tenant)">
-                <template v-else>
-                  <span v-if="tenant.user?.active" class="text-success me-2" title="User Activated">
-                    <font-awesome-icon icon="fa-solid fa-user-check" />
-                  </span>
-                  <span v-else class="text-danger me-2" title="User Not Activated">
-                    <font-awesome-icon icon="fa-solid fa-user-xmark" />
-                  </span>
-                  {{ tenant[field.key] }}
-                </template>
-              </template>
-              <template v-else-if="field.key == 'tenant_status_id'">
-                <select v-if="editId == tenant.tenant_id" class="form-select form-control-sm" v-model="tenant[field.key]"
-                  @change="updateTenant(tenant)" :aria-label="field.label">
-                  <option :value="null">Select</option>
-                  <option v-for="item in ACCOUNT_STATUS" :key="item.id" :value="item.id">{{ item.status }}</option>
-                </select>
-                <span v-else>{{ commonFunctions.getTenantStatusById(tenant[field.key]) }}</span>
-              </template>
-              <template v-else-if="field.key == 'last_updated_dt'">
-                {{ formatDateTime(tenant[field.key]) }}
-              </template>
-              <template v-else-if="field.key == 'actions'">
-                <template v-if="editId == tenant.tenant_id">
-                  <span class="icon-btn mx-1" @click="updateTenant(tenant)">
-                    <font-awesome-icon icon="fa-solid fa-check" />
-                  </span>
-                  <span class="icon-btn" @click="cancelInlineEdit()">
-                    <font-awesome-icon icon="fa-solid fa-xmark" />
-                  </span>
-                </template>
-                <template v-else>
-                  <div v-if="!tenant.user?.active" class="icon-btn me-2"
-                    @click="resendActivationMail(tenant.user?.user_id!)" title="Resend Activation Mail"
-                    data-bs-toggle="modal" data-bs-target="#resendConfirmation">
-                    <font-awesome-icon icon="fa-solid fa-share-from-square" />
-                  </div>
-                  <div class="icon-btn me-2" @click="handleTableCellClick(tenant)" title="Edit Tenant">
-                    <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                  </div>
-                  <div v-if="tenant.user && !tenant.user.active" class="icon-btn" @click="deleteTenant(tenant.tenant_id!)"
-                    title="Delete Tenant" data-bs-toggle="modal" data-bs-target="#deleteTenant">
-                    <font-awesome-icon icon="fa-solid fa-trash" />
-                  </div>
-                </template>
-              </template>
-              <template v-else-if="field.key == 'user_name' || field.key == 'email_id'">
-                {{ tenant.user![field.key] }}
-              </template>
-              <template v-else>{{ tenant[field.key] }}</template>
-            </td>
-          </tr>
-          <tr v-if="tenantList.length == 0">
-            <td colspan="12" class="text-center"> No record found </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
   </div>
-  <ModalComponent v-loading="isModalLoading" ref="tenantAddEditModalRef" title="New Tenant" @hide="clearData" hide-cancel
-    centered no-close-on-backdrop no-close-on-esc>
+  <ModalComponent :is-modal-loading="isModalLoading" ref="tenantAddEditModalRef" title="New Tenant" @hide="clearData"
+    hide-cancel centered no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container">
         <form class="form-inline">

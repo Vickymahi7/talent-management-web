@@ -1,13 +1,13 @@
 export enum UserType {
   SAD = "Super Admin",
-  ADM = "Power User", // Admin / Power User
+  PUS = "Power User", // Admin / Power User
   HRU = "Hr User",
   USR = "User",
 }
 
 export enum UserTypeId {
   SAD = 1,
-  ADM = 2,
+  PUS = 2,
   HRU = 3,
   USR = 4,
 }

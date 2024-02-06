@@ -89,7 +89,7 @@ const activateUser = async () => {
 
 <template>
   <main class="login-container">
-    <img src="@/assets/img/logo.png" alt="">
+    <img src="@/assets/img/tm-name-logo.png" alt="">
     <div v-loading="isLoading" class="login-section h-100 w-100">
       <template v-if="showInitilStatus">
         <div class="">

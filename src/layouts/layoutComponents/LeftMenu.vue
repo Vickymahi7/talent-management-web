@@ -1,10 +1,15 @@
 <script lang="ts" setup>
-import axios from '@/plugins/axios';
+import { useUserMenuPrivilegeStore } from '@/stores/userMenuPrivilege';
+import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
 import { useToast } from 'vue-toastification';
 const toast = useToast();
+const userMenuPrivilege = useUserMenuPrivilegeStore();
+
+const { userMenuList } = storeToRefs(userMenuPrivilege);
+
 const isLoading = ref(false);
-const userMenuList = ref([] as any);
+// const userMenuList = ref([] as any);
 
 onMounted(() => {
   getUserMenuPrivilegeList();
@@ -34,8 +39,7 @@ const filteredUserMenuList = (mainMenuId: number) => {
 const getUserMenuPrivilegeList = async () => {
   try {
     isLoading.value = true;
-    const response: any = await axios.get('/usermenuprivilege/list')
-    userMenuList.value = response.userMenuPrivilegeList;
+    await userMenuPrivilege.getUserMenuPrivilegeList();
   } catch (error: any) {
     toast.error(error.message);
   }

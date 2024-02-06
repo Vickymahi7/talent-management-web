@@ -32,7 +32,7 @@ const hrProfileFields = [
   { key: 'first_name', label: 'Resource Name' },
   { key: 'email_id', label: 'Email ID' },
   { key: 'skills', label: 'Skills' },
-  { key: 'status_id', label: 'Profile Status', isEditable: true },
+  { key: 'status_id', label: 'Profile Status' },
   { key: 'last_updated_dt', label: 'Last Updated' },
   { key: 'actions', label: 'Action' },
 ];
@@ -117,79 +117,81 @@ const handleScroll = (refName: string, isNotLoading: boolean, callback: Function
 };
 </script>
 <template>
-  <div class="content-card content-header card-gap-mb">
-    <label>Talent Pool</label>
-  </div>
-  <div v-loading="isLoading" class="content-body content-card"
-    @scroll="handleScroll('scrollerRef', !isLoading, getHrProfileList)" ref="scrollerRef">
-    <div class="row filter-group py-2 align-items-center">
-      <div class="col-3">
-        <input type="text" v-model="searchText" class="form-control" @keyup.enter="getUpdatedHrProfileList"
-          placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
-      </div>
-      <div class="col">
-        <!-- <div class="form-check form-check-inline mb-0">``
+  <div v-loading="isLoading">
+    <div class="content-card content-header card-gap-mb">
+      <label>Talent Pool</label>
+    </div>
+    <div class="content-body content-card" @scroll="handleScroll('scrollerRef', !isLoading, getHrProfileList)"
+      ref="scrollerRef">
+      <div class="row filter-group py-2 align-items-center">
+        <div class="col-3">
+          <input type="text" v-model="searchText" class="form-control" @keyup.enter="getUpdatedHrProfileList"
+            placeholder="Search Profile Title, Email, Skill, Summary" aria-label="Search">
+        </div>
+        <div class="col">
+          <!-- <div class="form-check form-check-inline mb-0">``
           <input class="form-check-input" v-model="status_id" type="checkbox" name="profileStatusOptions"
             id="inlineRadioStatusAll" :value="null" @change="getHrProfileList">
           <label class="form-check-label" for="inlineRadioStatusAll">All</label>
         </div> -->
-        <div v-for="status in filteredProfileStatus" :key="status.id" class="form-check form-check-inline mb-0">
-          <input class="form-check-input" v-model="status_id" type="checkbox" :id="'inlineRadio' + status.id"
-            :value="status.id" @change="getUpdatedHrProfileList">
-          <label class="form-check-label" :for="'inlineRadio' + status.id">{{ status.status }}</label>
-        </div>
-        <!-- <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
+          <div v-for="status in filteredProfileStatus" :key="status.id" class="form-check form-check-inline mb-0">
+            <input class="form-check-input" v-model="status_id" type="checkbox" :id="'inlineRadio' + status.id"
+              :value="status.id" @change="getUpdatedHrProfileList">
+            <label class="form-check-label" :for="'inlineRadio' + status.id">{{ status.status }}</label>
+          </div>
+          <!-- <select v-model="status_id" @change="getHrProfileList" class="form-select" aria-label="Default select example">
           <option :value="null">Profile Status</option>
           <option v-for="status in profileStatus" :key="status.id" :value="status.id">{{ status.status }}</option>
         </select> -->
+        </div>
       </div>
-    </div>
-    <div class="table-responsive">
-      <table class="table table-borderless custom-table-style">
-        <thead class="table-primary">
-          <tr>
-            <th scope="col" v-for="field in hrProfileFields" :key="field.key">{{ field.label }}</th>
-          </tr>
-        </thead>
-        <tbody class="custom-tbody-style">
-          <tr v-for="(hrProfile, index) in hrProfileList" :key="hrProfile.id">
-            <td v-for="field in hrProfileFields" :key="field.key">
-              <template v-if="field.key == 'index'">
-                {{ index + 1 }}
-              </template>
-              <template v-else-if="field.key == 'first_name'">
-                {{ hrProfile.first_name }} {{ hrProfile.last_name }}
-              </template>
-              <template v-else-if="field.key == 'skills'">
-                <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfile.skills)">
-                  <span v-for="_skill, index in hrProfile.skills" :key="index">{{ _skill.skill }}<span
-                      v-if="hrProfile.skills && index < hrProfile.skills.length - 1">,
+      <div class="table-responsive">
+        <table class="table table-borderless custom-table-style align-middle">
+          <thead class="table-primary">
+            <tr>
+              <th scope="col" v-for="field in hrProfileFields" :key="field.key">{{ field.label }}</th>
+            </tr>
+          </thead>
+          <tbody class="custom-tbody-style">
+            <tr v-for="(hrProfile, index) in hrProfileList" :key="hrProfile.id">
+              <td v-for="field in hrProfileFields" :key="field.key">
+                <template v-if="field.key == 'index'">
+                  {{ index + 1 }}
+                </template>
+                <template v-else-if="field.key == 'first_name'">
+                  {{ hrProfile.first_name }} {{ hrProfile.last_name }}
+                </template>
+                <template v-else-if="field.key == 'skills'">
+                  <div class="text-truncate table-th-width" :title="skillsToolTip(hrProfile.skills)">
+                    <span v-for="_skill, index in hrProfile.skills" :key="index">{{ _skill.skill }}<span
+                        v-if="hrProfile.skills && index < hrProfile.skills.length - 1">,
+                      </span>
                     </span>
-                  </span>
-                </div>
-              </template>
-              <template v-else-if="field.key == 'status_id'">
-                <span>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</span>
-              </template>
-              <template v-else-if="field.key == 'last_updated_dt'">
-                {{ formatDateTime(hrProfile.last_updated_dt) }}
-              </template>
-              <template v-else-if="field.key == 'actions'">
-                <div class="icon-btn" data-bs-toggle="modal" data-bs-target="#resumePreviewModal"
-                  @click="hrProfilePreviewData = hrProfile">
-                  <font-awesome-icon icon="fa-solid fa-eye" />
-                </div>
-              </template>
-              <template v-else>
-                {{ hrProfile[field.key] }}
-              </template>
-            </td>
-          </tr>
-          <tr v-if="hrProfileList.length == 0">
-            <td colspan="12" class="text-center"> No record found </td>
-          </tr>
-        </tbody>
-      </table>
+                  </div>
+                </template>
+                <template v-else-if="field.key == 'status_id'">
+                  <span>{{ commonFunctions.getProfileStatusById(hrProfile.status_id) }}</span>
+                </template>
+                <template v-else-if="field.key == 'last_updated_dt'">
+                  {{ formatDateTime(hrProfile.last_updated_dt) }}
+                </template>
+                <template v-else-if="field.key == 'actions'">
+                  <div class="icon-btn" data-bs-toggle="modal" data-bs-target="#resumePreviewModal"
+                    @click="hrProfilePreviewData = hrProfile">
+                    <font-awesome-icon icon="fa-solid fa-eye" />
+                  </div>
+                </template>
+                <template v-else>
+                  {{ hrProfile[field.key] }}
+                </template>
+              </td>
+            </tr>
+            <tr v-if="hrProfileList.length == 0">
+              <td colspan="12" class="text-center"> No record found </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
   <ResumePreviewModal :hrProfile="hrProfilePreviewData!" :tenantSettings="tenant" />

@@ -52,8 +52,8 @@ defineExpose({ showModal: _showModal });
 </script>
 
 <template>
-  <ModalComponent v-loading="isLoading" title="Forgot Password ?" ref="forgotPasswordModal" @hide="email_id = '';v$.email_id.$reset();"
-    hide-cancel centered no-close-on-backdrop no-close-on-esc>
+  <ModalComponent :is-modal-loading="isLoading" title="Forgot Password ?" ref="forgotPasswordModal"
+    @hide="email_id = ''; v$.email_id.$reset();" hide-cancel centered no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container">
         <div class="row">

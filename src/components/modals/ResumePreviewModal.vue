@@ -65,7 +65,7 @@ export default {
                 <div class="picture-resume">
                   <span>
                     <img :src="hrProfile.photo_url" alt="" />
-                    <!-- <img v-else src="@/assets/img/user-icon.jpg" alt="" /> -->
+                    <!-- <img v-else src="@/assets/img/user-icon.png" alt="" /> -->
                   </span>
                 </div>
               </div>

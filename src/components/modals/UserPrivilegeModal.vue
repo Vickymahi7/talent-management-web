@@ -12,13 +12,13 @@ const userId = ref(null as null | number);
 const userPrivilegeModal = ref(null as null | Modal);
 const isLoading = ref(false);
 const standardPrivilegeList = ref([] as UserMenuPrivilege[]);
-const userMenuPrivilegeFields = ref([
+const userMenuPrivilegeFields = [
   // { key: 'user_menu_privilege_id', label: 'ID' },
   { key: 'main_menu', label: 'Main Menu' },
   { key: 'menu', label: 'Menu' },
   { key: 'active', label: 'Active' },
   // { key: 'actions', label: 'Action' },
-]);
+];
 
 const getStandardPrivilegeList = async (_userId: number) => {
   try {
@@ -68,10 +68,10 @@ defineExpose({ showModal: _showModal });
 </script>
 
 <template>
-  <ModalComponent v-loading="isLoading" title="User Menu Privilege" ref="userPrivilegeModal">
+  <ModalComponent :is-modal-loading="isLoading" title="User Menu Privilege" ref="userPrivilegeModal">
     <template #body>
       <div class="table-responsive">
-        <table class="table table-borderless custom-table-style">
+        <table class="table table-borderless custom-table-style align-middle">
           <thead class="table-primary">
             <tr>
               <th scope="col" v-for="field in userMenuPrivilegeFields" :key="field.key">{{ field.label }}</th>

@@ -415,7 +415,7 @@ h6 {
   .profile-head {
     display: flex;
     gap: $card-gap;
-    height: 220px;
+    // height: 220px;
 
     .profile-media {
       position: relative;
@@ -427,6 +427,7 @@ h6 {
       align-items: center;
       text-align: center;
       min-width: 220px;
+      height: 225px;
 
       .profile-picture-wrapper {
         position: relative;
@@ -563,6 +564,11 @@ h6 {
   }
 }
 
+.modal-scroll{
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
 .profile-modal {
   background-color: var(--body-bg-theme);
 }
@@ -581,13 +587,13 @@ h6 {
 
 .custom-table-style {
   tr {
-    vertical-align: middle;
-
     td,
     th {
       padding-top: 1em;
       padding-bottom: 1em;
       border-bottom: 2px solid var(--bs-body-card);
+      height: 55px;
+      overflow-wrap: break-word;
     }
 
     td:first-child,
@@ -604,6 +610,16 @@ h6 {
       border-bottom-right-radius: $card-border-radius;
     }
   }
+}
+
+.col-width-sm {
+  width: 100px;
+}
+.col-width-md {
+  width: 200px;
+}
+.col-width-lg {
+  width: 250px;
 }
 
 .table-th-width {
@@ -768,6 +784,15 @@ h6 {
       border-color: $secondary-btn-hover-border;
     }
   }
+}
+
+.skill-section {
+  height: 100px;
+  overflow-y: auto;
+}
+
+.el-loading-mask {
+  opacity: 0.8;
 }
 
 .dark-mode-switch {

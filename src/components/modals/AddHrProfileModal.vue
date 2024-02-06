@@ -1,19 +1,15 @@
 <script lang="ts" setup>
 import axios from '@/plugins/axios';
-import type { Docs } from '@/types/Docs';
-import type { Education } from '@/types/Education';
 import type HrProfile from '@/types/HrProfile';
-import type { Project } from '@/types/Project';
 import type { Skill } from '@/types/Skill';
 import type { Tenant } from '@/types/Tenant';
-import type { WorkExperience } from '@/types/WorkExperience';
+import type { User } from '@/types/User';
 import { useCommonFunctions } from '@/utils/useCommonFunctions';
 import useVuelidate from '@vuelidate/core';
 import { email, helpers, required } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
 import type { Modal } from 'bootstrap';
 import { computed, onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
 defineProps({
   id: { type: String, default: 'addHrProfileModal' },
@@ -21,18 +17,8 @@ defineProps({
 const emit = defineEmits(['refreshParent']);
 
 const commonFunctions = useCommonFunctions();
-const route = useRoute();
 
 const addHrProfileModalRef = ref(null as null | Modal);
-
-const _showModal = () => {
-  addHrProfileModalRef.value?.show();
-}
-const _hideModal = () => {
-  addHrProfileModalRef.value?.hide();
-}
-
-defineExpose({ showModal: _showModal });
 
 const validations = computed(() => {
   return {
@@ -48,61 +34,14 @@ const validations = computed(() => {
   }
 });
 const tenant = ref({} as Tenant);
-const hrProfile = ref({
-  id: '',
-  hr_profile_id: '',
-  tenant_id: '',
-  hr_profile_type_id: '',
-  profile_title: '',
-  first_name: '',
-  last_name: '',
-  middle_name: '',
-  email_id: '',
-  alternate_email_id: '',
-  mobile: '',
-  alternate_mobile: '',
-  phone: '',
-  office_phone: '',
-  location: '',
-  ctc: '',
-  experience_month: null,
-  experience_year: null,
-  objective: '',
-  note: '',
-  gender: '',
-  date_of_birth: null,
-  resume_url: '',
-  photo_url: '',
-  buiding_number: '',
-  street_name: '',
-  city: '',
-  state: '',
-  country: '',
-  postal_code: '',
-  website: '',
-  facebook_id: '',
-  twitter_id: '',
-  linkedin_id: '',
-  skype_id: '',
-  status: '',
-  status_id: null,
-  user_id: null,
-  active: true,
-  created_by_id: '',
-  created_dt: null,
-  last_updated_dt: null,
-  skills: [] as string[],
-  work_experience: [] as WorkExperience[],
-  project: [] as Project[],
-  education: [] as Education[],
-  docs: [] as Docs[],
-} as HrProfile);
+const hrProfile = ref({} as HrProfile);
 
 const skillData = ref({} as Skill);
 const v$ = useVuelidate(validations, { hrProfile });
 const toast = useToast();
 
 const isModalLoading = ref(false);
+const isMyProfile = ref(false);
 
 const showSkillExp = computed(() => {
   return tenant.value.is_skill_experience;
@@ -114,6 +53,21 @@ onMounted(() => {
 // onBeforeUnmount(() => {
 //   _hideModal();
 // });
+const _showModal = (_user?: User) => {
+  if (_user) {
+    console.log(_user)
+    isMyProfile.value = true;
+    hrProfile.value.first_name = _user.user_name;
+    hrProfile.value.email_id = _user.email_id;
+    hrProfile.value.mobile = _user.phone;
+  }
+  addHrProfileModalRef.value?.show();
+}
+const _hideModal = () => {
+  addHrProfileModalRef.value?.hide();
+}
+
+defineExpose({ showModal: _showModal });
 
 const getTenantSettings = async () => {
   try {
@@ -133,7 +87,7 @@ const addHrProfile = async () => {
     v$.value.hrProfile.$touch();
     if (!v$.value.hrProfile.$invalid) {
       isModalLoading.value = true;
-      hrProfile.value.is_current_user = route.name == 'userhrprofile';
+      hrProfile.value.is_current_user = isMyProfile.value;
 
       const response: any = await axios.post('/hrprofile/add', hrProfile.value);
 
@@ -183,7 +137,7 @@ const clearData = () => {
 }
 </script>
 <template>
-  <ModalComponent :id="id" v-loading="isModalLoading" ref="addHrProfileModalRef" title="New Profile" @hide="clearData"
+  <ModalComponent :id="id" :is-modal-loading="isModalLoading" ref="addHrProfileModalRef" title="New Profile" @hide="clearData"
     hide-cancel centered no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container">
@@ -216,7 +170,7 @@ const clearData = () => {
           <div class="row">
             <label for="email_id" class="col-sm-4 col-form-label">Email Id</label>
             <div class="col-sm-8">
-              <input type="email" class="form-control" v-model="hrProfile.email_id" id="email_id"
+              <input type="email" class="form-control" v-model="hrProfile.email_id" :disabled="isMyProfile" id="email_id"
                 :class="{ 'is-invalid': v$.hrProfile.email_id.$error }" placeholder="Enter Email Id">
               <div class="invalid-feedback" v-for="error of v$.hrProfile.email_id.$errors" :key="error.$uid">
                 {{ error.$message }}
@@ -250,21 +204,23 @@ const clearData = () => {
               <!-- <input type="text" class="form-control" @keyup.enter.prevent="addSkill" id="skills"
                 placeholder="Enter Skills">
                -->
-              <div class="row gx-1 gy-1">
+              <div class="row g-">
                 <div class="col">
                   <input type="text" v-model.trim="skillData.skill" @keyup.enter.prevent="addSkill" class="form-control"
                     placeholder="Skill">
                 </div>
-                <div v-if="showSkillExp" class="col-8 d-flex">
-                  <input type="number" min="0" v-model.trim="skillData.experience_year" @keyup.enter.prevent="addSkill"
-                    class="form-control" placeholder="Year" aria-label="experience_year">
-                  <input type="number" min="0" v-model.trim="skillData.experience_month" @keyup.enter.prevent="addSkill"
-                    class="form-control" placeholder="Month" aria-label="experience_month">
-                  <!-- <button class="btn btn-primary ms-1" @click.prevent="addSkill">Add</button> -->
-                  <div class="align-self-center ms-1">
-                    <span class="icon-btn" @click="addSkill" title="Add Skill">
-                      <font-awesome-icon icon="fa-solid fa-check" />
-                    </span>
+                <div v-if="showSkillExp" class="col-7">
+                  <div class="row mb-0">
+                    <input type="number" min="0" v-model.trim="skillData.experience_year" @keyup.enter.prevent="addSkill"
+                      class="form-control col" placeholder="Year" aria-label="experience_year">
+                    <input type="number" min="0" v-model.trim="skillData.experience_month" @keyup.enter.prevent="addSkill"
+                      class="form-control col" placeholder="Month" aria-label="experience_month">
+                    <!-- <button class="btn btn-primary ms-1" @click.prevent="addSkill">Add</button> -->
+                    <div class="col-3 align-self-center ps-1">
+                      <span class="icon-btn" @click="addSkill" title="Add Skill">
+                        <font-awesome-icon icon="fa-solid fa-plus" />
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <!-- <div v-if="showSkillExp" class="col d-flex">
@@ -279,7 +235,7 @@ const clearData = () => {
                   <button class="btn btn-primary ms-1" @click.prevent="addSkill">Add</button>
                 </div> -->
               </div>
-              <div v-if="hrProfile.skills && hrProfile.skills.length > 0" class="mt-2">
+              <div v-if="hrProfile.skills && hrProfile.skills.length > 0" class="mt-2 skill-section">
                 <span v-for="_skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1"
                   @click="editSkill(_skill)" role="button">
                   <span class="pe-1">{{ _skill.skill }}

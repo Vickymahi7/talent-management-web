@@ -40,7 +40,7 @@ const loginUser = async () => {
     if (response.userTypeId == UserTypeId.SAD) {
       router.push({ name: 'tenantmanagement' });
     }
-    else if (response.userTypeId == UserTypeId.ADM) {
+    else if (response.userTypeId == UserTypeId.PUS) {
       router.push({ name: 'hrprofilemanagement' });
     }
     else {
@@ -59,7 +59,7 @@ const showForgotPasswordModal = () => {
 
 <template>
   <main class="login-container">
-    <img src="@/assets/img/logo.png" alt="">
+    <img src="@/assets/img/tm-name-logo.png" alt="">
     <div class="login-section">
       <h4 class="text-center">Login</h4>
       <form v-loading="isLoading" class="p-3">

@@ -8,7 +8,6 @@ import { ACCOUNT_STATUS, USER_TYPES } from '@/utils/constants';
 import { formatDateTime } from '@/utils/dateFormats';
 import { UserTypeId } from '@/utils/enums';
 import { useCommonFunctions } from '@/utils/useCommonFunctions';
-import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser';
 import { useVuelidate } from '@vuelidate/core';
 import { email, helpers, required } from '@vuelidate/validators';
 import { HttpStatusCode } from 'axios';
@@ -16,9 +15,11 @@ import type { Modal } from 'bootstrap';
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useToast } from 'vue-toastification';
 import { loginRequest } from "../../utils/authConfig";
+import { useUserMenuPrivilegeStore } from "@/stores/userMenuPrivilege";
 
 const toast = useToast();
 const commonFunctions = useCommonFunctions();
+const userMenuPrivilege = useUserMenuPrivilegeStore();
 const instance = useMsal().instance;
 
 const userPrivilegeRef = ref(null as InstanceType<typeof UserPrivilegeModal> | null);
@@ -38,16 +39,16 @@ const user = ref({} as User);
 
 const showInviteUserModal = ref(false);
 const userList = ref([] as User[]);
-const userFields = ref([
+const userFields = [
   { key: 'user_id', label: 'ID' },
-  { key: 'user_name', label: 'Display Name', isEditable: true },
-  { key: 'email_id', label: 'Email ID', isEditable: true },
-  { key: 'user_type_id', label: 'User Type', isEditable: true },
+  { key: 'user_name', label: 'Display Name', tdClass: 'col-width-lg' },
+  { key: 'email_id', label: 'Email ID', tdClass: 'col-width-lg' },
+  { key: 'user_type_id', label: 'User Type', tdClass: 'col-width-lg' },
   // { key: 'active', label: 'Active' },
-  { key: 'user_status_id', label: 'Status', isEditable: true },
+  { key: 'user_status_id', label: 'Status', tdClass: 'col-width-md' },
   { key: 'last_updated_dt', label: 'Last Updated' },
-  { key: 'actions', label: 'Action' },
-]);
+  { key: 'actions', label: 'Action', tdClass: 'col-width-sm' },
+];
 
 const dialogParam = ref({
   id: 0,
@@ -133,6 +134,9 @@ const addUser = async () => {
         getUpdatedUserList();
         _hideModal();
       }
+      else if (response.status == HttpStatusCode.Conflict) {
+        toast.info(response.message);
+      }
     }
   } catch (error: any) {
     toast.error(error.message);
@@ -159,6 +163,8 @@ const updateUser = async (userData: any) => {
       toast.success(response.message);
       getUpdatedUserList();
       editId.value = null;
+      // refresh menu for current user
+      await userMenuPrivilege.getUserMenuPrivilegeList();
     }
     // }
   } catch (error: any) {
@@ -213,30 +219,39 @@ const cancelInlineEdit = () => {
   editId.value = null;
   getUpdatedUserList();
 }
-const showUserPrivileges = (userId: number) => {
-  userPrivilegeRef.value?.showModal(userId);
-}
-const adLoginPopup = async () => {
-  isLoading.value = true;
-  await instance.loginPopup(loginRequest);
-  getGraphData()
-}
+// const showUserPrivileges = (userId: number) => {
+//   userPrivilegeRef.value?.showModal(userId);
+// }
+
+// const adLoginPopup = async () => {
+//   // isLoading.value = true;
+//   // try {
+//   //   const result = await instance.loginPopup(loginRequest);
+//   //   console.log(result)
+//   // } catch (error) {
+//   //   isLoading.value = false;
+//   // }
+//   getGraphData()
+// }
 const getGraphData = async () => {
   isLoading.value = true;
-  const response = await instance.acquireTokenSilent({
-    ...loginRequest
-  }).catch(async (e) => {
-    if (e instanceof InteractionRequiredAuthError || e instanceof BrowserAuthError) {
-      // await instance.acquireTokenRedirect(loginRequest);
-      await instance.loginPopup(loginRequest);
-      adLoginPopup();
-    }
-    else {
-      throw e;
-    }
-  }).finally(() => {
+  let response = null as any;
+  try {
+    response = await instance.acquireTokenSilent({
+      ...loginRequest
+    })
+    openInviteUserPopup(response);
+  } catch (error) {
+    response = await instance.loginPopup(loginRequest);
+    console.log(response)
+    openInviteUserPopup(response);
+  }
+  finally {
     isLoading.value = false;
-  });
+  }
+};
+
+const openInviteUserPopup = (response: any) => {
   if (response?.accessToken) {
     accessToken.value = response.accessToken;
     showInviteUserModal.value = true;
@@ -244,7 +259,7 @@ const getGraphData = async () => {
       inviteAdUsersModalRef.value?.showModal();
     })
   }
-};
+}
 const handleScroll = (refName: string, isNotLoading: boolean, callback: Function) => {
   // Trigger fetchData when scrolling near the bottom of the container
   if (scrollerRef.value && scrollerRef.value.scrollTop + scrollerRef.value.clientHeight >= scrollerRef.value.scrollHeight - 20 && isNotLoading && !isPageEnd.value) {
@@ -264,105 +279,108 @@ const _hideModal = () => {
 }
 </script>
 <template>
-  <div class="content-card content-header card-gap-mb">
-    <label>Manage User</label>
-  </div>
-  <div v-loading="isLoading" class="content-body content-card"
-    @scroll="handleScroll('scrollerRef', !isLoading, getUserList)" ref="scrollerRef">
-    <div class="row py-2">
-      <div class="col text-end">
-        <button class="btn btn-primary mx-2" type="button" @click="_showModal">
-          <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
-          New User
-        </button>
-        <button v-if="userTypeId != UserTypeId.USR" class="btn btn-primary ms-2" type="button" @click="adLoginPopup">
-          <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
-          Invite AD Users
-        </button>
-      </div>
+  <div v-loading="isLoading">
+    <div class="content-card content-header card-gap-mb">
+      <label>Manage User</label>
     </div>
-    <div class="table-responsive">
-      <table class="table table-borderless custom-table-style">
-        <thead class="table-primary">
-          <tr>
-            <th scope="col" v-for="field in userFields" :key="field.key">{{ field.label }}</th>
-          </tr>
-        </thead>
-        <tbody class="custom-tbody-style">
-          <tr v-for="item in userList" :key="item.user_id">
-            <td v-for="field in userFields" :key="field.key">
-              <template v-if="field.key == 'user_name'">
-                <input v-if="editId == item.user_id" type="text" class="form-control form-control-sm"
-                  v-model="item[field.key]" placeholder="Enter Name" @keyup.enter="updateUser(item)">
-                <div v-else>
-                  <span v-if="item.active" class="text-success me-2" title="User Activated">
-                    <font-awesome-icon icon="fa-solid fa-user-check" />
-                  </span>
-                  <span v-else class="text-danger me-2" title="User Not Activated">
-                    <font-awesome-icon icon="fa-solid fa-user-xmark" />
-                  </span>
-                  {{ item[field.key] }}
-                </div>
-              </template>
-              <template v-else-if="field.key == 'email_id'">
-                <input v-if="editId == item.user_id" type="email" class="form-control form-control-sm"
-                  v-model="item[field.key]" placeholder="Enter Email Id" @keyup.enter="updateUser(item)">
-                <div v-else>{{ item[field.key] }}</div>
-              </template>
-              <template v-else-if="field.key == 'user_type_id'">
-                <!-- <select v-if="editId == item.user_id" class="form-select form-control-sm" v-model="item[field.key]"
-                  :aria-label="field.label">
-                  <option :value="null">Select</option>
-                  <option v-for="info in userTypeList" :key="info.id" :value="info.id">{{ info.userType }}</option>
-                </select> -->
-                <span v-if="item[field.key]">{{ commonFunctions.getUserTypeById(item[field.key]) }}</span>
-              </template>
-              <template v-else-if="field.key == 'user_status_id'">
-                <select v-if="editId == item.user_id" class="form-select form-control-sm" v-model="item[field.key]"
-                  :aria-label="field.label">
-                  <option :value="null">Select</option>
-                  <option v-for="info in ACCOUNT_STATUS" :key="info.id" :value="info.id">{{ info.status }}</option>
-                </select>
-                <span v-else>{{ commonFunctions.getUserStatusById(item[field.key]) }}</span>
-              </template>
-              <template v-else-if="field.key == 'last_updated_dt'">
-                {{ formatDateTime(item[field.key]) }}
-              </template>
-              <template v-else-if="field.key == 'actions'">
-                <template v-if="editId == item.user_id">
-                  <span class="icon-btn mx-1" @click="updateUser(item)">
-                    <font-awesome-icon icon="fa-solid fa-check" />
-                  </span>
-                  <span class="icon-btn" @click="cancelInlineEdit()">
-                    <font-awesome-icon icon="fa-solid fa-xmark" />
-                  </span>
-                </template>
-                <template v-else>
-                  <div v-if="!item.active" class="icon-btn me-2" @click="resendActivationMail(item.user_id!)"
-                    title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
-                    <font-awesome-icon icon="fa-solid fa-share-from-square" />
-                  </div>
-                  <div class="icon-btn me-2" @click="handleTableCellClick(item)" title="Edit User">
-                    <font-awesome-icon icon="fa-solid fa-pencil-alt" />
-                  </div>
-                  <div class="icon-btn me-2" @click="deleteUser(item.user_id!)" title="Delete User" data-bs-toggle="modal"
-                    data-bs-target="#deleteUser">
-                    <font-awesome-icon icon="fa-solid fa-trash" />
-                  </div>
-                  <div v-if="item.user_type_id != UserTypeId.SAD" class="icon-btn"
-                    @click="showUserPrivileges(item.user_id!)" title="User Privileges">
-                    <font-awesome-icon icon="fa-solid fa-cog" />
+    <div class="content-body content-card" @scroll="handleScroll('scrollerRef', !isLoading, getUserList)"
+      ref="scrollerRef">
+      <div class="row py-2">
+        <div class="col text-end">
+          <button class="btn btn-primary mx-2" type="button" @click="_showModal">
+            <font-awesome-icon class="me-2" icon="fa-solid fa-plus-circle" />
+            New User
+          </button>
+          <button v-if="userTypeId != UserTypeId.USR && userTypeId != UserTypeId.SAD" class="btn btn-primary ms-2" type="button" @click="getGraphData">
+            <font-awesome-icon class="me-2" icon="fa-solid fa-upload" />
+            Invite AD Users
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-borderless custom-table-style align-middle">
+          <thead class="table-primary">
+            <tr>
+              <th scope="col" :class="field.tdClass ?? ''" v-for="field in userFields" :key="field.key">{{ field.label }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="custom-tbody-style">
+            <tr v-for="item in userList" :key="item.user_id">
+              <td v-for="field in userFields" :key="field.key" :class="field.tdClass ?? ''">
+                <template v-if="field.key == 'user_name'">
+                  <input v-if="editId == item.user_id" type="text" class="form-control form-control-sm"
+                    v-model="item[field.key]" placeholder="Enter Name" @keyup.enter="updateUser(item)">
+                  <div v-else>
+                    <span v-if="item.active" class="text-success me-2" title="User Activated">
+                      <font-awesome-icon icon="fa-solid fa-user-check" />
+                    </span>
+                    <span v-else class="text-danger me-2" title="User Not Activated">
+                      <font-awesome-icon icon="fa-solid fa-user-xmark" />
+                    </span>
+                    {{ item[field.key] }}
                   </div>
                 </template>
-              </template>
-              <template v-else>{{ item[field.key] }}</template>
-            </td>
-          </tr>
-          <tr v-if="userList.length == 0">
-            <td colspan="12" class="text-center"> No record found </td>
-          </tr>
-        </tbody>
-      </table>
+                <template v-else-if="field.key == 'email_id'">
+                  <input v-if="editId == item.user_id" type="email" class="form-control form-control-sm"
+                    v-model="item[field.key]" placeholder="Enter Email Id" @keyup.enter="updateUser(item)">
+                  <div v-else>{{ item[field.key] }}</div>
+                </template>
+                <template v-else-if="field.key == 'user_type_id'">
+                  <select v-if="editId == item.user_id" class="form-select form-control-sm" v-model="item[field.key]"
+                    :aria-label="field.label">
+                    <option :value="null">Select</option>
+                    <option v-for="info in userTypeList" :key="info.id" :value="info.id">{{ info.userType }}</option>
+                  </select>
+                  <span v-else>{{ commonFunctions.getUserTypeById(item[field.key]) }}</span>
+                </template>
+                <template v-else-if="field.key == 'user_status_id'">
+                  <select v-if="editId == item.user_id" class="form-select form-control-sm" v-model="item[field.key]"
+                    :aria-label="field.label">
+                    <option :value="null">Select</option>
+                    <option v-for="info in ACCOUNT_STATUS" :key="info.id" :value="info.id">{{ info.status }}</option>
+                  </select>
+                  <span v-else>{{ commonFunctions.getUserStatusById(item[field.key]) }}</span>
+                </template>
+                <template v-else-if="field.key == 'last_updated_dt'">
+                  {{ formatDateTime(item[field.key]) }}
+                </template>
+                <template v-else-if="field.key == 'actions'">
+                  <template v-if="editId == item.user_id">
+                    <span class="icon-btn me-2" @click="updateUser(item)">
+                      <font-awesome-icon icon="fa-solid fa-check" />
+                    </span>
+                    <span class="icon-btn" @click="cancelInlineEdit()">
+                      <font-awesome-icon icon="fa-solid fa-xmark" />
+                    </span>
+                  </template>
+                  <template v-else>
+                    <div v-if="!item.active" class="icon-btn me-2" @click="resendActivationMail(item.user_id!)"
+                      title="Resend Activation Mail" data-bs-toggle="modal" data-bs-target="#resendConfirmation">
+                      <font-awesome-icon icon="fa-solid fa-share-from-square" />
+                    </div>
+                    <div class="icon-btn me-2" @click="handleTableCellClick(item)" title="Edit User">
+                      <font-awesome-icon icon="fa-solid fa-pencil-alt" />
+                    </div>
+                    <div class="icon-btn" @click="deleteUser(item.user_id!)" title="Delete User" data-bs-toggle="modal"
+                      data-bs-target="#deleteUser">
+                      <font-awesome-icon icon="fa-solid fa-trash" />
+                    </div>
+                    <!-- <div v-if="item.user_type_id != UserTypeId.SAD" class="icon-btn"
+                      @click="showUserPrivileges(item.user_id!)" title="User Privileges">
+                      <font-awesome-icon icon="fa-solid fa-cog" />
+                    </div> -->
+                  </template>
+                </template>
+                <template v-else>{{ item[field.key] }}</template>
+              </td>
+            </tr>
+            <tr v-if="userList.length == 0">
+              <td colspan="12" class="text-center"> No record found </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
   <!-- <div class="modal fade" id="userAddEditModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
@@ -373,8 +391,8 @@ const _hideModal = () => {
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body"> -->
-  <ModalComponent v-loading="isModalLoading" ref="userAddEditModalRef" title="New User" @hide="clearData" hide-cancel
-    centered no-close-on-backdrop no-close-on-esc>
+  <ModalComponent :is-modal-loading="isModalLoading" ref="userAddEditModalRef" title="New User" @hide="clearData"
+    hide-cancel centered no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container">
         <form class="form-inline">

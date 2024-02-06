@@ -22,6 +22,7 @@ import {
   faPencilAlt,
   faPhone,
   faPlusCircle,
+  faPlus,
   faRepeat,
   faRightFromBracket,
   faShareFromSquare,
@@ -35,6 +36,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import ElementPlus from "element-plus";
+import { createPinia } from 'pinia'
 import { createApp } from "vue";
 import Toast from "vue-toastification";
 import App from "./App.vue";
@@ -51,6 +53,7 @@ library.add(
   faCog,
   faUser,
   faPlusCircle,
+  faPlus,
   faTrash,
   faUpload,
   faDownload,
@@ -86,6 +89,7 @@ msalInstance.addEventCallback((event) => {
   }
 });
 
+const pinia = createPinia()
 const app = createApp(App);
 
 app.component("font-awesome-icon", FontAwesomeIcon);
@@ -96,5 +100,6 @@ app.use(VueHtmlToPaper);
 app.use(router);
 app.use(msalPlugin, msalInstance);
 app.use(Toast);
+app.use(pinia);
 
 app.mount("#app");
