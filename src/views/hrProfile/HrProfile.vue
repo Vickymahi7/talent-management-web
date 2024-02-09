@@ -74,6 +74,7 @@ const resumeFiles = ref('');
 const docFiles = ref('');
 const docId = ref('');
 const modalId = ref('');
+const collapseElementId = ref('');
 const deleteChildTitle = ref('');
 const profileCount = ref(0);
 
@@ -672,11 +673,27 @@ const showProfileTitleEdit = () => {
     profileTitleRef.value?.focus();
   })
 }
+
+const toggleElementCollapse = (_id: string) => {
+  if (collapseElementId.value === _id) {
+    collapseElementId.value = '';
+  }
+  else {
+    // const elements = document.getElementsByClassName('detail-collapse');
+
+    // for (let i = 0; i < elements.length; i++) {
+    //   if (elements[i].id == _id && !elements[i].classList.contains('collapsing')) {
+    //     elements[i].classList.remove('show');
+    //   }
+    // }
+    collapseElementId.value = _id;
+  }
+}
 </script>
 <template>
   <div v-loading="isLoading">
     <div v-if="isHrProfilePage" class="mt-5"></div>
-    <div v-if="!isEmptyProfile" class="d-flex card-gap-mb">
+    <div v-if="!isEmptyProfile && !isResumePreviewPage" class="d-flex card-gap-mb">
       <div v-show="elements.titleEdit" class="content-card content-header justify-content-start">
         <input type="text" ref="profileTitleRef" class="form-control py-1 d-inline-block w-25"
           v-model="hrProfile.profile_title" placeholder="Profile Title">
@@ -730,8 +747,7 @@ const showProfileTitleEdit = () => {
         <font-awesome-icon class="me-2" icon="fa-solid fa-download" />
         Resume Preview
       </button>
-      <button v-if="isHrProfilePage || isResumePreviewPage" class="btn btn-secondary ms-2" type="button"
-        @click="$router.back()">
+      <button v-if="isHrProfilePage" class="btn btn-secondary ms-2" type="button" @click="$router.back()">
         <font-awesome-icon icon="fa-solid fa-times" class="me-2" />
         Close
       </button>
@@ -862,8 +878,8 @@ const showProfileTitleEdit = () => {
                         <!-- <a :href="hrProfile.resume_url" target="_blank" class="btn btn-primary ms-2 br-0" type="button">
                         Show
                       </a> -->
-                        <a href="#"
-                          @click="$router.push({ name: 'resumeattachmentpreview', params: { id: hrProfile.hr_profile_id } })"
+                        <a v-if="!isResumePreviewPage" href="#"
+                          @click.prevent="$router.push({ name: 'resumeattachmentpreview', params: { id: hrProfile.id } })"
                           class="btn btn-primary ms-2 br-0" type="button">
                           Show
                         </a>
@@ -1046,6 +1062,13 @@ const showProfileTitleEdit = () => {
               </div>
               <div class="tab-pane fade" id="nav-experience" role="tabpanel" aria-labelledby="nav-experience-tab">
                 <div class="content-list">
+                  <div v-if="!isProfileVerified" class="mb-3">
+                    <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
+                      data-bs-target="#workExperienceAddEditModal"
+                      @click="modalId = 'workExperienceAddEditModal'; elements.modalEdit = true;">
+                      Add Work Experience
+                    </button>
+                  </div>
                   <template v-if="hrProfile.work_experience && hrProfile.work_experience.length > 0">
                     <div v-for="workExperience, index in   hrProfile.work_experience" :key="index" class="list-item">
                       <div class="flex-fill">
@@ -1067,9 +1090,10 @@ const showProfileTitleEdit = () => {
                           <!-- </div> -->
                         </div>
                         <p v-if="workExperience.description">
-                          <a data-bs-toggle="collapse" :href="`#collapse-workExp-${index}`" role="button"
-                            aria-expanded="false" aria-controls="collapse-workExp">
-                            more...
+                          <a class="text-muted" data-bs-toggle="collapse"
+                            :href="`#collapse-workExp-${index}`" role="button" aria-expanded="false"
+                            aria-controls="collapse-workExp" @click="toggleElementCollapse(`collapse-workExp-${index}`)">
+                            {{ collapseElementId === `collapse-workExp-${index}` ? 'less' : 'more...' }}
                           </a>
                         </p>
                       </div>
@@ -1088,17 +1112,17 @@ const showProfileTitleEdit = () => {
                   <div v-else class="list-item">
                     <p>No record found</p>
                   </div>
-                  <div class="py-3">
-                    <button v-if="!isProfileVerified" class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
-                      data-bs-target="#workExperienceAddEditModal"
-                      @click="modalId = 'workExperienceAddEditModal'; elements.modalEdit = true;">
-                      Add Work Experience
-                    </button>
-                  </div>
                 </div>
               </div>
               <div class="tab-pane fade" id="nav-education" role="tabpanel" aria-labelledby="nav-education-tab">
                 <div class="content-list">
+                  <div v-if="!isProfileVerified" class="mb-3">
+                    <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
+                      data-bs-target="#educationAddEditModal"
+                      @click="modalId = 'educationAddEditModal'; elements.modalEdit = true">
+                      Add Education
+                    </button>
+                  </div>
                   <template v-if="hrProfile.education && hrProfile.education.length > 0">
                     <div v-for="education, index in   hrProfile.education" :key="index" class="list-item">
                       <div>
@@ -1131,17 +1155,17 @@ const showProfileTitleEdit = () => {
                   <div v-else class="list-item">
                     <p>No record found</p>
                   </div>
-                  <div v-if="!isProfileVerified" class="py-3">
-                    <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
-                      data-bs-target="#educationAddEditModal"
-                      @click="modalId = 'educationAddEditModal'; elements.modalEdit = true">
-                      Add Education
-                    </button>
-                  </div>
                 </div>
               </div>
               <div class="tab-pane fade" id="nav-project" role="tabpanel" aria-labelledby="nav-project-tab">
                 <div class="content-list">
+                  <div v-if="!isProfileVerified" class="mb-3">
+                    <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
+                      data-bs-target="#projectAddEditModal"
+                      @click="modalId = 'projectAddEditModal'; elements.modalEdit = true">
+                      Add Project
+                    </button>
+                  </div>
                   <template v-if="hrProfile.project && hrProfile.project.length > 0">
                     <div v-for="project, index in   hrProfile.project" :key="index" class="list-item">
                       <div class="flex-fill">
@@ -1155,8 +1179,10 @@ const showProfileTitleEdit = () => {
                         <p v-if="project.technology">Technologies: {{ project.technology }}</p>
                         <p v-if="project.description">
                           <a data-bs-toggle="collapse" :href="`#collapse-project-${index}`" role="button"
-                            aria-expanded="false" aria-controls="collapse-project">
-                            more...
+                            aria-expanded="false" aria-controls="collapse-project"
+                            @click="toggleElementCollapse(`collapse-project-${index}`)"
+                            style="content: 'less';">
+                            {{ collapseElementId === `collapse-project-${index}` ? 'less' : 'more...' }}
                           </a>
                         </p>
                         <div class="collapse" :id="`collapse-project-${index}`">
@@ -1180,13 +1206,6 @@ const showProfileTitleEdit = () => {
                   </template>
                   <div v-else class="list-item">
                     <p>No Projects found</p>
-                  </div>
-                  <div v-if="!isProfileVerified" class="py-3">
-                    <button class="btn btn-primary br-0" type="button" data-bs-toggle="modal"
-                      data-bs-target="#projectAddEditModal"
-                      @click="modalId = 'projectAddEditModal'; elements.modalEdit = true">
-                      Add Project
-                    </button>
                   </div>
                 </div>
               </div>
@@ -1282,6 +1301,12 @@ const showProfileTitleEdit = () => {
               </div>
               <div class="tab-pane fade" id="nav-doc" role="tabpanel" aria-labelledby="nav-doc-tab">
                 <div class="content-list">
+                  <template v-if="!isProfileVerified && !(elements.tabItemEdit && !docId)">
+                    <button v-if="!elements.tabItemEdit" class="btn btn-primary br-0 mb-3" type="button"
+                      @click="elements.tabItemEdit = true">
+                      Add Document
+                    </button>
+                  </template>
                   <template v-if="hrProfile.docs && hrProfile.docs.length > 0">
                     <div v-for="document, index in hrProfile.docs" :key="index" class="list-item">
                       <div class="flex-fill">
@@ -1337,12 +1362,6 @@ const showProfileTitleEdit = () => {
                         </button>
                       </div>
                     </div>
-                    <template v-else>
-                      <button v-if="!elements.tabItemEdit" class="btn btn-primary br-0" type="button"
-                        @click="elements.tabItemEdit = true">
-                        Add Document
-                      </button>
-                    </template>
                   </div>
                 </div>
               </div>
@@ -1593,5 +1612,4 @@ const showProfileTitleEdit = () => {
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
   <dialog-component id="duplicateProfileConfirmation" :onYes="onYesDuplicateProfile" title="Duplicate Profile"
-    message="Are you sure you want to create a copy of this profile?" />
-</template>
+    message="Are you sure you want to create a copy of this profile?" /></template>

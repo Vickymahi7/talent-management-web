@@ -166,7 +166,7 @@ a {
   flex-direction: column;
   height: 100%;
   // min-width: 1200px;
-  overflow-x: auto;
+  // overflow-x: auto;
   font-weight: normal;
 }
 
@@ -466,6 +466,24 @@ h6 {
       gap: 2.5em;
       width: 100%;
     }
+
+    // @media screen and (max-width: 992px) {
+    //   .profile-media{
+    //     flex: 40%;
+    //   }
+    //   .profile-prime-info{
+    //     flex: auto;
+    //   }
+    // }
+    
+    // @media screen and (max-width: 768px) {
+    //   .profile-media{
+    //     flex: 50%;
+    //   }
+    //   .profile-prime-info{
+    //     flex: auto;
+    //   }
+    // }
   }
 
   .profile-body {
@@ -541,6 +559,24 @@ h6 {
         }
       }
     }
+
+    // @media screen and (max-width: 992px) {
+    //   .profile-description{
+    //     flex: 40%;
+    //   }
+    //   .profile-details{
+    //     flex: auto;
+    //   }
+    // }
+    
+    // @media screen and (max-width: 768px) {
+    //   .profile-description{
+    //     flex: 50%;
+    //   }
+    //   .profile-details{
+    //     flex: auto;
+    //   }
+    // }
   }
 }
 

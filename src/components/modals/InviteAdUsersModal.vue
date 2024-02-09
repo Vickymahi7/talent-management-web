@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import axios from '@/plugins/axios';
 import type { AdUser } from '@/types/AdUser';
+import type { User } from '@/types/User';
 import { callMsGraph, msalInstance } from '@/utils/authConfig';
 import { HttpStatusCode } from 'axios';
 import type { Modal } from 'bootstrap';
@@ -22,6 +23,7 @@ const searchText = ref('');
 const nextPageToken = ref('');
 const adUsers = ref([] as AdUser[]);
 const inviteUserList = ref([] as AdUser[]);
+const userList = ref([] as User[]);
 
 const inviteAdUserModalRef = ref(null as null | Modal);
 
@@ -38,7 +40,33 @@ const getInitAdUserList = () => {
   isPageEnd.value = false;
   nextPageToken.value = '';
   adUsers.value = [];
+  inviteUserList.value = [];
   getAdUserList();
+  getUserList();
+}
+
+const getUserList = async () => {
+  try {
+    // const queryParams = {
+    //   lastRecordKey: lastRecordKey.value,
+    //   perPage: perPage.value,
+    // };
+    isModalLoading.value = true;
+    const response: any = await axios.get('/user/list')
+    // lastRecordKey.value = response.lastRecordKey;
+    // if (lastRecordKey.value) {
+    userList.value = response.userList;
+    // }
+    // else {
+    //   isPageEnd.value = true;
+    // }
+    // userList.value = response.userList;
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isModalLoading.value = false;
+  }
 }
 
 const getAdUserList = async () => {
@@ -113,31 +141,37 @@ const logoutPopup = async () => {
   }
 }
 
+const checkUserInvited = (emailId: string): boolean => {
+  return userList.value.some(data => data.email_id === emailId);
+}
+
 const _showModal = () => {
   inviteAdUserModalRef.value?.show();
-  getAdUserList();
+  getInitAdUserList();
 }
 
 defineExpose({ showModal: _showModal });
 
 </script>
 <template>
-  <ModalComponent :is-modal-loading="isModalLoading" ref="inviteAdUserModalRef" hide-cancel >
+  <ModalComponent :is-modal-loading="isModalLoading" ref="inviteAdUserModalRef" hide-cancel>
     <template #modal-content>
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Invite Active Directory Users</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" >
+      <div class="modal-body">
         <div class="row mb-3 align-items-center">
           <div class="col">
             <input type="search" v-model="searchText" class="form-control" @input="getInitAdUserList"
               placeholder="Search..." aria-label="Search">
           </div>
         </div>
-        <div class="list-group modal-scroll" @scroll="handleScroll('scroller', !isModalLoading, getAdUserList)" ref="scroller">
+        <div class="list-group modal-scroll" @scroll="handleScroll('scroller', !isModalLoading, getAdUserList)"
+          ref="scroller">
           <label v-for="user in userListWithEmailId" :key="user.id" class="list-group-item d-flex align-items-center">
-            <input class="form-check-input checkbox-lg me-3 mt-0" type="checkbox"
+            <font-awesome-icon v-if="checkUserInvited(user.mail!)" title="Registered User" class="me-3 pe-1 text-success" icon="fa-solid fa-check" />
+            <input v-else class="form-check-input checkbox-lg me-3 mt-0" type="checkbox"
               :value="inviteUserList.some(data => data.mail == user.mail)" @change="manageInviteList(user)">
             <div class="row d-inline-block">
               <div class="col card-title">{{ user.displayName }}</div>
@@ -151,8 +185,8 @@ defineExpose({ showModal: _showModal });
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary me-auto" @click="logoutPopup">
-              AD Log Out
-            </button>
+          AD Log Out
+        </button>
         <button type="button" class="btn btn-primary" @click="inviteAdUsers">
           Invite
           <span v-if="inviteUserList.length > 0" class="badge bg-light text-dark"> {{ inviteUserList.length
