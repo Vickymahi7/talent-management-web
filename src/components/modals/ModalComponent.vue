@@ -70,10 +70,11 @@ defineExpose({ toggle: _toggle, show: _show, hide: _hide });
             <slot name="body" />
           </div>
           <div v-if="!hideFooter" class="modal-footer">
-            <button v-if="!hideCancel" type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              {{ cancelTitle }}
-            </button>
-            <slot name="footer"></slot>
+            <slot name="footer">
+              <button v-if="!hideCancel" type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                {{ cancelTitle }}
+              </button>
+            </slot>
           </div>
         </slot>
       </div>

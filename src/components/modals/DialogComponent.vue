@@ -19,27 +19,19 @@ function yesClick() {
 function noClick() {
   props.onNo();
 }
-function closeClick() {
-  props.onExit();
-}
+// function closeClick() {
+//   props.onExit();
+// }
 </script>
 <template>
-  <div class="modal fade" v-bind:id="id" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h6 class="modal-title" id="exampleModalLongTitle">{{ title }}</h6>
-          <button type="button" class="btn-close" @click="closeClick" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body" v-html="message">
-        </div>
-        <div v-if="showFooter" class="modal-footer">
-          <button v-if="noButton" type="button" class="btn btn-secondary" @click="noClick"
-            data-bs-dismiss="modal">No</button>
-          <button v-if="yesButton" type="button" class="btn btn-primary" @click="yesClick"
-            data-bs-dismiss="modal">Yes</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <ModalComponent :id="id" title="Forgot Password ?" ref="dialogModalRef" centered>
+    <template #body>
+      <div v-html="message"></div>
+    </template>
+    <template #footer v-if="showFooter">
+      <button v-if="noButton" type="button" class="btn btn-secondary" @click="noClick" data-bs-dismiss="modal">No</button>
+      <button v-if="yesButton" type="button" class="btn btn-primary" @click="yesClick"
+        data-bs-dismiss="modal">Yes</button>
+    </template>
+  </ModalComponent>
 </template>

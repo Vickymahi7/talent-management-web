@@ -20,6 +20,10 @@ const userName = computed(() => {
   return localStorage.getItem("userName") ?? '';
 });
 
+const userPhoto = computed(() => {
+  return localStorage.getItem("userPhoto") ?? '';
+});
+
 const tenantLogo = computed(() => {
   const _tenantLogo
     = localStorage.getItem("tenantLogo");
@@ -83,7 +87,12 @@ const showTenantProfileModal = () => {
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle  d-flex align-items-center" href="#" id="navbarDropdown" role="button"
             data-bs-toggle="dropdown" aria-expanded="false">
-            <span class="d-flex flex-column">
+            <span>
+              <img v-if="userPhoto" class="d-block rounded-circle mx-auto" :src="userPhoto" alt="" width="30"
+                height="30" />
+              <img v-else class="d-block rounded-circle mx-auto" src="@/assets/img/user-icon.png" alt="" width="30" height="30">
+            </span>
+            <span class="d-flex flex-column ms-2">
               <span class="fw-bold">{{ userName }}</span>
               <span class="small text-muted">{{ userType }}</span>
             </span>

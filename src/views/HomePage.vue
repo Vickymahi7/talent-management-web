@@ -24,6 +24,7 @@ const clearLoginDetails = () => {
   localStorage.removeItem("userTypeId")
   localStorage.removeItem("userName")
   localStorage.removeItem("tenantLogo")
+  localStorage.removeItem("userPhoto")
 }
 
 const loginUser = async () => {
@@ -36,6 +37,7 @@ const loginUser = async () => {
     localStorage.setItem("userTypeId", response.userTypeId ?? '');
     localStorage.setItem("userName", response.userName ?? '');
     localStorage.setItem("tenantLogo", response.tenantLogo ?? '');
+    localStorage.setItem("userPhoto", response.userPhoto ?? '');
 
     if (response.userTypeId == UserTypeId.SAD) {
       router.push({ name: 'tenantmanagement' });

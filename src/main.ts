@@ -6,7 +6,7 @@ import "./assets/css/main.scss";
 
 import { EventType, type AuthenticationResult } from "@azure/msal-browser";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
+import { faLinkedin, faHireAHelper } from "@fortawesome/free-brands-svg-icons";
 import { faCopy, faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
 import {
   faCamera,
@@ -76,6 +76,7 @@ library.add(
   faToolbox,
   faCaretRight,
   faCaretDown,
+  faHireAHelper,
 );
 const accounts = msalInstance.getAllAccounts();
 if (accounts.length > 0) {

@@ -245,6 +245,27 @@ const getUserHrProfileList = async () => {
     isLoading.value = false;
   }
 };
+const generateContentFromAi = async (topic: string, characterLength: number, answerType: string) => {
+  try {
+    const queryParams = {
+      profileTitle: hrProfile.value.profile_title,
+      topic: topic,
+      characterLength: characterLength,
+      answerType: answerType,
+    };
+    isLoading.value = true;
+    const response: any = await axios.get('/hrprofile/generatecontent', { params: queryParams });
+    const content = response.content;
+    if (topic == 'about')  hrProfile.value.objective = content;
+    else if (topic == 'summary')  hrProfile.value.summary = content;
+    
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
 const updateHrProfile = async (data: any) => {
   data.id = hrProfile.value.id;
 
@@ -942,6 +963,10 @@ const toggleElementCollapse = (_id: string) => {
               <h6 class="label-text mb-2">About
                 <template v-if="!isProfileVerified">
                   <span v-if="elements.aboutInfoEdit">
+                    <span class="small" title="AI Helper">
+                      <font-awesome-icon role="button" icon="fa-brands fa-hire-a-helper"
+                        @click="generateContentFromAi('about', 500, 'text')" />
+                    </span>
                     <span class="icon-btn float-end" @click="elements.aboutInfoEdit = false">
                       <font-awesome-icon icon="fa-solid fa-xmark" />
                     </span>
@@ -955,7 +980,7 @@ const toggleElementCollapse = (_id: string) => {
                 </template>
               </h6>
               <div v-if="elements.aboutInfoEdit" class="note-input-group">
-                <textarea v-model="hrProfile.objective" name="" id="" class="form-control" rows="2"></textarea>
+                <textarea v-model="hrProfile.objective" name="" id="" class="form-control"></textarea>
               </div>
               <p v-else class="profile-short-content">
                 {{ hrProfile.objective }}
@@ -1035,6 +1060,10 @@ const toggleElementCollapse = (_id: string) => {
                   <div class="d-block text-end mb-2">
                     <template v-if="!isProfileVerified">
                       <span v-if="elements.summaryEdit">
+                        <span class="float-start" title="AI Helper">
+                          <font-awesome-icon role="button" icon="fa-brands fa-hire-a-helper"
+                            @click="generateContentFromAi('summary', 2000, 'unorderdList')" />
+                        </span>
                         <span class="icon-btn me-1" @click="updateHrProfileItem('summary')">
                           <font-awesome-icon icon="fa-solid fa-check" />
                         </span>
@@ -1090,9 +1119,9 @@ const toggleElementCollapse = (_id: string) => {
                           <!-- </div> -->
                         </div>
                         <p v-if="workExperience.description">
-                          <a class="text-muted" data-bs-toggle="collapse"
-                            :href="`#collapse-workExp-${index}`" role="button" aria-expanded="false"
-                            aria-controls="collapse-workExp" @click="toggleElementCollapse(`collapse-workExp-${index}`)">
+                          <a class="text-muted" data-bs-toggle="collapse" :href="`#collapse-workExp-${index}`"
+                            role="button" aria-expanded="false" aria-controls="collapse-workExp"
+                            @click="toggleElementCollapse(`collapse-workExp-${index}`)">
                             {{ collapseElementId === `collapse-workExp-${index}` ? 'less' : 'more...' }}
                           </a>
                         </p>
@@ -1180,8 +1209,7 @@ const toggleElementCollapse = (_id: string) => {
                         <p v-if="project.description">
                           <a data-bs-toggle="collapse" :href="`#collapse-project-${index}`" role="button"
                             aria-expanded="false" aria-controls="collapse-project"
-                            @click="toggleElementCollapse(`collapse-project-${index}`)"
-                            style="content: 'less';">
+                            @click="toggleElementCollapse(`collapse-project-${index}`)" style="content: 'less';">
                             {{ collapseElementId === `collapse-project-${index}` ? 'less' : 'more...' }}
                           </a>
                         </p>
@@ -1612,4 +1640,5 @@ const toggleElementCollapse = (_id: string) => {
   <dialog-component id="deleteHrProfile" :onYes="onYesProfile" :returnParams="dialogParam" title="Delete Confirmation"
     message="Are you sure to delete profile?" />
   <dialog-component id="duplicateProfileConfirmation" :onYes="onYesDuplicateProfile" title="Duplicate Profile"
-    message="Are you sure you want to create a copy of this profile?" /></template>
+    message="Are you sure you want to create a copy of this profile?" />
+</template>
