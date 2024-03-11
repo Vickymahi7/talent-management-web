@@ -256,9 +256,9 @@ const generateContentFromAi = async (topic: string, characterLength: number, ans
     isLoading.value = true;
     const response: any = await axios.get('/hrprofile/generatecontent', { params: queryParams });
     const content = response.content;
-    if (topic == 'about')  hrProfile.value.objective = content;
-    else if (topic == 'summary')  hrProfile.value.summary = content;
-    
+    if (topic == 'about') hrProfile.value.objective = content;
+    else if (topic == 'summary') hrProfile.value.summary = content;
+
   } catch (error: any) {
     toast.error(error.message);
   }
@@ -804,8 +804,8 @@ const toggleElementCollapse = (_id: string) => {
             <div class="profile-picture-wrapper">
               <img v-if="hrProfile.photo_url" class="profile-picture" :class="{ 'small': elements.nameEdit }"
                 :src="getImageUrlWithTimestamp" alt="Profile Picture" width="150" height="150" />
-              <img v-else class="profile-picture" :class="{ 'small': elements.nameEdit }" src="@/assets/img/user-icon.png"
-                alt="Profile Picture" width="150" height="150" />
+              <img v-else class="profile-picture" :class="{ 'small': elements.nameEdit }"
+                src="@/assets/img/user-icon.png" alt="Profile Picture" width="150" height="150" />
               <span v-if="!isProfileVerified" class="icon-btn upload-icon"
                 @click="commonFunctions.fileUploadBtnClick('profileUploadInput')">
                 <font-awesome-icon icon="fa-solid fa-camera" />
@@ -815,10 +815,10 @@ const toggleElementCollapse = (_id: string) => {
             </div>
             <div class="title-block">
               <div v-if="elements.nameEdit">
-                <input type="text" class="form-control form-control-sm d-inline-block w-50" v-model="hrProfile.first_name"
-                  placeholder="First Name">
-                <input type="text" class="form-control form-control-sm d-inline-block w-50" v-model="hrProfile.last_name"
-                  placeholder="Last Name">
+                <input type="text" class="form-control form-control-sm d-inline-block w-50"
+                  v-model="hrProfile.first_name" placeholder="First Name">
+                <input type="text" class="form-control form-control-sm d-inline-block w-50"
+                  v-model="hrProfile.last_name" placeholder="Last Name">
               </div>
               <p v-else class="title-text">{{ hrProfile.first_name }} {{ hrProfile.last_name }}</p>
               <input v-if="elements.nameEdit" type="text" class="form-control form-control-sm"
@@ -962,19 +962,19 @@ const toggleElementCollapse = (_id: string) => {
             <div class="content-card h-100 card-gap-mb">
               <h6 class="label-text mb-2">About
                 <template v-if="!isProfileVerified">
-                  <span v-if="elements.aboutInfoEdit">
-                    <span class="small" title="AI Helper">
-                      <font-awesome-icon role="button" icon="fa-brands fa-hire-a-helper"
-                        @click="generateContentFromAi('about', 500, 'text')" />
-                    </span>
+                  <template v-if="elements.aboutInfoEdit">
+                    <img src="@/assets/svg/chatgpt.svg" alt="ChatGPT Icon" title="AI Helper"
+                      @click="generateContentFromAi('about', 500, 'text')" height="16" width="16" class="mb-1"
+                      role="button">
                     <span class="icon-btn float-end" @click="elements.aboutInfoEdit = false">
                       <font-awesome-icon icon="fa-solid fa-xmark" />
                     </span>
                     <span class="icon-btn float-end me-1" @click="updateHrProfileItem('objective')">
                       <font-awesome-icon icon="fa-solid fa-check" />
                     </span>
-                  </span>
-                  <span v-if="!elements.aboutInfoEdit" class="icon-btn float-end" @click="elements.aboutInfoEdit = true">
+                  </template>
+                  <span v-if="!elements.aboutInfoEdit" class="icon-btn float-end"
+                    @click="elements.aboutInfoEdit = true">
                     <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                   </span>
                 </template>
@@ -998,7 +998,7 @@ const toggleElementCollapse = (_id: string) => {
                 <span v-for="_skill, index in hrProfile.skills" :key="index" class="badge badge-custom me-1">
                   {{ _skill.skill }}
                   <span v-if="showSkillExp && (_skill.experience_year || _skill.experience_month)">({{
-                    commonFunctions.getExperienceString(_skill.experience_year, _skill.experience_month) }})</span>
+    commonFunctions.getExperienceString(_skill.experience_year, _skill.experience_month) }})</span>
                 </span>
                 <!-- </template> -->
               </p>
@@ -1060,10 +1060,9 @@ const toggleElementCollapse = (_id: string) => {
                   <div class="d-block text-end mb-2">
                     <template v-if="!isProfileVerified">
                       <span v-if="elements.summaryEdit">
-                        <span class="float-start" title="AI Helper">
-                          <font-awesome-icon role="button" icon="fa-brands fa-hire-a-helper"
-                            @click="generateContentFromAi('summary', 2000, 'unorderdList')" />
-                        </span>
+                        <img src="@/assets/svg/chatgpt.svg" alt="ChatGPT Icon" title="AI Helper"
+                          @click="generateContentFromAi('summary', 2000, 'unorderdList')" height="16" width="16"
+                          class="float-start mb-1" role="button">
                         <span class="icon-btn me-1" @click="updateHrProfileItem('summary')">
                           <font-awesome-icon icon="fa-solid fa-check" />
                         </span>
@@ -1107,7 +1106,8 @@ const toggleElementCollapse = (_id: string) => {
                           {{ formatDate(workExperience.start_date) }}
                           <span v-if="workExperience.start_date && workExperience.end_date"> - </span>
                           {{ formatDate(workExperience.end_date) }}
-                          <span v-if="(workExperience.start_date || workExperience.end_date) && workExperience.location">
+                          <span
+                            v-if="(workExperience.start_date || workExperience.end_date) && workExperience.location">
                             |
                           </span>
                           {{ workExperience.location }}
@@ -1225,8 +1225,8 @@ const toggleElementCollapse = (_id: string) => {
                           @click="showProfileChildItemEdit('project', project, 'projectAddEditModal')">
                           <font-awesome-icon icon="fa-solid fa-pencil-alt" />
                         </span>
-                        <span class="icon-btn" @click="removeProfileChildItem('project', project)" data-bs-toggle="modal"
-                          data-bs-target="#removeProfileChildItem">
+                        <span class="icon-btn" @click="removeProfileChildItem('project', project)"
+                          data-bs-toggle="modal" data-bs-target="#removeProfileChildItem">
                           <font-awesome-icon icon="fa-solid fa-trash" />
                         </span>
                       </div>
@@ -1345,7 +1345,7 @@ const toggleElementCollapse = (_id: string) => {
                           </div>
                         </div>
                         <a v-else-if="document.title" :href="document.path" target="_blank">{{
-                          document.title }}.{{ document.path.split(".").pop() }}</a>
+    document.title }}.{{ document.path.split(".").pop() }}</a>
                       </div>
                       <div v-if="!isProfileVerified" class="text-nowrap text-end ms-2">
                         <template v-if="elements.tabItemEdit && document.id == docId">
@@ -1406,7 +1406,7 @@ const toggleElementCollapse = (_id: string) => {
       <div class="container">
         <div class="row">
           <label for="skills" class="col-sm-4 col-form-label align-self-start">{{ showSkillExp ? 'Skill & Experience' :
-            'Skills' }}</label>
+    'Skills' }}</label>
           <div class="col-sm-12">
             <div class="row gx-1 gy-1">
               <div class="col">
@@ -1438,8 +1438,8 @@ const toggleElementCollapse = (_id: string) => {
                 @click="editSkill(_skill)" role="button">
                 <span>{{ _skill.skill }}
                   <span v-if="_skill.experience_year || _skill.experience_month">({{
-                    commonFunctions.getExperienceString(_skill.experience_year,
-                      _skill.experience_month) }})</span>
+    commonFunctions.getExperienceString(_skill.experience_year,
+      _skill.experience_month) }})</span>
                 </span>
                 <a href="#" class="d-inline-block ps-1" @click.stop="removeSkill(_skill)">
                   <font-awesome-icon icon="fa-solid fa-xmark" />
@@ -1455,8 +1455,8 @@ const toggleElementCollapse = (_id: string) => {
     </template>
   </ModalComponent>
   <ModalComponent id="workExperienceAddEditModal" :is-modal-loading="isModalLoading"
-    :title="`${elements.tabItemEdit ? 'Edit' : 'Add'} Work Experience`" @hide="clearWorkExperienceData(); getPageData();"
-    hide-cancel centered no-close-on-backdrop no-close-on-esc>
+    :title="`${elements.tabItemEdit ? 'Edit' : 'Add'} Work Experience`"
+    @hide="clearWorkExperienceData(); getPageData();" hide-cancel centered no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container">
         <form class="form-inline">
@@ -1515,8 +1515,8 @@ const toggleElementCollapse = (_id: string) => {
   </ModalComponent>
 
   <ModalComponent id="educationAddEditModal" :is-modal-loading="isModalLoading"
-    :title="`${elements.tabItemEdit ? 'Edit' : 'Add'} Education`" @hide="clearEducationData(); getPageData();" hide-cancel
-    centered no-close-on-backdrop no-close-on-esc>
+    :title="`${elements.tabItemEdit ? 'Edit' : 'Add'} Education`" @hide="clearEducationData(); getPageData();"
+    hide-cancel centered no-close-on-backdrop no-close-on-esc>
     <template #body>
       <div class="container">
         <form class="form-inline">
