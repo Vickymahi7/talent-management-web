@@ -25,9 +25,10 @@ const userPhoto = computed(() => {
 });
 
 const tenantLogo = computed(() => {
+  const baseUrl = (import.meta as any).env.VITE_API_BASE_URL;
   const _tenantLogo
     = localStorage.getItem("tenantLogo");
-  return _tenantLogo ?? null;
+  return _tenantLogo ? `${baseUrl}${_tenantLogo}` : null;
 });
 
 const userTypeId = computed(() => {
