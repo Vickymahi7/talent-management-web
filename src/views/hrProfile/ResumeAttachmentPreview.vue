@@ -2,7 +2,7 @@
 import axiosCustom from '@/plugins/axios'
 import type HrProfile from '@/types/HrProfile'
 import HrProfileComponent from '@/views/hrProfile/HrProfile.vue'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
 const props = defineProps({
   id: String
@@ -14,6 +14,10 @@ const byteArrayPDF = ref(false);
 const documentUrl = ref('');
 const hrProfile = ref({} as HrProfile);
 
+const imageBaseUrl = computed(() => {
+  return (import.meta as any).env.VITE_API_BASE_URL;
+});
+
 onMounted(() => {
   getHrProfileDetail();
 });
@@ -24,7 +28,7 @@ const getHrProfileDetail = async () => {
     const response: any = await axiosCustom.get('/hrprofile/view/' + props.id);
     hrProfile.value = response.hrProfile as HrProfile;
     if (hrProfile.value.resume_url) {
-      fetchDocument(hrProfile.value.resume_url);
+      fetchDocument(imageBaseUrl.value+'/'+hrProfile.value.resume_url);
     }
   } catch (error: any) {
     toast.error(error.message);
@@ -70,7 +74,7 @@ const fetchDocument = (url: string) => {
     <div class="col-5 ps-0">
       <iframe v-if="byteArrayPDF" :src="documentUrl" width="100%" height="100%" class="border rounded" frameborder="0"></iframe>
       <iframe v-else-if="hrProfile.resume_url"
-        :src="'https://view.officeapps.live.com/op/embed.aspx?src=' + hrProfile.resume_url" width="100%" height="100%"
+        :src="'https://view.officeapps.live.com/op/embed.aspx?src=' + imageBaseUrl + hrProfile.resume_url" width="100%" height="100%"
         class="border rounded" frameborder="0"></iframe>
     </div>
   </div>

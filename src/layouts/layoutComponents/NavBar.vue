@@ -21,14 +21,16 @@ const userName = computed(() => {
 });
 
 const userPhoto = computed(() => {
-  return localStorage.getItem("userPhoto") ?? '';
+  const baseUrl = (import.meta as any).env.VITE_API_BASE_URL;
+  const _userPhoto = localStorage.getItem("userPhoto");
+  return _userPhoto ? `${baseUrl}/${_userPhoto}` : null;
 });
 
 const tenantLogo = computed(() => {
   const baseUrl = (import.meta as any).env.VITE_API_BASE_URL;
   const _tenantLogo
     = localStorage.getItem("tenantLogo");
-  return _tenantLogo ? `${baseUrl}${_tenantLogo}` : null;
+  return _tenantLogo ? `${baseUrl}/${_tenantLogo}` : null;
 });
 
 const userTypeId = computed(() => {

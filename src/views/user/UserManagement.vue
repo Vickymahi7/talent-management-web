@@ -54,6 +54,9 @@ const dialogParam = ref({
   id: 0,
 });
 
+const imageBaseUrl = computed(() => {
+  return (import.meta as any).env.VITE_API_BASE_URL;
+});
 
 const userTypeId = computed(() => {
   const userTypeId
@@ -318,7 +321,7 @@ const _hideModal = () => {
                     <span v-else class="text-danger me-2" title="User Not Activated">
                       <font-awesome-icon icon="fa-solid fa-user-xmark" />
                     </span>
-                    <img v-if="item.photo_url" :src="item.photo_url" class="rounded-circle" width="25" height="25">
+                    <img v-if="item.photo_url" :src="imageBaseUrl+'/'+item.photo_url" class="rounded-circle" width="25" height="25">
                     <img v-else src="@/assets/img/user-icon.png" class="rounded-circle" width="25" height="25">
                     {{ item[field.key] }}
                   </div>

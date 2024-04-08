@@ -38,8 +38,8 @@ axiosInstance.interceptors.response.use(
     return res;
   },
   (error) => {
+    console.log(error);
     if (error.response?.data) {
-      console.log(error);
       if (error.response.data.status === HttpStatusCode.Unauthorized) {
         if (!isUnAuthorized.value) {
           console.log(error.response.data.status, isUnAuthorized.value);

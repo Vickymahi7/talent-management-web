@@ -165,11 +165,15 @@ const userTypeId = computed(() => {
   return typeId ? parseInt(typeId) : null;
 })
 
+
+const imageBaseUrl = computed(() => {
+  return (import.meta as any).env.VITE_API_BASE_URL;
+});
+
 const getImageUrlWithTimestamp = computed(() => {
-  const baseUrl = (import.meta as any).env.VITE_API_BASE_URL;
   const imageUrl = hrProfile.value.photo_url;
   const timestamp = new Date().getTime();
-  return `${baseUrl}${imageUrl}?timestamp=${timestamp}`;
+  return `${imageBaseUrl.value}/${imageUrl}?timestamp=${timestamp}`;
 })
 
 onMounted(() => {
@@ -1345,7 +1349,7 @@ const toggleElementCollapse = (_id: string) => {
                               placeholder="Enter Document Title">
                           </div>
                         </div>
-                        <a v-else-if="document.title" :href="document.path" target="_blank">{{
+                        <a v-else-if="document.title" :href="imageBaseUrl+'/'+document.path" target="_blank">{{
     document.title }}.{{ document.path.split(".").pop() }}</a>
                       </div>
                       <div v-if="!isProfileVerified" class="text-nowrap text-end ms-2">

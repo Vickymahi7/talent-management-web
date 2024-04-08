@@ -26,7 +26,7 @@ const getImageUrlWithTimestamp = computed(() => {
   const baseUrl = (import.meta as any).env.VITE_API_BASE_URL;
   const imageUrl = user.value.photo_url;
   const timestamp = new Date().getTime();
-  return `${baseUrl}${imageUrl}?timestamp=${timestamp}`;
+  return `${baseUrl}/${imageUrl}?timestamp=${timestamp}`;
 })
 
 const userType = computed(() => {
